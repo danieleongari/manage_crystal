@@ -248,7 +248,7 @@ if outputformat=="cif":
 	print >> ofile, "_atom_site_charge"
 
 	for i in range(0,natoms):	
-        	label=atom[i]+'_'+ str(i+1)
+        	label=atom[i]+ str(i+1)
 		print >> ofile, ('{0:10} {1:5} {2:>9.3f} {3:>9.3f} {4:>9.3f} {5:>9.5f}'.format(label,  atom[i], fract[i][0], fract[i][1], fract[i][2], charge[i]))
 
 
