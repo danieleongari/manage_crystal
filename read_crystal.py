@@ -323,7 +323,7 @@ if outputformat=="pwi":
    	print >> ofile, " "
    	print >> ofile, "K_POINTS gamma "  
 
-if outputformat=="cp2k":
+if outputformat=="cp2k":                          #tip: this section can be written in another file and added in the main with: @INCLUDE 'outputname.cp2k'
         print >> ofile, "  &SUBSYS"
         print >> ofile, "    &CELL"
         print >> ofile, "      PERIODIC XYZ"    
