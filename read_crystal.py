@@ -6,6 +6,7 @@ inputfilename          name of the input filename.inpformat
 inputformat	       input format
 
 natoms                 number of atoms
+ntypes                 number of different atom types
 ABC[012]               A B C in angstrom
 abc[012]               alpha,beta,gamma in radians
 cell(3x3)              unit cell matrix in angstrom
@@ -229,8 +230,10 @@ print "***************************************************"
 print "  keep calm: I am converting %s to %s" % (inputformat, outputformat)
 print "***************************************************"
 
+ntypes=0
 for i in range(1,len(atom_count)):
 	if atom_count[i] != 0:
+ 		ntypes+=1
 		print('{0:>5} {1:3} atoms'.format(atom_count[i],atomic_symbol[i]))
 
 print " ---- --- ----- "
@@ -297,6 +300,10 @@ if outputformat=="xyz":
 		print >> ofile, "%3s %8.3f %8.3f %8.3f "  %(atom[i], xyz[i][0],xyz[i][1],xyz[i][2])
 
 if outputformat=="pwi":
+   	print >> ofile, "ibrav = 0 "
+    	print >> ofile, "nat   = %d " %(natoms)
+    	print >> ofile, "ntyp  = %d " %(ntypes)
+       	print >> ofile, " " 
    	print >> ofile, "ATOMIC_SPECIES " 
         for i in range(1,len(atom_count)):
 	  if atom_count[i] != 0:
