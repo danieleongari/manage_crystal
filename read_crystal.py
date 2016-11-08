@@ -226,6 +226,7 @@ if sys.argv[2]=='info':
   justinfo=True
   outputformat='JUST INFO'
 else:
+  justinfo=False
   outputfilename = sys.argv[2].split(".")[0]
   outputformat= sys.argv[2].split(".")[1]
 
@@ -276,18 +277,15 @@ if outputformat=="cif":
 	print >> ofile, "_atom_site_fract_y"
 	print >> ofile, "_atom_site_fract_z"
 	print >> ofile, "_atom_site_charge"
-
 	for i in range(0,natoms):	
         	label=atom[i]    #removed: label=atom[i]+"_"+str(i+1)
 		print >> ofile, ('{0:10} {1:5} {2:>9.3f} {3:>9.3f} {4:>9.3f} {5:>9.5f}'.format(label,  atom[i], fract[i][0], fract[i][1], fract[i][2], charge[i]))
-
 
 #writing a PDB file
 if outputformat=="pdb":
 	print >> ofile, ('CRYST1{0:>9.3f}{1:>9.3f}{2:>9.3f}{3:>7.2f}{4:>7.2f}{5:>7.2f} P 1           1'.format( ABC[0],ABC[1],ABC[2],math.degrees(abc[0]),math.degrees(abc[1]),math.degrees(abc[2]) ))
 	for i in range(0,natoms):
 		print >> ofile, "%-6s%5d %4s%1s%3s %1s%4d%1s   %8.3f%8.3f%8.3f%6.2f%6.2f          %2s%2s" %("ATOM", i+1, atom[i],"", "XXX", "X", 1,"",fract[i][0],fract[i][1],fract[i][2],1.00, 0.00, atom[i], "")
-
 
 #writing a CSSR file
 if outputformat=="cssr":
@@ -298,11 +296,9 @@ if outputformat=="cssr":
 	for i in range(0,natoms):
 		print >> ofile, "%4d %3s %8.3f %8.3f %8.3f    0  0  0  0  0  0  0  0  0.000"    %(i+1, atom[i], fract[i][0],fract[i][1],fract[i][2])
  
-
 if outputformat=="xyz":
    	print >> ofile, "%d"   %(natoms)
 	print >> ofile, "CELL: %.5f  %.5f  %.5f  %.3f  %.3f  %.3f  " %(ABC[0],ABC[1],ABC[2],math.degrees(abc[0]),math.degrees(abc[1]),math.degrees(abc[2]))
-
 	for i in range(0,natoms):
 		print >> ofile, "%3s %8.3f %8.3f %8.3f "  %(atom[i], xyz[i][0],xyz[i][1],xyz[i][2])
 
@@ -328,6 +324,28 @@ if outputformat=="pwi":
    	print >> ofile, "K_POINTS gamma "  
 
 if outputformat=="cp2k":
-        print >> ofile, "ibrav = 0 "
-
+        print >> ofile, "  &SUBSYS"
+        print >> ofile, "    &CELL"
+        print >> ofile, "      PERIODIC XYZ"    
+        print >> ofile, "      SYMMETRY NONE"    
+        print >> ofile, "      A [angstrom] %8.5f %8.5f %8.5f" %(cell.item((0,0)),cell.item((0,1)),cell.item((0,2)))
+        print >> ofile, "      B [angstrom] %8.5f %8.5f %8.5f" %(cell.item((1,0)),cell.item((1,1)),cell.item((1,2)))
+        print >> ofile, "      C [angstrom] %8.5f %8.5f %8.5f" %(cell.item((2,0)),cell.item((2,1)),cell.item((2,2)))
+        print >> ofile, "    &END CELL"
+        print >> ofile, " "
+        print >> ofile, "    &COORD"
+        print >> ofile, "      SCALED .FALSE." 
+        print >> ofile, "      UNIT   ANGSTROM" 
+	for i in range(0,natoms):
+		print >> ofile, "%3s %9.5f %9.5f %9.5f "  %(atom[i], xyz[i][0],xyz[i][1],xyz[i][2])
+        print >> ofile, "    &END COORD"
+        print >> ofile, " "
+        for i in range(1,len(atom_count)):
+	  if atom_count[i] != 0:
+            print >> ofile, "    &KIND %3s" %(atomic_symbol[i]) 
+            print >> ofile, "      BASIS_SET DZVP-MOLOPT-SR-GTH"
+            print >> ofile, "      POTENTIAL GTH-PBE" 
+            print >> ofile, "    &END KIND" 
+            print >> ofile, " " 
+        print >> ofile, "  &END SUBSYS"
 
