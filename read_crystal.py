@@ -39,14 +39,8 @@ if sys.argv[1]=='-h' or sys.argv[1]=='-help' or sys.argv[1]=='help':
 	print
 	sys.exit()
 
-############################################################################# STANDARD INFOS about the periodic table
-atom_tuple=('unassigned','H','He',
-            'Li','Be','B','C','N','O','F','Ne',
-            'Na','Mg','Al','Si','P','S','Cl','Ar',
-            'K','Ca','Sc','Ti','V','Cr','Mn','Fe','Co','Ni','Cu','Zn','Ga','Ge','As','Se','Br','Kr',
-            'Rb','Sr','Y','Zr','Nb','Mo','Tc','Ru','Rh','Pd','Ag','Cd','In','Sn','Sb','Te','I','Xe',
-            'Cs','Ba','La','Ce','Pr','Nd','Pm','Sm','Eu','Gd','Tb','Dy','Ho','Er','Tm','Yb','Lu','Hf','Ta','W','Re','Os','Ir','Pt','Au','Hg','Tl','Pb','Bi','Po','At','Rn',
-            'Fr','Ra','Ac','Th','Pa','U','Np','Pu','Am','Cm','Bk','Cf','Es','Fm','Md','No','Lr','Rf','Db','Sg','Bh','Hs','Mt','Ds','Rg','Cn','Uut','Fl','Uup','Lv','Uus','Uuo')
+############################################################################# STANDARD INFOS about the periodic table: atomic_ symbol/name/vdw/mass
+from atomic_data import *         #import all the data stored in the file atom_data.py
 
 atom_count=[0]*119 #anything assigned to 0, H_index=1, He_index=2, ...
 
@@ -79,7 +73,7 @@ if inputformat=='dcd':
 		line = file.readlines()[i+2]
 		data = line.split()
 		atom.append(data[0])	
-		#an.append(atom_tuple.index(atom[i]))
+		#an.append(atomic_symbol.index(atom[i]))
                 #atom_count[an[i]]+=1
 		an.append(1)
                 atom_count[an[i]]+=1
@@ -124,7 +118,7 @@ if inputformat=='pdb':
 	 else:		
                 data = line.split()
                 atom.append(data[2])
-                an.append(atom_tuple.index(atom[i]))
+                an.append(atomic_symbol.index(atom[i]))
                 atom_count[an[i]]+=1
 		xyz.append([float(line[30:38]), float(line[38:46]), float(line[46:54])])
                 charge.append(0.000)
@@ -150,7 +144,7 @@ if inputformat=='cssr':
 		line = file.readline()
 		data = line.split( )
 		atom.append(data[1])	
-		an.append(atom_tuple.index(atom[i]))
+		an.append(atomic_symbol.index(atom[i]))
                 atom_count[an[i]]+=1
 		fract.append([float(data[2]), float(data[3]), float(data[4])])
 		charge.append(0.000)
@@ -182,7 +176,7 @@ if inputformat=='xyz':
 		line = file.readline()
 		data = line.split( )
 		atom.append(data[0])	
-		an.append(atom_tuple.index(atom[i]))
+		an.append(atomic_symbol.index(atom[i]))
                 atom_count[an[i]]+=1
 		xyz.append([float(data[1]), float(data[2]), float(data[3])])
 		charge.append(0.000)
@@ -237,7 +231,7 @@ print "***************************************************"
 
 for i in range(1,len(atom_count)):
 	if atom_count[i] != 0:
-		print('{0:>5} {1:3} atoms'.format(atom_count[i],atom_tuple[i]))
+		print('{0:>5} {1:3} atoms'.format(atom_count[i],atomic_symbol[i]))
 
 print " ---- --- ----- "
 print('{0:>5} {1:3} atoms'.format(natoms,'tot'))
