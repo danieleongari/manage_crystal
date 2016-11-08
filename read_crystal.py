@@ -33,7 +33,7 @@ if sys.argv[1]=='-h' or sys.argv[1]=='-help' or sys.argv[1]=='help':
 	print '#  $ %s inputfile.xxx outputfile.yyy z' % (sys.argv[0])
 	print '#'
 	print '#  xxx=xyz(CELL),pdb,cssr          (next: cp2k-restart, xsf, pwo, pwi, gaussian, dcd+atoms)'
-	print '#  yyy=cif,pdb,cssr,xyz(CELL)'
+	print '#  yyy=cif,pdb,cssr,xyz(CELL),pwi'
 	print '#  z=f,l (for the first or the last coordinate in a dcd or pwo or axsf or log)'
         print '####################################################################################'
 	print
@@ -295,5 +295,22 @@ if outputformat=="xyz":
 
 	for i in range(0,natoms):
 		print >> ofile, "%3s %8.3f %8.3f %8.3f "  %(atom[i], xyz[i][0],xyz[i][1],xyz[i][2])
+
+if outputformat=="pwi":
+   	print >> ofile, "ATOMIC_SPECIES " 
+        for i in range(1,len(atom_count)):
+	  if atom_count[i] != 0:
+            	print >> ofile, "%3s %8.3f    " %(atomic_symbol[i],atomic_mass[i]) #add pseudo!
+       	print >> ofile, " " 
+   	print >> ofile, "CELL_PARAMETERS angstrom "    
+	print >> ofile, "%8.5f %8.5f %8.5f"    %(cell.item((0,0)),cell.item((0,1)),cell.item((0,2)))
+	print >> ofile, "%8.5f %8.5f %8.5f"    %(cell.item((1,0)),cell.item((1,1)),cell.item((1,2)))
+	print >> ofile, "%8.5f %8.5f %8.5f"    %(cell.item((2,0)),cell.item((2,1)),cell.item((2,2)))
+   	print >> ofile, " "
+   	print >> ofile, "ATOMIC_POSITIONS angstrom "  
+	for i in range(0,natoms):
+		print >> ofile, "%3s %9.5f %9.5f %9.5f "  %(atom[i], xyz[i][0],xyz[i][1],xyz[i][2])
+   	print >> ofile, " "
+   	print >> ofile, "K_POINTS gamma "  
 
 
