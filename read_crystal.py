@@ -32,9 +32,10 @@ if sys.argv[1]=='-h' or sys.argv[1]=='-help' or sys.argv[1]=='help':
 	print '#  Python program to read coordinates from a file and handle them:'
 	print '#'
 	print '#  $ %s inputfile.xxx outputfile.yyy z' % (sys.argv[0])
+	print '#  $ %s inputfile.xxx info'             % (sys.argv[0])  
 	print '#'
 	print '#  xxx=xyz(CELL),pdb,cssr          (next: cp2k-restart, xsf, pwo, pwi, gaussian, dcd+atoms)'
-	print '#  yyy=cif,pdb,cssr,xyz(CELL),pwi'
+	print '#  yyy=cif,pdb,cssr,xyz(CELL),pwi,cp2k'
 	print '#  z=f,l (for the first or the last coordinate in a dcd or pwo or axsf or log)'
         print '####################################################################################'
 	print
@@ -221,8 +222,12 @@ elif 'xyz' in locals(): #convert in fractionals
 
 
 #reading what to do
-outputfilename = sys.argv[2].split(".")[0]
-outputformat= sys.argv[2].split(".")[1]
+if sys.argv[2]=='info':
+  justinfo=True
+  outputformat='JUST INFO'
+else:
+  outputfilename = sys.argv[2].split(".")[0]
+  outputformat= sys.argv[2].split(".")[1]
 
 ############################################################################## OUTPUT INFO
 print
@@ -241,6 +246,8 @@ print('{0:>5} {1:3} atoms'.format(natoms,'tot'))
 print
 ############################################################################## OUTPUT FILE
 
+if justinfo:
+  sys.exit("YOU JUST ASKED FOR INFO: not converting!")
 
 ofile=open('./'+outputfilename+'.'+outputformat, 'w+')
 
@@ -319,5 +326,8 @@ if outputformat=="pwi":
 		print >> ofile, "%3s %9.5f %9.5f %9.5f "  %(atom[i], xyz[i][0],xyz[i][1],xyz[i][2])
    	print >> ofile, " "
    	print >> ofile, "K_POINTS gamma "  
+
+if outputformat=="cp2k":
+        print >> ofile, "ibrav = 0 "
 
 
