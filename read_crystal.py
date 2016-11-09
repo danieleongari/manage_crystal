@@ -55,7 +55,7 @@ file = open('./'+inputfilename+'.'+inputformat,'r')
 
 if inputformat=='dcd':
 	from pwtools import dcd
-	cc,co = dcd.read_dcd_data('./'+inputfilename+'.'+inputformat)
+	cc,co = dcd.read_dcd_data('./'+inputfilename+'.'+inputformat, convang=False) #convang=True usefull to read LAMMPS data, because it converts angles from cosine to degree
 	ABC=[ cc[-1][0], cc[-1][1], cc[-1][2] ]
 	abc=[ math.acos(cc[-1][3]), math.acos(cc[-1][4]), math.acos(cc[-1][5]) ]
 	cell=numpy.matrix([[                 ABC[0],                    0.0,                                                                           0.0],
@@ -166,9 +166,9 @@ if inputformat=='xyz':
 		abc=[math.radians(float(celldim[4])),math.radians(float(celldim[5])),math.radians(float(celldim[6]))]
 
 	elif celldim[0]=='cell:' or celldim[0]=='cell':
-		cell=numpy.matrix([[celldim[1],celldim[2],celldim[3]],
-		                   [celldim[4],celldim[5],celldim[6]],
-		                   [celldim[7],celldim[8],celldim[9]]])
+		cell=numpy.matrix([[float(celldim[1]),float(celldim[2]),float(celldim[3])],
+		                   [float(celldim[4]),float(celldim[5]),float(celldim[6])],
+		                   [float(celldim[7]),float(celldim[8]),float(celldim[9])]])
 	#read atom[index]
 	atom=[]
 	an=[]
@@ -188,11 +188,20 @@ if inputformat=='xyz':
 if 'cell' in locals():   #make uc ABC+abc if it was read in cell
   print
   print " ...converting cell (matrix) to CELL (ABCabc)"
-  next=todo
+  ABC=[0]*3
+  abc=[0]*3
+  ABC[0]= math.sqrt(cell.item((0,0))*cell.item((0,0))+cell.item((0,1))*cell.item((0,1))+cell.item((0,2))*cell.item((0,2)) )
+  ABC[1]= math.sqrt(cell.item((1,0))*cell.item((1,0))+cell.item((1,1))*cell.item((1,1))+cell.item((1,2))*cell.item((1,2)) )
+  ABC[2]= math.sqrt(cell.item((2,0))*cell.item((2,0))+cell.item((2,1))*cell.item((2,1))+cell.item((2,2))*cell.item((2,2)) )
+  abc[0]= math.acos( (cell.item((1,0))*cell.item((2,0))+cell.item((1,1))*cell.item((2,1))+cell.item((1,2))*cell.item((2,2)))/ABC[1]/ABC[2] ) #alpha=B^C
+  abc[1]= math.acos( (cell.item((0,0))*cell.item((2,0))+cell.item((0,1))*cell.item((2,1))+cell.item((0,2))*cell.item((2,2)))/ABC[0]/ABC[2] ) #beta=A^C
+  abc[2]= math.acos( (cell.item((0,0))*cell.item((1,0))+cell.item((0,1))*cell.item((1,1))+cell.item((0,2))*cell.item((1,2)))/ABC[0]/ABC[1] ) #gamma=A^B
+
 elif 'ABC' in locals():  #make uc matrix if it was read in ABC+abc
   print
   print " ...converting CELL (ABCabc) to cell (matrix) "
   #alpha=B^C, beta=A^C, gamma=A^B
+
   cell=numpy.matrix([[                ABC[0],                     0.0,                                                                           0.0],
 		     [ABC[1]*math.cos(abc[2]),ABC[1]*math.sin(abc[2]),                                                                           0.0],
 		     [ABC[2]*math.cos(abc[1]),ABC[2]*math.cos(abc[0]),math.sqrt(ABC[2]**2-(ABC[2]*math.cos(abc[1]))**2-(ABC[2]*math.cos(abc[0]))**2)]]) #check this part
@@ -326,7 +335,8 @@ if outputformat=="pwi":
 if outputformat=="cp2k":                          #tip: this section can be written in another file and added in the main with: @INCLUDE 'outputname.cp2k'
         print >> ofile, "  &SUBSYS"
         print >> ofile, "    &CELL"
-        print >> ofile, "      PERIODIC XYZ"    
+        print >> ofile, "      PERIODIC XYZ"  
+        print >> ofile, "      MULTIPLE_UNIT_CELL 1 1 1" 
         print >> ofile, "      SYMMETRY NONE"    
         print >> ofile, "      A [angstrom] %8.5f %8.5f %8.5f" %(cell.item((0,0)),cell.item((0,1)),cell.item((0,2)))
         print >> ofile, "      B [angstrom] %8.5f %8.5f %8.5f" %(cell.item((1,0)),cell.item((1,1)),cell.item((1,2)))
@@ -335,7 +345,6 @@ if outputformat=="cp2k":                          #tip: this section can be writ
         print >> ofile, " "
         print >> ofile, "    &COORD"
         print >> ofile, "      SCALED .FALSE." 
-        print >> ofile, "      UNIT   ANGSTROM" 
 	for i in range(0,natoms):
 		print >> ofile, "%3s %9.5f %9.5f %9.5f "  %(atom[i], xyz[i][0],xyz[i][1],xyz[i][2])
         print >> ofile, "    &END COORD"
