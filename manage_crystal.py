@@ -129,11 +129,11 @@ if inputformat=='pdb':
 
 if inputformat=='cssr':
 	line = file.readline()
- 	celldim=line.split( )
-	ABC=[float(celldim[0]),float(celldim[1]),float(celldim[2])]
+ 	celltemp=line.split( )
+	ABC=[float(celltemp[0]),float(celltemp[1]),float(celltemp[2])]
 	line = file.readline()
- 	celldim=line.split( )
-	abc=[math.radians(float(celldim[0])),math.radians(float(celldim[1])),math.radians(float(celldim[2]))]
+ 	celltemp=line.split( )
+	abc=[math.radians(float(celltemp[0])),math.radians(float(celltemp[1])),math.radians(float( celltemp[2]))]
 	line = file.readline()
         natoms=int(line.split( )[0])
         line = file.readline() 
@@ -158,17 +158,17 @@ if inputformat=='xyz':
 
 	#read cell in my way of writing it as a comment of xyz
 	line = file.readline()
-	celldim=line.split( )
-	#debug: celldim=['cell:',1,2,3,4,5,6,7,8,9,10,11]
+	celltemp=line.split( )
+	#debug: celltemp=['cell:',1,2,3,4,5,6,7,8,9,10,11]
 
-	if celldim[0]=='CELL:' or celldim[0]=='CELL':
-		ABC=[float(celldim[1]),float(celldim[2]),float(celldim[3])]
-		abc=[math.radians(float(celldim[4])),math.radians(float(celldim[5])),math.radians(float(celldim[6]))]
+	if celltemp[0]=='CELL:' or celltemp[0]=='CELL':
+		ABC=[float( celltemp[1]),float(celltemp[2]),float(celltemp[3])]
+		abc=[math.radians(float(celltemp[4])),math.radians(float(celltemp[5])),math.radians(float( celltemp[6]))]
 
-	elif celldim[0]=='cell:' or celldim[0]=='cell':
-		cell=numpy.matrix([[float(celldim[1]),float(celldim[2]),float(celldim[3])],
-		                   [float(celldim[4]),float(celldim[5]),float(celldim[6])],
-		                   [float(celldim[7]),float(celldim[8]),float(celldim[9])]])
+	elif celltemp[0]=='cell:' or celltemp[0]=='cell':
+		cell=numpy.matrix([[float(celltemp[1]),float(celltemp[2]),float(celltemp[3])],
+		                   [float(celltemp[4]),float(celltemp[5]),float(celltemp[6])],
+		                   [float(celltemp[7]),float(celltemp[8]),float(celltemp[9])]])
 	#read atom[index]
 	atom=[]
 	an=[]
@@ -183,6 +183,49 @@ if inputformat=='xyz':
 		xyz.append([float(data[1]), float(data[2]), float(data[3])])
 		charge.append(0.000)
 
+if inputformat=='pwo':
+        #search for the last time the coordinates are printed and jump to that line
+        lookup='CELL_PARAMETERS'             
+        with file as myFile:
+         for num, line in enumerate(myFile, 1):
+           if lookup in line:
+            coord_line=num
+        file.close()
+        file = open('./'+inputfilename+'.'+inputformat,'r')
+        for i in range(0,coord_line):
+	 skip = file.readline()
+       
+	#read cell 
+	line = file.readline()
+	celltempA=line.split( )
+        line = file.readline()  
+        celltempB=line.split( )
+        line = file.readline()
+        celltempC=line.split( )  
+	cell=numpy.matrix([[float(celltempA[0]),float(celltempA[1]),float(celltempA[2])],
+		           [float(celltempB[0]),float(celltempB[1]),float(celltempB[2])],
+		           [float(celltempC[0]),float(celltempC[1]),float(celltempC[2])]])
+        skip = file.readline()
+        skip = file.readline()
+	#read atom[index]
+	atom=[]
+	an=[]
+	xyz=[]
+	charge=[]
+        i=0
+        while True:
+         line = file.readline()
+	 data = line.split()
+	 if len(data)==0:           #if the file is finished stop  
+		break 
+	 else:
+		atom.append(data[0])	
+		an.append(atomic_symbol.index(atom[i]))
+                atom_count[an[i]]+=1
+		xyz.append([float(data[1]), float(data[2]), float(data[3])])
+		charge.append(0.000)  
+                i=i+1
+        natoms=i
 ############################################################################# DO SOMETHING
 #check if xyz are really cartesian (angstrom) and if fract are really fractional coordinates.
 
