@@ -296,7 +296,7 @@ atomic_mass = (
     1000000) # Lw
 
 ################################# pseudoopotential name
-atomic_pbe = (    
+atomic_pseudo = {'pbe': [   
     ' ',  # X
     ' H.pbe-kjpaw_psl.1.0.0.UPF   ! 	 46.Ry	 221.Ry',  # H
     ' ',  # He [1]
@@ -400,9 +400,9 @@ atomic_pbe = (
     ' ',  # Fm
     ' ',  # Md
     ' ',  # No
-    ' ')  # Lr
-
-atomic_pbesol = (    
+    ' '], # Lr
+  
+'pbesol': [
     ' ',  # X
     ' H.pbesol-kjpaw_psl.1.0.0.UPF   ! 	 46.Ry	 221.Ry',  # H
     ' ',  # He [1]
@@ -506,4 +506,5 @@ atomic_pbesol = (
     ' ',  # Fm
     ' ',  # Md
     ' ',  # No
-    ' ')  # Lr
+    ' ']  # Lr
+}

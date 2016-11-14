@@ -37,6 +37,7 @@ if sys.argv[1]=='-h' or sys.argv[1]=='-help' or sys.argv[1]=='help':
 	print '#  xxx=xyz(CELL),pdb,cssr,pwi,pwo    (next: cp2k-restart, xsf,gaussian, dcd+atoms)'
 	print '#  yyy=cif,pdb,cssr,xyz(CELL),pwi,cp2k'
 	print '#  z=f,l (for the first or the last coordinate in a dcd or pwo or axsf or log)'
+	print '#  z=pbe, pbesol (pseudo for pwi output)'
         print '####################################################################################'
 	print
 	sys.exit()
@@ -402,6 +403,8 @@ if outputformat=="xyz":
 		print >> ofile, "%3s %8.3f %8.3f %8.3f "  %(atom[i], xyz[i][0],xyz[i][1],xyz[i][2])
 
 if outputformat=="pwi":
+        if len(sys.argv)<4:
+	   sys.exit("ERROR: You have to specify the pseudo in the input!")
    	print >> ofile, "ibrav = 0 "
     	print >> ofile, "nat   = %d " %(natoms)
     	print >> ofile, "ntyp  = %d " %(ntypes)
@@ -409,7 +412,7 @@ if outputformat=="pwi":
    	print >> ofile, "ATOMIC_SPECIES " 
         for i in range(1,len(atom_count)):
 	  if atom_count[i] != 0:
-            	print >> ofile, "%3s %8.3f    " %(atomic_symbol[i],atomic_mass[i]) #add pseudo!
+            	print >> ofile, "%3s %8.3f  %s" %(atomic_symbol[i],atomic_mass[i], atomic_pseudo[sys.argv[3]][i]) #add pseudo!
        	print >> ofile, " " 
    	print >> ofile, "CELL_PARAMETERS angstrom "    
 	print >> ofile, "%8.5f %8.5f %8.5f"    %(cell.item((0,0)),cell.item((0,1)),cell.item((0,2)))
