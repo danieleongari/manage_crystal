@@ -34,7 +34,7 @@ if sys.argv[1]=='-h' or sys.argv[1]=='-help' or sys.argv[1]=='help':
 	print '#  $ %s inputfile.xxx outputfile.yyy z' % (sys.argv[0])
 	print '#  $ %s inputfile.xxx info'             % (sys.argv[0])  
 	print '#'
-	print '#  xxx=xyz(CELL),pdb,cssr          (next: cp2k-restart, xsf, pwo, pwi, gaussian, dcd+atoms)'
+	print '#  xxx=xyz(CELL),pdb,cssr,pwi,pwo    (next: cp2k-restart, xsf,gaussian, dcd+atoms)'
 	print '#  yyy=cif,pdb,cssr,xyz(CELL),pwi,cp2k'
 	print '#  z=f,l (for the first or the last coordinate in a dcd or pwo or axsf or log)'
         print '####################################################################################'
@@ -205,8 +205,56 @@ if inputformat=='pwo':
 	cell=numpy.matrix([[float(celltempA[0]),float(celltempA[1]),float(celltempA[2])],
 		           [float(celltempB[0]),float(celltempB[1]),float(celltempB[2])],
 		           [float(celltempC[0]),float(celltempC[1]),float(celltempC[2])]])
-        skip = file.readline()
-        skip = file.readline()
+        skip = file.readline().split()
+        while len(skip)==0 or not skip[0]=='ATOMIC_POSITIONS':        
+         skip = file.readline().split()
+
+	#read atom[index]
+	atom=[]
+	an=[]
+	xyz=[]
+	charge=[]
+        i=0
+        while True:
+         line = file.readline()
+	 data = line.split()
+	 if len(data)==0:           #if the file is finished stop  
+		break 
+	 else:
+		atom.append(data[0])	
+		an.append(atomic_symbol.index(atom[i]))
+                atom_count[an[i]]+=1
+		xyz.append([float(data[1]), float(data[2]), float(data[3])])
+		charge.append(0.000)  
+                i=i+1
+        natoms=i
+
+if inputformat=='pwi':
+        #search for the last time the coordinates are printed and jump to that line
+        lookup='CELL_PARAMETERS'             
+        with file as myFile:
+         for num, line in enumerate(myFile, 1):
+           if lookup in line:
+            coord_line=num
+        file.close()
+        file = open('./'+inputfilename+'.'+inputformat,'r')
+        for i in range(0,coord_line):
+	 skip = file.readline()
+       
+	#read cell 
+	line = file.readline()
+	celltempA=line.split( )
+        line = file.readline()  
+        celltempB=line.split( )
+        line = file.readline()
+        celltempC=line.split( )  
+	cell=numpy.matrix([[float(celltempA[0]),float(celltempA[1]),float(celltempA[2])],
+		           [float(celltempB[0]),float(celltempB[1]),float(celltempB[2])],
+		           [float(celltempC[0]),float(celltempC[1]),float(celltempC[2])]])
+        skip = file.readline().split()
+        while len(skip)==0 or not skip[0]=='ATOMIC_POSITIONS':        
+         skip = file.readline().split()
+
 	#read atom[index]
 	atom=[]
 	an=[]
