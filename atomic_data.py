@@ -295,7 +295,7 @@ atomic_mass = (
     1000000, # No
     1000000) # Lw
 
-################################# pseudoopotential name
+################################# pseudoopotential: dictionary[pseudo_type][atomic_number]
 atomic_pseudo = {'pbe': [   
     ' ',  # X
     ' H.pbe-kjpaw_psl.1.0.0.UPF   ! 	 46.Ry	 221.Ry',  # H
@@ -317,7 +317,7 @@ atomic_pseudo = {'pbe': [
     ' ',  # Cl [1]
     ' ',  # Ar [1]
     ' ',  # K [1]
-    ' Ca.pbe-spn-kjpaw_psl.1.0.0.UPF ! 	 45.Ry	 274.Ry',  # Ca [5]
+    ' Ca.pbe-spn-kjpaw_psl.1.0.0.UPF !   45.Ry	 274.Ry',  # Ca [5]
     ' ',  # Sc
     ' ',  # Ti
     ' ',  # V

@@ -26,16 +26,16 @@ import math
 import subprocess
 
 ############################################################################# HELP 
-if sys.argv[1]=='-h' or sys.argv[1]=='-help' or sys.argv[1]=='help':
+if len(sys.argv)==1 or sys.argv[1]=='-h' or sys.argv[1]=='-help' or sys.argv[1]=='help':
         print
         print '####################################################################################'
-	print '#  Python program to read coordinates from a file and handle them:'
+	print '#  Python program to read coordinates from a file and manage them:'
 	print '#'
 	print '#  $ %s inputfile.xxx outputfile.yyy z' % (sys.argv[0])
 	print '#  $ %s inputfile.xxx info'             % (sys.argv[0])  
 	print '#'
-	print '#  xxx=xyz(CELL),pdb,cssr,pwi,pwo    (next: cp2k-restart, xsf,gaussian, dcd+atoms)'
-	print '#  yyy=cif,pdb,cssr,xyz(CELL),pwi,cp2k'
+	print '#  xxx=xyz(w/CELL),pdb,cssr,pwi,pwo    (next: cp2k-restart, xsf,gaussian, dcd+atoms)'
+	print '#  yyy=cif,pdb,cssr,xyz(w/CELL),pwi,cp2k'
 	print '#  z=f,l (for the first or the last coordinate in a dcd or pwo or axsf or log)'
 	print '#  z=pbe, pbesol (pseudo for pwi output)'
         print '####################################################################################'
@@ -54,6 +54,7 @@ inputfilename = sys.argv[1].split(".")[0]
 inputformat= sys.argv[1].split(".")[1]
 file = open('./'+inputfilename+'.'+inputformat,'r')
 
+"""/
 if inputformat=='dcd':
 	from pwtools import dcd
 	cc,co = dcd.read_dcd_data('./'+inputfilename+'.'+inputformat, convang=False) #convang=True usefull to read LAMMPS data, because it converts angles from cosine to degree
@@ -81,22 +82,7 @@ if inputformat=='dcd':
 		an.append(1)
                 atom_count[an[i]]+=1
 		#xyz.append([float(data[1]), float(data[2]), float(data[3])])
-		charge.append(0.000)                                               #fix
-
-#if inputformat=='pwo':
-#	pwo2scf=subprocess.call("which pwo2xsf", shell=True)
-#	if sys.argv[3]=="f":
-#		subprocess.call(pwoscf+"--inicoor    "+sys.argv[1]" > "inputfilename".xsf", shell=True)
-#	elif sys.argv[3]=="l":
-#		subprocess.call(pwoscf+"--latestcoor "+sys.argv[1]" > "inputfilename".xsf", shell=True)
-#	else:
-#		print "********* use f for first and l for last coordinate*****"
-#	file.close()
-#	file = open('./'+inputfilename+'.xsf','r')
-#	#now the xsf file still need to be processed
-	
-
-#if inputformat=='xsf' or inputformat=='pwo':
+		charge.append(0.000)       """                                        
 
 if inputformat=='pdb':
 	while True:
@@ -275,6 +261,8 @@ if inputformat=='pwi':
 		charge.append(0.000)  
                 i=i+1
         natoms=i
+
+file.close()
 ############################################################################# DO SOMETHING
 #check if xyz are really cartesian (angstrom) and if fract are really fractional coordinates.
 
