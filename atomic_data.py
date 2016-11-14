@@ -294,3 +294,216 @@ atomic_mass = (
     1000000, # Md
     1000000, # No
     1000000) # Lw
+
+################################# pseudoopotential name
+atomic_pbe = (    
+    ' ',  # X
+    ' H.pbe-kjpaw_psl.1.0.0.UPF   ! 	 46.Ry	 221.Ry',  # H
+    ' ',  # He [1]
+    ' ',  # Li [1]
+    ' ',  # Be [5]
+    ' B.pbe-n-kjpaw_psl.1.0.0.UPF ! 	 43.Ry	 325.Ry',  # B [5]
+    ' C.pbe-n-kjpaw_psl.1.0.0.UPF ! 	 40.Ry	 326.Ry',  # C [1]
+    ' N.pbe-n-kjpaw_psl.1.0.0.UPF ! 	 44.Ry	 320.Ry',  # N [1]
+    ' O.pbe-n-kjpaw_psl.1.0.0.UPF ! 	 47.Ry	 323.Ry',  # O [1]
+    ' ',  # F [1]
+    ' ',  # Ne [1]
+    ' Na.pbe-spn-kjpaw_psl.1.0.0.UPF ! 	 66.Ry	 323.Ry',  # Na [1]
+    ' ',  # Mg [1]
+    ' ',  # Al [5]
+    ' ',  # Si [1]
+    ' ',  # P [1]
+    ' S.pbe-n-kjpaw_psl.1.0.0.UPF ! 	 39.Ry	 181.Ry',  # S [1]
+    ' ',  # Cl [1]
+    ' ',  # Ar [1]
+    ' ',  # K [1]
+    ' Ca.pbe-spn-kjpaw_psl.1.0.0.UPF ! 	 45.Ry	 274.Ry',  # Ca [5]
+    ' ',  # Sc
+    ' ',  # Ti
+    ' ',  # V
+    ' ',  # Cr
+    ' ',  # Mn
+    ' ',  # Fe
+    ' ',  # Co
+    ' Ni.pbe-n-kjpaw_psl.1.0.0.UPF  ! 	 41.Ry	 236.Ry (spn available)',  # Ni [1]
+    ' Cu.pbe-dn-kjpaw_psl.1.0.0.UPF ! 	 45.Ry	 236.Ry (spn available)',  # Cu [1]
+    ' Zn.pbe-dn-kjpaw_psl.1.0.0.UPF ! 	 44.Ry	 276.Ry (spn available)',  # Zn [1]
+    ' ',  # Ga [1]
+    ' ',  # Ge [5]
+    ' ',  # As [1]
+    ' ',  # Se [1]
+    ' ',  # Br [1]
+    ' ',  # Kr [1]
+    ' ',  # Rb [5]
+    ' Sr.pbe-spn-kjpaw_psl.1.0.0.UPF ! 	 39.Ry	 262.Ry',  # Sr [5]
+    ' ',  # Y
+    ' ',  # Zr
+    ' ',  # Nb
+    ' ',  # Mo
+    ' ',  # Tc
+    ' ',  # Ru
+    ' ',  # Rh
+    ' ',  # Pd [1]
+    ' ',  # Ag [1]
+    ' Cd.pbe-n-kjpaw_psl.1.0.0.UPF ! 	 37.Ry	 638.Ry (spn available)',  # Cd [1]
+    ' ',  # In [1]
+    ' ',  # Sn [1]
+    ' ',  # Sb [5]
+    ' ',  # Te [1]
+    ' ',  # I [1]
+    ' ',  # Xe [1]
+    ' ',  # Cs [5]
+    ' ',  # Ba [5]
+    ' ',  # La
+    ' ',  # Ce
+    ' ',  # Pr
+    ' ',  # Nd
+    ' ',  # Pm
+    ' ',  # Sm
+    ' ',  # Eu
+    ' ',  # Gd
+    ' ',  # Tb
+    ' ',  # Dy
+    ' ',  # Ho
+    ' ',  # Er
+    ' ',  # Tm
+    ' ',  # Yb
+    ' ',  # Lu
+    ' ',  # Hf
+    ' ',  # Ta
+    ' ',  # W
+    ' ',  # Re
+    ' ',  # Os
+    ' ',  # Ir
+    ' ',  # Pt [1]
+    ' ',  # Au [1]
+    ' ',  # Hg [1]
+    ' ',  # Tl [1]
+    ' ',  # Pb [1]
+    ' ',  # Bi [5]
+    ' ',  # Po [5]
+    ' ',  # At [5]
+    ' ',  # Rn [5]
+    ' ',  # Fr [5]
+    ' ',  # Ra [5]
+    ' ',  # Ac
+    ' ',  # Th
+    ' ',  # Pa
+    ' ',  # U [1]
+    ' ',  # Np
+    ' ',  # Pu
+    ' ',  # Am
+    ' ',  # Cm
+    ' ',  # Bk
+    ' ',  # Cf
+    ' ',  # Es
+    ' ',  # Fm
+    ' ',  # Md
+    ' ',  # No
+    ' ')  # Lr
+
+atomic_pbesol = (    
+    ' ',  # X
+    ' H.pbesol-kjpaw_psl.1.0.0.UPF   ! 	 46.Ry	 221.Ry',  # H
+    ' ',  # He [1]
+    ' ',  # Li [1]
+    ' ',  # Be [5]
+    ' B.pbesol-n-kjpaw_psl.1.0.0.UPF ! 	 43.Ry	 324.Ry',  # B [5]
+    ' C.pbesol-n-kjpaw_psl.1.0.0.UPF ! 	 40.Ry	 325.Ry',  # C [1]
+    ' N.pbesol-n-kjpaw_psl.1.0.0.UPF ! 	 44.Ry	 364.Ry',  # N [1]
+    ' O.pbesol-n-kjpaw_psl.1.0.0.UPF ! 	 47.Ry	 323.Ry',  # O [1]
+    ' ',  # F [1]
+    ' ',  # Ne [1]
+    ' Na.pbesol-spn-kjpaw_psl.1.0.0.UPF ! 	 66.Ry	 323.Ry',  # Na [1]
+    ' ',  # Mg [1]
+    ' ',  # Al [5]
+    ' ',  # Si [1]
+    ' ',  # P [1]
+    ' S.pbesol-n-kjpaw_psl.1.0.0.UPF ! 	 39.Ry	 181.Ry',  # S [1]
+    ' ',  # Cl [1]
+    ' ',  # Ar [1]
+    ' ',  # K [1]
+    ' Ca.pbesol-spn-kjpaw_psl.1.0.0.UPF ! 	 45.Ry	 274.Ry',  # Ca [5]
+    ' ',  # Sc
+    ' ',  # Ti
+    ' ',  # V
+    ' ',  # Cr
+    ' ',  # Mn
+    ' ',  # Fe
+    ' ',  # Co
+    ' Ni.pbesol-n-kjpaw_psl.1.0.0.UPF ! 	 41.Ry	 236.Ry (spn available)',  # Ni [1]
+    ' Cu.pbesol-dn-kjpaw_psl.1.0.0.UPF ! 	 45.Ry	 236.Ry (spn available)',  # Cu [1]
+    ' Zn.pbesol-dn-kjpaw_psl.1.0.0.UPF ! 	 44.Ry	 276.Ry (spn available)',  # Zn [1]
+    ' ',  # Ga [1]
+    ' ',  # Ge [5]
+    ' ',  # As [1]
+    ' ',  # Se [1]
+    ' ',  # Br [1]
+    ' ',  # Kr [1]
+    ' ',  # Rb [5]
+    ' Sr.pbesol-spn-kjpaw_psl.1.0.0.UPF ! 	 39.Ry	 262.Ry',  # Sr [5]
+    ' ',  # Y
+    ' ',  # Zr
+    ' ',  # Nb
+    ' ',  # Mo
+    ' ',  # Tc
+    ' ',  # Ru
+    ' ',  # Rh
+    ' ',  # Pd [1]
+    ' ',  # Ag [1]
+    ' Cd.pbesol-n-kjpaw_psl.1.0.0.UPF ! 	 37.Ry	 638.Ry (spn available)',  # Cd [1]
+    ' ',  # In [1]
+    ' ',  # Sn [1]
+    ' ',  # Sb [5]
+    ' ',  # Te [1]
+    ' ',  # I [1]
+    ' ',  # Xe [1]
+    ' ',  # Cs [5]
+    ' ',  # Ba [5]
+    ' ',  # La
+    ' ',  # Ce
+    ' ',  # Pr
+    ' ',  # Nd
+    ' ',  # Pm
+    ' ',  # Sm
+    ' ',  # Eu
+    ' ',  # Gd
+    ' ',  # Tb
+    ' ',  # Dy
+    ' ',  # Ho
+    ' ',  # Er
+    ' ',  # Tm
+    ' ',  # Yb
+    ' ',  # Lu
+    ' ',  # Hf
+    ' ',  # Ta
+    ' ',  # W
+    ' ',  # Re
+    ' ',  # Os
+    ' ',  # Ir
+    ' ',  # Pt [1]
+    ' ',  # Au [1]
+    ' ',  # Hg [1]
+    ' ',  # Tl [1]
+    ' ',  # Pb [1]
+    ' ',  # Bi [5]
+    ' ',  # Po [5]
+    ' ',  # At [5]
+    ' ',  # Rn [5]
+    ' ',  # Fr [5]
+    ' ',  # Ra [5]
+    ' ',  # Ac
+    ' ',  # Th
+    ' ',  # Pa
+    ' ',  # U [1]
+    ' ',  # Np
+    ' ',  # Pu
+    ' ',  # Am
+    ' ',  # Cm
+    ' ',  # Bk
+    ' ',  # Cf
+    ' ',  # Es
+    ' ',  # Fm
+    ' ',  # Md
+    ' ',  # No
+    ' ')  # Lr

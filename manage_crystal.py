@@ -184,6 +184,7 @@ if inputformat=='xyz':
 		charge.append(0.000)
 
 ############################################################################# DO SOMETHING
+#check if xyz are really cartesian (angstrom) and if fract are really fractional coordinates.
 
 if 'cell' in locals():   #make uc ABC+abc if it was read in cell
   print
@@ -200,8 +201,6 @@ if 'cell' in locals():   #make uc ABC+abc if it was read in cell
 elif 'ABC' in locals():  #make uc matrix if it was read in ABC+abc
   print
   print " ...converting CELL (ABCabc) to cell (matrix) "
-  #alpha=B^C, beta=A^C, gamma=A^B
-
   cell=numpy.matrix([[                ABC[0],                     0.0,                                                                           0.0],
 		     [ABC[1]*math.cos(abc[2]),ABC[1]*math.sin(abc[2]),                                                                           0.0],
 		     [ABC[2]*math.cos(abc[1]),ABC[2]*math.cos(abc[0]),math.sqrt(ABC[2]**2-(ABC[2]*math.cos(abc[1]))**2-(ABC[2]*math.cos(abc[0]))**2)]]) #check this part
