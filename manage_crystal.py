@@ -205,7 +205,7 @@ if inputformat=='pwo':
         while True:
          line = file.readline()
 	 data = line.split()
-	 if len(data)==0:           #if the file is finished stop  
+	 if len(data)<4:           #if the file is finished stop  
 		break 
 	 else:
 		atom.append(data[0])	
