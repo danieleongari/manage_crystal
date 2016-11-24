@@ -50,9 +50,9 @@ atom_count=[0]*119 #anything assigned to 0, H_index=1, He_index=2, ...
 ############################################################################## INPUT
 
 #reading input file: name and format
-inputfilename = sys.argv[1].split(".")[0]
-inputformat= sys.argv[1].split(".")[1]
-file = open('./'+inputfilename+'.'+inputformat,'r')
+inputfilename = sys.argv[1].split(".")[-2]
+inputformat= sys.argv[1].split(".")[-1]
+file = open(sys.argv[1],'r')
 
 """/
 if inputformat=='dcd':
@@ -315,8 +315,8 @@ if sys.argv[2]=='info':
   outputformat='JUST INFO'
 else:
   justinfo=False
-  outputfilename = sys.argv[2].split(".")[0]
-  outputformat= sys.argv[2].split(".")[1]
+  outputfilename = sys.argv[2].split(".")[-2]
+  outputformat= sys.argv[2].split(".")[-1]
 
 ############################################################################## OUTPUT INFO
 print
@@ -338,7 +338,7 @@ print
 if justinfo:
   sys.exit("YOU JUST ASKED FOR INFO: not converting!")
 
-ofile=open('./'+outputfilename+'.'+outputformat, 'w+')
+ofile=open(sys.argv[2], 'w+')
 
 #writing a CIF file
 if outputformat=="cif":
