@@ -35,7 +35,7 @@ if len(sys.argv)==1 or sys.argv[1]=='-h' or sys.argv[1]=='-help' or sys.argv[1]=
 	print '#  $ %s inputfile.xxx info'             % (sys.argv[0])  
 	print '#'
 	print '#  xxx=xyz(w/CELL),pdb,cssr,pwi,pwo    (next: cp2k-restart, xsf,gaussian, dcd+atoms)'
-	print '#  yyy=cif,pdb,cssr,xyz(w/CELL),pwi,cp2k'
+	print '#  yyy=cif,pdb,cssr,xyz(w/CELL),pwi,cp2k,axsf'
 	print '#  z=f,l (for the first or the last coordinate in a dcd or pwo or axsf or log)'
 	print '#  z=pbe, pbesol (pseudo for pwi output)'
         print '####################################################################################'
@@ -438,4 +438,19 @@ if outputformat=="cp2k":                          #tip: this section can be writ
             print >> ofile, "    &END KIND" 
             print >> ofile, " " 
         print >> ofile, "  &END SUBSYS"
+
+if outputformat=="axsf":                          
+        print >> ofile, "ANIMSTEPS 1"
+        print >> ofile, "CRYSTAL"
+        print >> ofile, "PRIMVEC 1"
+	print >> ofile, "     %8.5f %8.5f %8.5f"    %(cell.item((0,0)),cell.item((0,1)),cell.item((0,2)))
+	print >> ofile, "     %8.5f %8.5f %8.5f"    %(cell.item((1,0)),cell.item((1,1)),cell.item((1,2)))
+	print >> ofile, "     %8.5f %8.5f %8.5f"    %(cell.item((2,0)),cell.item((2,1)),cell.item((2,2)))
+        print >> ofile, "PRIMCOORD 1"
+    	print >> ofile, "%d 1"                      %(natoms)
+	for i in range(0,natoms):
+		print >> ofile, "%3s %8.3f %8.3f %8.3f "  %(atom[i], xyz[i][0],xyz[i][1],xyz[i][2])
+
+
+
 
