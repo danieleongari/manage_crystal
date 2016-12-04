@@ -7,6 +7,7 @@ import string,sys
 import numpy
 import math
 import subprocess
+import matplotlib.pyplot as plt
 
 ############################################################################# HELP 
 if len(sys.argv)==1 or sys.argv[1]=='-h' or sys.argv[1]=='-help' or sys.argv[1]=='help':
@@ -33,7 +34,7 @@ binsize=[0]*3 #works only with orthogonal cells
 #reading input file: name and format
 for nfile in range(1,len(sys.argv)):
         print
-        print sys.argv[nfile]
+        print "Reading: %s" %sys.argv[nfile]
 	file = open(sys.argv[nfile],'r')
 	header1 = file.readline()
 	header2 = file.readline().split()
@@ -84,8 +85,9 @@ for nfile in range(1,len(sys.argv)):
 	print "MIN (kJ/mol) = %.3f " %min(gridValues)
         print "MAX (kJ/mol) = %.3f " %max(gridValues)
 
-        #Henry coefficient
-        T= 298       					#K
+        #Compute Henry coefficient
+        
+        T= 298      					#K
         R= 0.008314  					#kJ/mol/K
         beta=1/R/T;  					#mol/kJ
 
@@ -93,10 +95,29 @@ for nfile in range(1,len(sys.argv)):
         boltz_ave=sum(boltz_coeff)/len(gridValues)
         mu_ex=-1/beta*math.log(boltz_ave)
         K_H=beta*boltz_ave                          	#(mol/kJ)
+        print
+        print "Thermodynamic data at %d K:" %T
         print "mu_ex (kJ/mol) = %.3f "                         %mu_ex
-        print "K_H (mol/Pa/kg) = %.3f (mol/J) * rho_framework (kg/m3)"  %(K_H/1000)		
-        
+        print "K_H (mol/Pa/kg) = %.3f (mol/J) / rho_framework (kg/m3)"  %(K_H/1000)
+	print
+        print "Printing EnergyGrid histogram..."   
 
+        #Compute histogram   	
+        U_max=0
+        U_histo=[]
+        for U in gridValues:
+          if (U<U_max):
+	    U_histo.append(U)
+
+        f, ax = plt.subplots()   
+        ax.hist(U_histo, 1000, normed=1)
+        plt.yscale('log')
+        ax.set_title(sys.argv[nfile])
+        ax.set_xlabel('Energy of interaction (kJ/mol)')
+        ax.set_ylabel('Normalized histogram')
+	plt.show()
+	
+	
         file.close()
 
 
