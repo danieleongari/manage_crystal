@@ -32,12 +32,13 @@ if len(sys.argv)==1 or sys.argv[1]=='-h' or sys.argv[1]=='-help' or sys.argv[1]=
 	print '#  Python program to read coordinates from a file and manage them:'
 	print '#'
 	print '#  $ %s inputfile.xxx outputfile.yyy z' % (sys.argv[0])
+	print '#  $ %s inputfile.xxx yyy z'            % (sys.argv[0])
 	print '#  $ %s inputfile.xxx info'             % (sys.argv[0]) 
 	print '#  $ %s inputfile.xxx show'             % (sys.argv[0]) 
 	print '#'
 	print '#  xxx=xyz(w/CELL),pdb,cssr,pwi,pwo    (next: cp2k-restart, xsf,gaussian, dcd+atoms)'
 	print '#  yyy=cif,pdb,cssr,xyz(w/CELL),pwi,cp2k,axsf'
-	print '#  z=f,l (for the first or the last coordinate in a dcd or pwo or axsf or log)'
+       #print '#  z=f,l (for the first or the last coordinate in a dcd or pwo or axsf or log)'
 	print '#  z=pbe, pbesol (pseudo for pwi output)'
         print '####################################################################################'
 	print
@@ -167,7 +168,7 @@ if inputformat=='xyz':
 		xyz.append([float(data[1]), float(data[2]), float(data[3])])
 
 if (inputformat=='pwo') or (inputformat=='pwi'):
-        #search for the last time the cell/coord are printed and jump to that line (no need to be converged): if they are not found read the initial input
+        #search for the last time the cell/coord are printed and jump to that line (no need to be converged). ONLY if they are not found, it reads the initial input
   #cell        
         with file as myFile:
          for num, line in enumerate(myFile, 1):
@@ -316,9 +317,16 @@ elif sys.argv[2]=='show':
   justshow=True
   outputformat='JUST SHOW'
 else:
-  outputfilename = sys.argv[2].split(".")[-2]
-  outputformat= sys.argv[2].split(".")[-1]
+  if len(sys.argv[2].split("."))>1:             # output defined as name.format
+   outputfilename = sys.argv[2].split(".")[-2]
+   outputformat   = sys.argv[2].split(".")[-1]
+   outputfile     = sys.argv[2] 
+  else:                                         # output defined as format
+   outputfilename = inputfilename
+   outputformat   = sys.argv[2]
+   outputfile     = outputfilename+"."+outputformat
 
+   
 ############################################################################## OUTPUT INFO
 print
 print "***************************************************"
@@ -356,7 +364,7 @@ if justshow:
         sys.exit("YOU JUST ASKED TO SHOW: no external files printed!")
 
 
-ofile=open(sys.argv[2], 'w+')
+ofile=open(outputfile, 'w+')
 
 #writing a CIF file
 if outputformat=="cif":
