@@ -47,6 +47,7 @@ from atomic_data import *         #import all the data stored in the file atom_d
 
 atom_count=[0]*119 #anything assigned to 0, H_index=1, He_index=2, ...
 
+ANGS2BOHR=1.88973 
 ############################################################################## INPUT
 
 #reading input file: name and format
@@ -95,7 +96,6 @@ if inputformat=='pdb':
         atom=[]
         an=[]
         xyz=[]
-        charge=[]
 	i=0
         while True:
          line = file.readline()
@@ -110,7 +110,6 @@ if inputformat=='pdb':
                 an.append(atomic_symbol.index(atom[i]))
                 atom_count[an[i]]+=1
 		xyz.append([float(line[30:38]), float(line[38:46]), float(line[46:54])])
-                charge.append(0.000)
 		i=i+1	
 	 natoms=i
 
@@ -127,7 +126,6 @@ if inputformat=='cssr':
         atom=[]
         an=[]
         fract=[]
-        charge=[]
 	i=0
 	for i in range(0,natoms):
 		line = file.readline()
@@ -136,7 +134,6 @@ if inputformat=='cssr':
 		an.append(atomic_symbol.index(atom[i]))
                 atom_count[an[i]]+=1
 		fract.append([float(data[2]), float(data[3]), float(data[4])])
-		charge.append(0.000)
 
 if inputformat=='xyz':
 	#read number of atoms
@@ -160,7 +157,6 @@ if inputformat=='xyz':
 	atom=[]
 	an=[]
 	xyz=[]
-	charge=[]
 	for i in range(0,natoms):
 		line = file.readline()
 		data = line.split( )
@@ -168,100 +164,96 @@ if inputformat=='xyz':
 		an.append(atomic_symbol.index(atom[i]))
                 atom_count[an[i]]+=1
 		xyz.append([float(data[1]), float(data[2]), float(data[3])])
-		charge.append(0.000)
 
-if inputformat=='pwo':
-        #search for the last time the coordinates are printed and jump to that line
-        lookup='CELL_PARAMETERS'             
+if (inputformat=='pwo') or (inputformat=='pwi'):
+        #search for the last time the cell/coord are printed and jump to that line (no need to be converged): if they are not found read the initial input
+  #cell        
         with file as myFile:
          for num, line in enumerate(myFile, 1):
-           if lookup in line:
-            coord_line=num
+           if 'CELL_PARAMETERS' in line:
+            cell_line=num
         file.close()
-        file = open('./'+inputfilename+'.'+inputformat,'r')
-        for i in range(0,coord_line):
-	 skip = file.readline()
-       
-	#read cell 
-	line = file.readline()
-	celltempA=line.split( )
-        line = file.readline()  
-        celltempB=line.split( )
-        line = file.readline()
-        celltempC=line.split( )  
-	cell=numpy.matrix([[float(celltempA[0]),float(celltempA[1]),float(celltempA[2])],
-		           [float(celltempB[0]),float(celltempB[1]),float(celltempB[2])],
-		           [float(celltempC[0]),float(celltempC[1]),float(celltempC[2])]])
-        skip = file.readline().split()
-        while len(skip)==0 or not skip[0]=='ATOMIC_POSITIONS':        
-         skip = file.readline().split()
+ 
+        file = open(sys.argv[1],'r')
+        if 'cell_line' in locals():  #read cell in vc-relax calculation    
+          for i in range(0,cell_line):
+	   skip = file.readline() #title line
 
-	#read atom[index]
+	  celltempA = file.readline().split()
+          celltempB = file.readline().split()
+          celltempC = file.readline().split()
+	  cell=numpy.matrix([[float(celltempA[0]),float(celltempA[1]),float(celltempA[2])],
+	 	             [float(celltempB[0]),float(celltempB[1]),float(celltempB[2])],
+	   	             [float(celltempC[0]),float(celltempC[1]),float(celltempC[2])]])
+
+        else:  #read cell in scf or relax calculation
+          while True:
+            data = file.readline().split()
+            if len(data)>0 and (data[0]=="celldm(1)="):
+               celldm1=float(data[1])/ANGS2BOHR
+               skip = file.readline().split()
+               skip = file.readline().split()
+               skip = file.readline().split()
+	       celltempA = file.readline().split()
+               celltempB = file.readline().split()
+               celltempC = file.readline().split()
+	       cell=numpy.matrix([[float(celltempA[3]),float(celltempA[4]),float(celltempA[5])],
+		                  [float(celltempB[3]),float(celltempB[4]),float(celltempB[5])],
+		                  [float(celltempC[3]),float(celltempC[4]),float(celltempC[5])]])
+               cell*=celldm1
+               break
+
+        file.close()
+          
+  #atomic
 	atom=[]
 	an=[]
 	xyz=[]
-	charge=[]
-        i=0
-        while True:
-         line = file.readline()
-	 data = line.split()
-	 if len(data)<4:           #if the file is finished stop  
-		break 
-	 else:
-		atom.append(data[0])	
-		an.append(atomic_symbol.index(atom[i]))
-                atom_count[an[i]]+=1
-		xyz.append([float(data[1]), float(data[2]), float(data[3])])
-		charge.append(0.000)  
-                i=i+1
-        natoms=i
 
-if inputformat=='pwi':
-        #search for the last time the coordinates are printed and jump to that line
-        lookup='CELL_PARAMETERS'             
+        file = open(sys.argv[1],'r')
         with file as myFile:
          for num, line in enumerate(myFile, 1):
-           if lookup in line:
-            coord_line=num
+           if 'ATOMIC_POSITIONS' in line:
+            atomic_line=num
         file.close()
-        file = open('./'+inputfilename+'.'+inputformat,'r')
-        for i in range(0,coord_line):
-	 skip = file.readline()
-       
-	#read cell 
-	line = file.readline()
-	celltempA=line.split( )
-        line = file.readline()  
-        celltempB=line.split( )
-        line = file.readline()
-        celltempC=line.split( )  
-	cell=numpy.matrix([[float(celltempA[0]),float(celltempA[1]),float(celltempA[2])],
-		           [float(celltempB[0]),float(celltempB[1]),float(celltempB[2])],
-		           [float(celltempC[0]),float(celltempC[1]),float(celltempC[2])]])
-        skip = file.readline().split()
-        while len(skip)==0 or not skip[0]=='ATOMIC_POSITIONS':        
-         skip = file.readline().split()
 
-	#read atom[index]
-	atom=[]
-	an=[]
-	xyz=[]
-	charge=[]
-        i=0
-        while True:
-         line = file.readline()
-	 data = line.split()
-	 if len(data)==0:           #if the file is finished stop  
-		break 
-	 else:
+        file = open(sys.argv[1],'r') 
+        if 'atomic_line' in locals(): #read atomic in vc-relax and relax calculation 
+          for i in range(0,atomic_line):
+	   skip = file.readline() 
+          i=0
+          while True:
+           data = file.readline().split()
+	   if len(data)<4:           #if the file is finished stop  
+	  	break 
+	   else:
 		atom.append(data[0])	
-		an.append(atomic_symbol.index(atom[i]))
+		an.append(atomic_symbol.index(atom[i]))              
                 atom_count[an[i]]+=1
-		xyz.append([float(data[1]), float(data[2]), float(data[3])])
-		charge.append(0.000)  
+		xyz.append([float(data[1]), float(data[2]), float(data[3])]) 
                 i=i+1
-        natoms=i
-
+          natoms=i
+ 
+        else: #read atomic in scf calculation 
+          while True:
+            data = file.readline().split()
+            if len(data)>0 and (data[0]=="celldm(1)="):
+              celldm1=float(data[1])/ANGS2BOHR
+            if len(data)>3 and (data[3]=="positions"):
+              i=0
+              while True:
+                data = file.readline().split()
+	        if len(data)<10:           #if the file is finished stop  
+	          break 
+	        else:
+		  atom.append(data[1])	
+		  an.append(atomic_symbol.index(atom[i]))
+                  atom_count[an[i]]+=1
+		  xyz.append([float(data[6])*celldm1, float(data[7])*celldm1, float(data[8])*celldm1]) 
+                  i=i+1
+              natoms=i
+              break
+               
 file.close()
 ############################################################################# DO SOMETHING
 #check if xyz are really cartesian (angstrom) and if fract are really fractional coordinates.
@@ -308,13 +300,21 @@ elif 'xyz' in locals(): #convert in fractionals
 	z=xyz[i][2]*invcell.item((0,2))+xyz[i][1]*invcell.item((1,2))+xyz[i][2]*invcell.item((2,2))
 	fract.append([x,y,z])
 
+if not 'charge' in locals():
+  print
+  print " ...no atomic charge found: 0 charge for each atom"
+  charge = [0]*natoms
 
 #reading what to do
+justinfo=False
+justshow=False
 if sys.argv[2]=='info':
   justinfo=True
   outputformat='JUST INFO'
+elif sys.argv[2]=='show':
+  justshow=True
+  outputformat='JUST SHOW'
 else:
-  justinfo=False
   outputfilename = sys.argv[2].split(".")[-2]
   outputformat= sys.argv[2].split(".")[-1]
 
@@ -337,6 +337,23 @@ print
 
 if justinfo:
   sys.exit("YOU JUST ASKED FOR INFO: not converting!")
+
+if justshow:
+        print "cell ---------------------------------------------------------------"
+	print "     %8.5f %8.5f %8.5f"    %(cell.item((0,0)),cell.item((0,1)),cell.item((0,2)))
+	print "     %8.5f %8.5f %8.5f"    %(cell.item((1,0)),cell.item((1,1)),cell.item((1,2)))
+	print "     %8.5f %8.5f %8.5f"    %(cell.item((2,0)),cell.item((2,1)),cell.item((2,2)))
+        print "CELL (ABC, abc) ----------------------------------------------------"
+	print " %.5f  %.5f  %.5f  %.3f  %.3f  %.3f  " %(ABC[0],ABC[1],ABC[2],math.degrees(abc[0]),math.degrees(abc[1]),math.degrees(abc[2]))
+        print "xyz ----------------------------------------------------------------"
+	for i in range(0,natoms):
+		print "%3s %8.3f %8.3f %8.3f "  %(atom[i], xyz[i][0],xyz[i][1],xyz[i][2])
+        print "fract --------------------------------------------------------------"
+	for i in range(0,natoms):
+		print "%3s %8.3f %8.3f %8.3f "  %(atom[i], fract[i][0],fract[i][1],fract[i][2])
+
+        sys.exit("YOU JUST ASKED TO SHOW: no external files printed!")
+
 
 ofile=open(sys.argv[2], 'w+')
 
