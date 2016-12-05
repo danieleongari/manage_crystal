@@ -32,7 +32,8 @@ if len(sys.argv)==1 or sys.argv[1]=='-h' or sys.argv[1]=='-help' or sys.argv[1]=
 	print '#  Python program to read coordinates from a file and manage them:'
 	print '#'
 	print '#  $ %s inputfile.xxx outputfile.yyy z' % (sys.argv[0])
-	print '#  $ %s inputfile.xxx info'             % (sys.argv[0])  
+	print '#  $ %s inputfile.xxx info'             % (sys.argv[0]) 
+	print '#  $ %s inputfile.xxx show'             % (sys.argv[0]) 
 	print '#'
 	print '#  xxx=xyz(w/CELL),pdb,cssr,pwi,pwo    (next: cp2k-restart, xsf,gaussian, dcd+atoms)'
 	print '#  yyy=cif,pdb,cssr,xyz(w/CELL),pwi,cp2k,axsf'
