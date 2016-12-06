@@ -36,7 +36,7 @@ if len(sys.argv)==1 or sys.argv[1]=='-h' or sys.argv[1]=='-help' or sys.argv[1]=
 	print '#  $ %s inputfile.xxx info'             % (sys.argv[0]) 
 	print '#  $ %s inputfile.xxx show'             % (sys.argv[0]) 
 	print '#'
-	print '#  xxx=xyz(w/CELL),pdb,cssr,pwi,pwo    (next: cp2k-restart, xsf,gaussian, dcd+atoms)'
+	print '#  xxx=xyz(w/CELL),pdb,cssr,pwi,pwo,cif   (next: cp2k-restart, xsf,gaussian, dcd+atoms)'
 	print '#  yyy=cif,pdb,cssr,xyz(w/CELL),pwi,cp2k,axsf'
        #print '#  z=f,l (for the first or the last coordinate in a dcd or pwo or axsf or log)'
 	print '#  z=pbe, pbesol (pseudo for pwi output)'
@@ -256,6 +256,41 @@ if (inputformat=='pwo') or (inputformat=='pwi'):
                   i=i+1
               natoms=i
               break
+
+if inputformat=='cif':
+          print
+          print "**** BE CAREFUL: cif reading is valid only for the format of this output (P1,label+symbol+fract) ****"  
+          print
+          ABC=[0]*3
+          abc=[0]*3
+          while True:
+            data = file.readline().split()
+            if len(data)>0 and (data[0]=="_cell_length_a"): ABC[0]=float(data[1])
+            if len(data)>0 and (data[0]=="_cell_length_b"): ABC[1]=float(data[1]) 
+            if len(data)>0 and (data[0]=="_cell_length_c"): ABC[2]=float(data[1])
+            if len(data)>0 and (data[0]=="_cell_angle_alpha"): abc[0]=math.radians(float(data[1]))
+            if len(data)>0 and (data[0]=="_cell_angle_beta"):  abc[1]=math.radians(float(data[1]))
+            if len(data)>0 and (data[0]=="_cell_angle_gamma"): abc[2]=math.radians(float(data[1]))    
+            if len(data)>0 and (data[0]=="_atom_site_fract_x"):
+               atom=[]
+               an=[]
+               fract=[]
+               charge=[]
+	       i=0
+               while True:
+                 data=file.readline().split()
+                 if len(data)==0: 
+                  break
+                 if (data[0][0]!="_"):
+		  atom.append(data[1])	
+		  an.append(atomic_symbol.index(atom[i]))
+                  atom_count[an[i]]+=1
+		  fract.append([float(data[2]), float(data[3]), float(data[4])])   
+		  charge.append(float(data[5]))
+                  i+=1
+               natoms=i
+               break                 
+
                
 file.close()
 ############################################################################# DO SOMETHING
