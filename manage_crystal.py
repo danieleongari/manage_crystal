@@ -50,6 +50,7 @@ from atomic_data import *         #import all the data stored in the file atom_d
 atom_count=[0]*119 #anything assigned to 0, H_index=1, He_index=2, ...
 
 ANGS2BOHR=1.88973 
+AVOGCONST=6.022E+23
 ############################################################################## INPUT
 
 #reading input file: name and format
@@ -333,6 +334,7 @@ print "***************************************************"
 print "  keep calm: I am converting %s to %s" % (inputformat, outputformat)
 print "***************************************************"
 
+# count atoms
 ntypes=0
 for i in range(1,len(atom_count)):
 	if atom_count[i] != 0:
@@ -342,6 +344,21 @@ for i in range(1,len(atom_count)):
 print " ---- --- ----- "
 print('{0:>5} {1:3} atoms'.format(natoms,'tot'))
 print
+
+#compute volume (http://www.fxsolver.com/browse/formulas/Triclinic+crystal+system+(Unit+cell's+volume))
+volume=ABC[0]*ABC[1]*ABC[2]*math.sqrt( 1-(math.cos(abc[0]))**2-(math.cos(abc[1]))**2-(math.cos(abc[2]))**2+2*math.cos(abc[0])*math.cos(abc[1])*math.cos(abc[2]) )
+print "Volume: %.3f (Angtrom^3/u.c.)" %volume
+print
+
+#compute density
+weight=0
+for i in range(1,len(atom_count)):
+	if atom_count[i] != 0:
+           weight+=atom_count[i]*atomic_mass[i]
+rho=weight/volume/AVOGCONST*1E+10**3/1000 #Kg/m3
+print "Density: %.5f (kg/m3), %.5f (g/cm3)" %(rho,rho/1000)
+print		
+
 ############################################################################## OUTPUT FILE
 
 if justinfo:
