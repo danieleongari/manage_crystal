@@ -40,6 +40,7 @@ if len(sys.argv)==1 or sys.argv[1]=='-h' or sys.argv[1]=='-help' or sys.argv[1]=
 	print '#  yyy=cif,pdb,cssr,xyz(w/CELL),pwi,cp2k,axsf'
        #print '#  z=f,l (for the first or the last coordinate in a dcd or pwo or axsf or log)'
 	print '#  z=pbe, pbesol (pseudo for pwi output)'
+	print '#  z=eqeq (for tailor-made cif to be used with EQeq' 
         print '####################################################################################'
 	print
 	sys.exit()
@@ -420,6 +421,7 @@ ofile=open(outputfile, 'w+')
 
 #writing a CIF file
 if outputformat=="cif":
+     if len(sys.argv)<4:
 	print >> ofile, "data_crystal"
 	print >> ofile, " "
 	print >> ofile, "_cell_length_a    %.3f" %ABC[0]
@@ -444,9 +446,37 @@ if outputformat=="cif":
 	print >> ofile, "_atom_site_fract_z"
 	print >> ofile, "_atom_site_charge"
 	for i in range(0,natoms):	
-        	label=atom[i]    #removed: label=atom[i]+"_"+str(i+1)
+        	label=atom[i]    #removed: label=atom[i]+"_"+str(i+1) because the number makes Raspa extremely verbose
 		print >> ofile, ('{0:10} {1:5} {2:>9.3f} {3:>9.3f} {4:>9.3f} {5:>9.5f}'.format(label,  atom[i], fract[i][0], fract[i][1], fract[i][2], charge[i]))
+        
 
+     if sys.argv[3]=='eqeq':
+
+        print "****PRINTING .CIF TAILOR-MADE FOR EQeq***"
+
+	print >> ofile, "data_crystal"
+	print >> ofile, "loop_"
+	print >> ofile, "_symmetry_equiv_pos_as_xyz"
+	print >> ofile, " 'x,y,z' "
+	print >> ofile, "loop_"
+	print >> ofile, "_cell_length_a    %.3f" %ABC[0]
+	print >> ofile, "_cell_length_b    %.3f" %ABC[1]
+	print >> ofile, "_cell_length_c    %.3f" %ABC[2]
+	print >> ofile, "_cell_angle_alpha %.3f" %math.degrees(abc[0])
+	print >> ofile, "_cell_angle_beta  %.3f" %math.degrees(abc[1])
+	print >> ofile, "_cell_angle_gamma %.3f" %math.degrees(abc[2])
+	print >> ofile, "_symmetry_space_group_name_Hall 'P 1'"
+	print >> ofile, "_symmetry_space_group_name_H-M  'P 1'"
+	print >> ofile, "_atom_site_label"
+	print >> ofile, "_atom_site_type_symbol"
+	print >> ofile, "_atom_site_fract_x"
+	print >> ofile, "_atom_site_fract_y"
+	print >> ofile, "_atom_site_fract_z"
+	for i in range(0,natoms):	
+        	label=atom[i]    #removed: label=atom[i]+"_"+str(i+1) 
+		print >> ofile, ('{0:10} {1:5} {2:>9.3f} {3:>9.3f} {4:>9.3f}'.format(label,  atom[i], fract[i][0], fract[i][1], fract[i][2]))       
+	print >> ofile, "_loop"
+ 
 #writing a PDB file
 if outputformat=="pdb":
 	print >> ofile, ('CRYST1{0:>9.3f}{1:>9.3f}{2:>9.3f}{3:>7.2f}{4:>7.2f}{5:>7.2f} P 1           1'.format( ABC[0],ABC[1],ABC[2],math.degrees(abc[0]),math.degrees(abc[1]),math.degrees(abc[2]) ))
