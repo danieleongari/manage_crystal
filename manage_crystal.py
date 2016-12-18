@@ -317,6 +317,8 @@ elif 'ABC' in locals():  #make uc matrix if it was read in ABC+abc
 		     [ABC[2]*math.cos(abc[1]),ABC[2]*math.cos(abc[0]),math.sqrt(ABC[2]**2-(ABC[2]*math.cos(abc[1]))**2-(ABC[2]*math.cos(abc[0]))**2)]]) #check this part
 
 
+from numpy.linalg import inv
+invcell=inv(cell)
 
 if 'fract' in locals(): #convert in cartesian
   print
@@ -330,8 +332,6 @@ if 'fract' in locals(): #convert in cartesian
 elif 'xyz' in locals(): #convert in fractionals
   print
   print " ...converting cartesian coordinates in fractional"
-  from numpy.linalg import inv
-  invcell=inv(cell)
   fract=[]
   for i in range(0,natoms):
 	x=xyz[i][0]*invcell.item((0,0))+xyz[i][1]*invcell.item((1,0))+xyz[i][2]*invcell.item((2,0))
@@ -347,12 +347,16 @@ if not 'charge' in locals():
 #reading what to do
 justinfo=False
 justshow=False
+justvoid=False
 if sys.argv[2]=='info':
   justinfo=True
   outputformat='JUST INFO'
 elif sys.argv[2]=='show':
   justshow=True
   outputformat='JUST SHOW'
+elif sys.argv[2]=='void':
+  justvoid=True
+  outputformat='JUST VOID'
 else:
   if len(sys.argv[2].split("."))>1:             # output defined as name.format
    outputfilename = sys.argv[2].split(".")[-2]
@@ -395,7 +399,7 @@ rho=weight/volume/AVOGCONST*1E+10**3/1000 #Kg/m3
 print "Density: %.5f (kg/m3), %.5f (g/cm3)" %(rho,rho/1000)
 print		
 
-############################################################################## OUTPUT FILE
+############################################################################## OUTPUT INFO
 
 if justinfo:
   sys.exit("YOU JUST ASKED FOR INFO: not converting!")
@@ -415,6 +419,51 @@ if justshow:
 		print "%3s %8.3f %8.3f %8.3f "  %(atom[i], fract[i][0],fract[i][1],fract[i][2])
 
         sys.exit("YOU JUST ASKED TO SHOW: no external files printed!")
+
+if justvoid:              #not working because of three spheres overlapping
+        volsphere=0;
+        volumeocc=0;
+        d=[0]*3
+        s=[0]*3
+        t=[0]*3
+        for i in range(0,natoms):
+          Ri=atomic_vdw_zeopp[an[i]]
+          volsphere+=4/3*math.pi*Ri**3
+          volumeocc+=4/3*math.pi*Ri**3
+          for j in range ((i+1),natoms):
+            Rj=atomic_vdw_zeopp[an[j]]
+              
+            d[0]=xyz[i][0]-xyz[j][0]
+            d[1]=xyz[i][1]-xyz[j][1]
+            d[2]=xyz[i][2]-xyz[j][2]
+            
+            s[0]=invcell.item((0,0))*d[0]+invcell.item((1,0))*d[1]+invcell.item((2,0))*d[2]
+            s[1]=invcell.item((0,1))*d[0]+invcell.item((1,1))*d[1]+invcell.item((2,1))*d[2]
+            s[2]=invcell.item((0,2))*d[0]+invcell.item((1,2))*d[1]+invcell.item((2,2))*d[2]
+
+            t[0]=s[0]-int(round(s[0]))
+            t[1]=s[1]-int(round(s[1]))
+            t[2]=s[2]-int(round(s[2]))
+
+            d[0]=cell.item((0,0))*t[0]+cell.item((1,0))*t[1]+cell.item((2,0))*t[2]
+            d[1]=cell.item((0,1))*t[0]+cell.item((1,1))*t[1]+cell.item((2,1))*t[2]
+            d[2]=cell.item((0,2))*t[0]+cell.item((1,2))*t[1]+cell.item((2,2))*t[2]
+
+            mindist=math.sqrt(d[0]**2+d[1]**2+d[2]**2)
+
+            if (Ri+Rj<mindist): V_ovlp=0
+            else: V_ovlp=math.pi*(Ri+Rj-mindist)**2 * (mindist**2+2*mindist*Rj-3*Rj**2+2*mindist*Ri+6*Rj*Ri-3*Ri**2) / (12*mindist)
+            volumeocc-=V_ovlp #works only if there are not three spheres with a common overlapping
+            
+
+	#print "Volume without atom spheres:  %.3f (Angtrom^3/u.c.)" %(volume-volumeocc)
+        print "Void fraction (cons. ovlp):       %.3f" %(1-volumeocc/volume)   
+        print "Void fraction (negl. ovlp):       %.3f" %(1-volsphere/volume)             
+        print
+        sys.exit("YOU JUST ASKED for VOID: no external files printed!")
+
+
+############################################################################## OUTPUT FILE
 
 
 ofile=open(outputfile, 'w+')
@@ -450,7 +499,7 @@ if outputformat=="cif":
 		print >> ofile, ('{0:10} {1:5} {2:>9.3f} {3:>9.3f} {4:>9.3f} {5:>9.5f}'.format(label,  atom[i], fract[i][0], fract[i][1], fract[i][2], charge[i]))
         
 
-     if sys.argv[3]=='eqeq':
+     if (len(sys.argv)>3) and (sys.argv[3]=='eqeq'):
 
         print "****PRINTING .CIF TAILOR-MADE FOR EQeq***"
 
