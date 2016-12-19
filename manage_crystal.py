@@ -348,15 +348,12 @@ if not 'charge' in locals():
 justinfo=False
 justshow=False
 justvoid=False
-if sys.argv[2]=='info':
-  justinfo=True
-  outputformat='JUST INFO'
-elif sys.argv[2]=='show':
-  justshow=True
-  outputformat='JUST SHOW'
-elif sys.argv[2]=='void':
-  justvoid=True
-  outputformat='JUST VOID'
+justcupw=False
+outputformat='none'
+if   sys.argv[2]=='info': justinfo=True
+elif sys.argv[2]=='show': justshow=True
+elif sys.argv[2]=='void': justvoid=True
+elif sys.argv[2]=='cupw': justcupw=True
 else:
   if len(sys.argv[2].split("."))>1:             # output defined as name.format
    outputfilename = sys.argv[2].split(".")[-2]
@@ -462,7 +459,58 @@ if justvoid:              #not working because of three spheres overlapping
         print
         sys.exit("YOU JUST ASKED for VOID: no external files printed!")
 
+if justcupw:              #finding copper paddlewheels
+        ncupw_act=0 
+        ncupw_sol=0
+        ncupw_wrd=0
+	for i in range(0,natoms):
+          closeCu=0
+          closeO=0
+          closeX=0
 
+          if (an[i]==29):
+	     for j in range (0,natoms):
+		if (j!=i):          
+                 	d=[0]*3
+                 	s=[0]*3
+                 	t=[0]*3
+              
+            		#d[0]=xyz[i][0]-xyz[j][0]
+            		#d[1]=xyz[i][1]-xyz[j][1]
+            		#d[2]=xyz[i][2]-xyz[j][2]
+            		#s[0]=invcell.item((0,0))*d[0]+invcell.item((1,0))*d[1]+invcell.item((2,0))*d[2]
+            		#s[1]=invcell.item((0,1))*d[0]+invcell.item((1,1))*d[1]+invcell.item((2,1))*d[2]
+            		#s[2]=invcell.item((0,2))*d[0]+invcell.item((1,2))*d[1]+invcell.item((2,2))*d[2]
+
+            		s[0]=fract[i][0]-fract[j][0]
+            		s[1]=fract[i][1]-fract[j][1]
+            		s[2]=fract[i][2]-fract[j][2]
+
+            		t[0]=s[0]-int(round(s[0]))
+            		t[1]=s[1]-int(round(s[1]))
+            		t[2]=s[2]-int(round(s[2]))
+
+            		d[0]=cell.item((0,0))*t[0]+cell.item((1,0))*t[1]+cell.item((2,0))*t[2]
+            		d[1]=cell.item((0,1))*t[0]+cell.item((1,1))*t[1]+cell.item((2,1))*t[2]
+            		d[2]=cell.item((0,2))*t[0]+cell.item((1,2))*t[1]+cell.item((2,2))*t[2]
+
+            		mindist=math.sqrt(d[0]**2+d[1]**2+d[2]**2)       
+                        
+                        if (an[j]==29) and (1.8<mindist<2.8):                closeCu+=1; #print "%d %d %f     %d %d" %(i,j,mindist,closeO,closeX)                       
+                        if (an[j]==8)  and (1.5<mindist<2.5):                 closeO+=1;  
+                        if (an[j]!=29) and (an[j]!=8) and (1.8<mindist<2.5):  closeX+=1; print "%d %d %s  %f------%f %f %f " %(i,j,an[j],mindist,s[0],s[1],s[2]); print fract[i]; print fract[j]
+
+	     if   (closeCu==1) and (closeO==4):                ncupw_act+=1
+             #elif (closeCu==1) and (closeO==4) and (closeX>0):  ncupw_sol+=1 
+             elif (closeCu==1) and (closeO==5):                ncupw_sol+=1
+             elif (closeCu<0):                                 ncupw_wrd+=1 
+
+        print "Cu-paddlewheel activated found:    %d" %ncupw_act   
+        print "Cu-paddlewheel solvated  found:    %d   (only Oxygen atoms considered)" %ncupw_sol  
+        print "Cu-paddlewheel WEIRD     found:    %d" %ncupw_wrd                        
+        print
+
+        sys.exit("YOU JUST ASKED for CUPW: no external files printed!")
 ############################################################################## OUTPUT FILE
 
 
