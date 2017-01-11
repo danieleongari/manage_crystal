@@ -35,6 +35,8 @@ if len(sys.argv)==1 or sys.argv[1]=='-h' or sys.argv[1]=='-help' or sys.argv[1]=
 	print '#  $ %s inputfile.xxx yyy z'            % (sys.argv[0])
 	print '#  $ %s inputfile.xxx info'             % (sys.argv[0]) 
 	print '#  $ %s inputfile.xxx show'             % (sys.argv[0]) 
+	print '#  $ %s inputfile.xxx cupw'             % (sys.argv[0]) 
+	print '#  $ %s inputfile.xxx ovlp !overwrites the file (work in progress)'             % (sys.argv[0]) 
 	print '#'
 	print '#  xxx=xyz(w/CELL),pdb,cssr,pwi,pwo,cif   (next: cp2k-restart, xsf,gaussian, dcd+atoms)'
 	print '#  yyy=cif,pdb,cssr,xyz(w/CELL),pwi,cp2k,axsf'
@@ -45,7 +47,7 @@ if len(sys.argv)==1 or sys.argv[1]=='-h' or sys.argv[1]=='-help' or sys.argv[1]=
 	print
 	sys.exit()
 
-############################################################################# STANDARD INFOS about the periodic table: atomic_ symbol/name/vdw/mass
+############################################################################# STANDARD INFOS about the periodic table: atomic_symbol/name/vdw/mass
 from atomic_data import *         #import all the data stored in the file atom_data.py
 
 atom_count=[0]*119 #anything assigned to 0, H_index=1, He_index=2, ...
@@ -103,13 +105,14 @@ if inputformat=='pdb':
 	i=0
         while True:
          line = file.readline()
-	 data = line.split()
+         data = line.split()
 	 if len(data)==0:           #if the file is finished stop  
 		break 			
- 	 elif data[0]=='END':        #if the file says "END" 
+ 	 elif data[0]=='END' or data[0]=='ENDMDL':        #if the file says "END" 
 		break
+         elif data[0]!="ATOM" and data[0]!="HETATM":       #avoid other stuff 
+                donothing=True
 	 else:		
-                data = line.split()
                 atom.append(data[2])
                 an.append(atomic_symbol.index(atom[i]))
                 atom_count[an[i]]+=1
@@ -147,7 +150,6 @@ if inputformat=='xyz':
 	#read cell in my way of writing it as a comment of xyz
 	line = file.readline()
 	celltemp=line.split( )
-	#debug: celltemp=['cell:',1,2,3,4,5,6,7,8,9,10,11]
 
 	if celltemp[0]=='CELL:' or celltemp[0]=='CELL':
 		ABC=[float( celltemp[1]),float(celltemp[2]),float(celltemp[3])]
@@ -260,7 +262,9 @@ if (inputformat=='pwo') or (inputformat=='pwi'):
 
 if inputformat=='cif':
           print
-          print "**** BE CAREFUL: cif reading is valid only for the format of this output (P1,label+symbol+fract) ****"  
+          print "**** BE CAREFUL: cif reading is tested only for the format"
+          print "****             of this output (P1,label+symbol+fract)"
+          print "****             (also CoRE MOF cif are readable!)"  
           print
           ABC=[0]*3
           abc=[0]*3
@@ -280,8 +284,10 @@ if inputformat=='cif':
 	       i=0
                while True:
                  data=file.readline().split()
-                 if len(data)==0: 
-                  break
+
+                 if len(data)==0:     break #end of file
+                 if data[0]=="loop_": break #flag loop_ (CoRE mof)
+    
                  if (data[0][0]!="_"):
 		  atom.append(data[1])	
 		  an.append(atomic_symbol.index(atom[i]))
@@ -291,7 +297,7 @@ if inputformat=='cif':
                   i+=1
                natoms=i
                break                 
-
+ 
                
 file.close()
 ############################################################################# DO SOMETHING
@@ -309,12 +315,13 @@ if 'cell' in locals():   #make uc ABC+abc if it was read in cell
   abc[1]= math.acos( (cell.item((0,0))*cell.item((2,0))+cell.item((0,1))*cell.item((2,1))+cell.item((0,2))*cell.item((2,2)))/ABC[0]/ABC[2] ) #beta=A^C
   abc[2]= math.acos( (cell.item((0,0))*cell.item((1,0))+cell.item((0,1))*cell.item((1,1))+cell.item((0,2))*cell.item((1,2)))/ABC[0]/ABC[1] ) #gamma=A^B
 
-elif 'ABC' in locals():  #make uc matrix if it was read in ABC+abc
+elif 'ABC' in locals():  #make uc matrix if it was read in ABC+abc. Copied from Raspa>framework.c>UnitCellBox
   print
   print " ...converting CELL (ABCabc) to cell (matrix) "
-  cell=numpy.matrix([[                ABC[0],                     0.0,                                                                           0.0],
-		     [ABC[1]*math.cos(abc[2]),ABC[1]*math.sin(abc[2]),                                                                           0.0],
-		     [ABC[2]*math.cos(abc[1]),ABC[2]*math.cos(abc[0]),math.sqrt(ABC[2]**2-(ABC[2]*math.cos(abc[1]))**2-(ABC[2]*math.cos(abc[0]))**2)]]) #check this part
+  tempd=(math.cos(abc[0])-math.cos(abc[2])*math.cos(abc[1]))/math.sin(abc[2])
+  cell=numpy.matrix([[                 ABC[0],                        0.0,                                          0.0],
+		     [ABC[1]*math.cos(abc[2]),    ABC[1]*math.sin(abc[2]),                                          0.0],
+		     [ABC[2]*math.cos(abc[1]),    ABC[2]*tempd,    ABC[2]*math.sqrt(1-(math.cos(abc[1]))**2-(tempd)**2)]]) 
 
 
 from numpy.linalg import inv
@@ -349,11 +356,13 @@ justinfo=False
 justshow=False
 justvoid=False
 justcupw=False
-outputformat='none'
+justovlp=False
+outputfile='NOTHING'
 if   sys.argv[2]=='info': justinfo=True
 elif sys.argv[2]=='show': justshow=True
 elif sys.argv[2]=='void': justvoid=True
 elif sys.argv[2]=='cupw': justcupw=True
+elif sys.argv[2]=='ovlp': justovlp=True
 else:
   if len(sys.argv[2].split("."))>1:             # output defined as name.format
    outputfilename = sys.argv[2].split(".")[-2]
@@ -368,7 +377,7 @@ else:
 ############################################################################## OUTPUT INFO
 print
 print "***************************************************"
-print "  keep calm: I am converting %s to %s" % (inputformat, outputformat)
+print "  Converting %s to %s" % (inputfilename+"."+inputformat, outputfile)
 print "***************************************************"
 
 # count atoms
@@ -399,7 +408,8 @@ print
 ############################################################################## OUTPUT INFO
 
 if justinfo:
-  sys.exit("YOU JUST ASKED FOR INFO: not converting!")
+  #sys.exit("YOU JUST ASKED FOR INFO: not converting!")
+  sys.exit()
 
 if justshow:
         print "cell ---------------------------------------------------------------"
@@ -415,7 +425,8 @@ if justshow:
 	for i in range(0,natoms):
 		print "%3s %8.3f %8.3f %8.3f "  %(atom[i], fract[i][0],fract[i][1],fract[i][2])
 
-        sys.exit("YOU JUST ASKED TO SHOW: no external files printed!")
+        #sys.exit("YOU JUST ASKED TO SHOW: no external files printed!")
+        sys.exit()
 
 if justvoid:              #not working because of three spheres overlapping
         volsphere=0;
@@ -457,9 +468,11 @@ if justvoid:              #not working because of three spheres overlapping
         print "Void fraction (cons. ovlp):       %.3f" %(1-volumeocc/volume)   
         print "Void fraction (negl. ovlp):       %.3f" %(1-volsphere/volume)             
         print
-        sys.exit("YOU JUST ASKED for VOID: no external files printed!")
+        #sys.exit("YOU JUST ASKED for VOID: no external files printed!")
+        sys.exit()
 
-if justcupw:              #finding copper paddlewheels
+#This function checks if there are copper paddlewheels (= a copper atom with a close Cu and 4 close O)
+if justcupw:              
         ncupw_act=0 
         ncupw_sol=0
         ncupw_wrd=0
@@ -498,7 +511,7 @@ if justcupw:              #finding copper paddlewheels
                         
                         if (an[j]==29) and (1.8<mindist<2.8):                closeCu+=1; #print "%d %d %f     %d %d" %(i,j,mindist,closeO,closeX)                       
                         if (an[j]==8)  and (1.5<mindist<2.5):                 closeO+=1;  
-                        if (an[j]!=29) and (an[j]!=8) and (1.8<mindist<2.5):  closeX+=1; print "%d %d %s  %f------%f %f %f " %(i,j,an[j],mindist,s[0],s[1],s[2]); print fract[i]; print fract[j]
+                        if (an[j]!=29) and (an[j]!=8) and (1.8<mindist<2.5):  closeX+=1; #print "%d %d %s  %f------%f %f %f " %(i,j,an[j],mindist,s[0],s[1],s[2]); print fract[i]; print fract[j]
 
 	     if   (closeCu==1) and (closeO==4):                ncupw_act+=1
              #elif (closeCu==1) and (closeO==4) and (closeX>0):  ncupw_sol+=1 
@@ -510,7 +523,70 @@ if justcupw:              #finding copper paddlewheels
         print "Cu-paddlewheel WEIRD     found:    %d" %ncupw_wrd                        
         print
 
-        sys.exit("YOU JUST ASKED for CUPW: no external files printed!")
+        #print that I found it
+        if True:
+          ofile=open("000_cupw_found.txt", 'a')
+          if (ncupw_act>0) or (ncupw_act>0) or (ncupw_wrd<0):
+            print >> ofile, sys.argv[1]
+            print >> ofile, "Cu-paddlewheel activated found:    %d" %ncupw_act   
+            print >> ofile, "Cu-paddlewheel solvated  found:    %d   (only Oxygen atoms considered)" %ncupw_sol  
+            print >> ofile, "Cu-paddlewheel WEIRD     found:    %d" %ncupw_wrd        
+            print >> ofile, " "
+
+        sys.exit()
+
+#This function checks if two atoms overlap because of a bad PBC wrap
+if justovlp:     
+        jlist=[]    
+	for i in range(0,natoms):
+	     for j in range (i+1,natoms):         
+                 	d=[0]*3
+                 	s=[0]*3
+                 	t=[0]*3
+
+            		s[0]=fract[i][0]-fract[j][0]
+            		s[1]=fract[i][1]-fract[j][1]
+            		s[2]=fract[i][2]-fract[j][2]
+
+            		t[0]=s[0]-int(round(s[0]))
+            		t[1]=s[1]-int(round(s[1]))
+            		t[2]=s[2]-int(round(s[2]))
+
+            		d[0]=cell.item((0,0))*t[0]+cell.item((1,0))*t[1]+cell.item((2,0))*t[2]
+            		d[1]=cell.item((0,1))*t[0]+cell.item((1,1))*t[1]+cell.item((2,1))*t[2]
+            		d[2]=cell.item((0,2))*t[0]+cell.item((1,2))*t[1]+cell.item((2,2))*t[2]
+
+            		mindist=math.sqrt(d[0]**2+d[1]**2+d[2]**2)       
+                        
+                        if (mindist<0.2): 
+                           print "Overlap found between:"
+                           print "%3s %9.5f %9.5f %9.5f "  %(atom[i], xyz[i][0],xyz[i][1],xyz[i][2])
+                           print "%3s %9.5f %9.5f %9.5f "  %(atom[j], xyz[j][0],xyz[j][1],xyz[j][2])  
+                           if atom[i]==atom[j]: #the two atoms are the same and they are overlapping
+                            jlist.append(j)
+                           else:                #something weird is happening, two different atoms are overlapping
+                            print "!!!!!! CHECK THE CRYSTAL, DIFFERENT ATOMS OVERLAPPING !!!!!!"    
+                            sys.exit("!!!!!! CHECK THE CRYSTAL, DIFFERENT ATOMS OVERLAPPING !!!!!!")
+
+
+        if len(jlist)>0: #correct overlaps
+           natoms=natoms-len(jlist)
+           atom  =[i for j, i in enumerate(atom)   if j not in jlist]
+           an    =[i for j, i in enumerate(an)     if j not in jlist]
+           xyz   =[i for j, i in enumerate(xyz)    if j not in jlist]
+           fract =[i for j, i in enumerate(fract)  if j not in jlist]
+           charge=[i for j, i in enumerate(charge) if j not in jlist]
+           print "OVERLAPS FOUND: %d" %len(jlist)
+           #continue and overwrite the file
+           outputfile  =sys.argv[1]
+           outputformat=sys.argv[1].split(".")[-1]
+        else:
+           print "OVERLAPS FOUND: %d" %len(jlist)
+           sys.exit()
+
+                          
+        
+
 ############################################################################## OUTPUT FILE
 
 
@@ -521,12 +597,12 @@ if outputformat=="cif":
      if len(sys.argv)<4:
 	print >> ofile, "data_crystal"
 	print >> ofile, " "
-	print >> ofile, "_cell_length_a    %.3f" %ABC[0]
-	print >> ofile, "_cell_length_b    %.3f" %ABC[1]
-	print >> ofile, "_cell_length_c    %.3f" %ABC[2]
-	print >> ofile, "_cell_angle_alpha %.3f" %math.degrees(abc[0])
-	print >> ofile, "_cell_angle_beta  %.3f" %math.degrees(abc[1])
-	print >> ofile, "_cell_angle_gamma %.3f" %math.degrees(abc[2])
+	print >> ofile, "_cell_length_a    %.5f" %ABC[0]
+	print >> ofile, "_cell_length_b    %.5f" %ABC[1]
+	print >> ofile, "_cell_length_c    %.5f" %ABC[2]
+	print >> ofile, "_cell_angle_alpha %.5f" %math.degrees(abc[0])
+	print >> ofile, "_cell_angle_beta  %.5f" %math.degrees(abc[1])
+	print >> ofile, "_cell_angle_gamma %.5f" %math.degrees(abc[2])
 	print >> ofile, " "
 	print >> ofile, "_symmetry_space_group_name_Hall 'P 1'"
 	print >> ofile, "_symmetry_space_group_name_H-M  'P 1'"
@@ -544,7 +620,7 @@ if outputformat=="cif":
 	print >> ofile, "_atom_site_charge"
 	for i in range(0,natoms):	
         	label=atom[i]    #removed: label=atom[i]+"_"+str(i+1) because the number makes Raspa extremely verbose
-		print >> ofile, ('{0:10} {1:5} {2:>9.3f} {3:>9.3f} {4:>9.3f} {5:>9.5f}'.format(label,  atom[i], fract[i][0], fract[i][1], fract[i][2], charge[i]))
+		print >> ofile, ('{0:10} {1:5} {2:>9.5f} {3:>9.5f} {4:>9.5f} {5:>9.5f}'.format(label,  atom[i], fract[i][0], fract[i][1], fract[i][2], charge[i]))
         
 
      if (len(sys.argv)>3) and (sys.argv[3]=='eqeq'):
@@ -556,12 +632,12 @@ if outputformat=="cif":
 	print >> ofile, "_symmetry_equiv_pos_as_xyz"
 	print >> ofile, " 'x,y,z' "
 	print >> ofile, "loop_"
-	print >> ofile, "_cell_length_a    %.3f" %ABC[0]
-	print >> ofile, "_cell_length_b    %.3f" %ABC[1]
-	print >> ofile, "_cell_length_c    %.3f" %ABC[2]
-	print >> ofile, "_cell_angle_alpha %.3f" %math.degrees(abc[0])
-	print >> ofile, "_cell_angle_beta  %.3f" %math.degrees(abc[1])
-	print >> ofile, "_cell_angle_gamma %.3f" %math.degrees(abc[2])
+	print >> ofile, "_cell_length_a    %.5f" %ABC[0]
+	print >> ofile, "_cell_length_b    %.5f" %ABC[1]
+	print >> ofile, "_cell_length_c    %.5f" %ABC[2]
+	print >> ofile, "_cell_angle_alpha %.5f" %math.degrees(abc[0])
+	print >> ofile, "_cell_angle_beta  %.5f" %math.degrees(abc[1])
+	print >> ofile, "_cell_angle_gamma %.5f" %math.degrees(abc[2])
 	print >> ofile, "_symmetry_space_group_name_Hall 'P 1'"
 	print >> ofile, "_symmetry_space_group_name_H-M  'P 1'"
 	print >> ofile, "_atom_site_label"
@@ -571,14 +647,14 @@ if outputformat=="cif":
 	print >> ofile, "_atom_site_fract_z"
 	for i in range(0,natoms):	
         	label=atom[i]    #removed: label=atom[i]+"_"+str(i+1) 
-		print >> ofile, ('{0:10} {1:5} {2:>9.3f} {3:>9.3f} {4:>9.3f}'.format(label,  atom[i], fract[i][0], fract[i][1], fract[i][2]))       
+		print >> ofile, ('{0:10} {1:5} {2:>9.5f} {3:>9.5f} {4:>9.5f}'.format(label,  atom[i], fract[i][0], fract[i][1], fract[i][2]))       
 	print >> ofile, "_loop"
  
 #writing a PDB file
 if outputformat=="pdb":
 	print >> ofile, ('CRYST1{0:>9.3f}{1:>9.3f}{2:>9.3f}{3:>7.2f}{4:>7.2f}{5:>7.2f} P 1           1'.format( ABC[0],ABC[1],ABC[2],math.degrees(abc[0]),math.degrees(abc[1]),math.degrees(abc[2]) ))
 	for i in range(0,natoms):
-		print >> ofile, "%-6s%5d %4s%1s%3s %1s%4d%1s   %8.3f%8.3f%8.3f%6.2f%6.2f          %2s%2s" %("ATOM", i+1, atom[i],"", "XXX", "X", 1,"",fract[i][0],fract[i][1],fract[i][2],1.00, 0.00, atom[i], "")
+		print >> ofile, "%-6s%5d %4s%1s%3s %1s%4d%1s   %8.5f%8.5f%8.5f%6.2f%6.2f          %2s%2s" %("ATOM", i+1, atom[i],"", "XXX", "X", 1,"",fract[i][0],fract[i][1],fract[i][2],1.00, 0.00, atom[i], "")
 
 #writing a CSSR file
 if outputformat=="cssr":
@@ -587,13 +663,13 @@ if outputformat=="cssr":
 	print >> ofile, "%d   0"							     %(natoms)
 	print >> ofile, "0 %s       : %s"                                                    %(inputfilename,inputfilename)
 	for i in range(0,natoms):
-		print >> ofile, "%4d %3s %8.3f %8.3f %8.3f    0  0  0  0  0  0  0  0  0.000"    %(i+1, atom[i], fract[i][0],fract[i][1],fract[i][2])
+		print >> ofile, "%4d %3s %8.5f %8.5f %8.5f    0  0  0  0  0  0  0  0  0.000"    %(i+1, atom[i], fract[i][0],fract[i][1],fract[i][2])
  
 if outputformat=="xyz":
    	print >> ofile, "%d"   %(natoms)
 	print >> ofile, "CELL: %.5f  %.5f  %.5f  %.3f  %.3f  %.3f  " %(ABC[0],ABC[1],ABC[2],math.degrees(abc[0]),math.degrees(abc[1]),math.degrees(abc[2]))
 	for i in range(0,natoms):
-		print >> ofile, "%3s %8.3f %8.3f %8.3f "  %(atom[i], xyz[i][0],xyz[i][1],xyz[i][2])
+		print >> ofile, "%3s %9.5f %9.5f %9.5f "  %(atom[i], xyz[i][0],xyz[i][1],xyz[i][2])
 
 if outputformat=="pwi":
         if len(sys.argv)<4:

@@ -407,7 +407,7 @@ atomic_mass = (
     1000000, # Fm
     1000000, # Md
     1000000, # No
-    1000000) # Lw
+    1000000) # Lr
 
 ################################# pseudoopotential: dictionary[pseudo_type][atomic_number]
 atomic_pseudo = {'pbe': [   
