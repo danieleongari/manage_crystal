@@ -24,7 +24,75 @@ import string,sys
 import numpy
 import math
 import subprocess
+import argparse 
 
+parser = argparse.ArgumentParser(description='Program to read, extract info and convert crystal files (by Daniele Ongari)')
+
+parser.add_argument("inputfile", 
+                      type=str,
+                      help="path to the input file to read")
+
+parser.add_argument("-o","--output",
+                      action="store", 
+                      type=str,
+                      dest="output",
+                      default=None,
+                      help="Output filename.extension or"+ 
+                           "just the extension")
+'''
+parser.add_argument("-info", 
+                      action="store_true", 
+                      dest="info",
+                      default=False,
+                      help="Information on the crystal")
+DEPRECATED: info automatically shown
+'''
+
+parser.add_argument("-silent", 
+                      action="store_true", 
+                      dest="silent",
+                      default=False,
+                      help="No output info on the screen")
+
+parser.add_argument("-show", 
+                      action="store_true", 
+                      dest="show",
+                      default=False,
+                      help="Show all the information known")
+
+parser.add_argument("-cupw", 
+                      action="store_true", 
+                      dest="cupw",
+                      default=False,
+                      help="Look for a Copper PaddleWheel")
+
+parser.add_argument("-void", 
+                      action="store_true", 
+                      dest="void",
+                      default=False,
+                      help="Compute void geometrically [NOT WORKING]")
+
+parser.add_argument("-ovlp", 
+                      action="store_true", 
+                      dest="ovlp",
+                      default=False,
+                      help="Look for an overlap and modify the file [WORK IN PROGRESS]")
+
+parser.add_argument("-pseudo", 
+                      action="store", 
+                      type=str,
+                      dest="pseudo",
+                      default=None,
+                      help="Pseudo for the .pwi output")
+
+parser.add_argument("-eqeq", 
+                      action="store_true", 
+                      dest="eqeq",
+                      default=False,
+                      help="Tailor-made cif to be used with EQeq")
+
+args = parser.parse_args()
+'''
 ############################################################################# HELP 
 if len(sys.argv)==1 or sys.argv[1]=='-h' or sys.argv[1]=='-help' or sys.argv[1]=='help':
         print
@@ -46,6 +114,7 @@ if len(sys.argv)==1 or sys.argv[1]=='-h' or sys.argv[1]=='-help' or sys.argv[1]=
         print '####################################################################################'
 	print
 	sys.exit()
+'''
 
 ############################################################################# STANDARD INFOS about the periodic table: atomic_symbol/name/vdw/mass
 from atomic_data import *         #import all the data stored in the file atom_data.py
@@ -57,9 +126,9 @@ AVOGCONST=6.022E+23
 ############################################################################## INPUT
 
 #reading input file: name and format
-inputfilename = sys.argv[1].split(".")[-2]
-inputformat= sys.argv[1].split(".")[-1]
-file = open(sys.argv[1],'r')
+inputfilename = args.inputfile.split(".")[-2]
+inputformat= args.inputfile.split(".")[-1]
+file = open(args.inputfile,'r')
 
 """/
 if inputformat=='dcd':
@@ -185,7 +254,7 @@ if (inputformat=='pwo') or (inputformat=='pwi'):
             cell_line=num
         file.close()
  
-        file = open(sys.argv[1],'r')
+        file = open(args.inputfile,'r')
         if 'cell_line' in locals():  #read cell in vc-relax calculation    
           for i in range(0,cell_line):
 	   skip = file.readline() #title line
@@ -221,14 +290,14 @@ if (inputformat=='pwo') or (inputformat=='pwi'):
 	an=[]
 	xyz=[]
 
-        file = open(sys.argv[1],'r')
+        file = open(args.inputfile,'r')
         with file as myFile:
          for num, line in enumerate(myFile, 1):
            if 'ATOMIC_POSITIONS' in line:
             atomic_line=num
         file.close()
 
-        file = open(sys.argv[1],'r') 
+        file = open(args.inputfile,'r') 
         if 'atomic_line' in locals(): #read atomic in vc-relax and relax calculation 
           for i in range(0,atomic_line):
 	   skip = file.readline() 
@@ -340,8 +409,8 @@ file.close()
 #check if xyz are really cartesian (angstrom) and if fract are really fractional coordinates.
 
 if 'cell' in locals():   #make uc ABC+abc if it was read in cell
-  print
-  print " ...converting cell (matrix) to CELL (ABCabc)"
+  if not args.silent: print
+  if not args.silent: print " ...converting cell (matrix) to CELL (ABCabc)"
   ABC=[0]*3
   abc=[0]*3
   ABC[0]= math.sqrt(cell.item((0,0))*cell.item((0,0))+cell.item((0,1))*cell.item((0,1))+cell.item((0,2))*cell.item((0,2)) )
@@ -352,8 +421,8 @@ if 'cell' in locals():   #make uc ABC+abc if it was read in cell
   abc[2]= math.acos( (cell.item((0,0))*cell.item((1,0))+cell.item((0,1))*cell.item((1,1))+cell.item((0,2))*cell.item((1,2)))/ABC[0]/ABC[1] ) #gamma=A^B
 
 elif 'ABC' in locals():  #make uc matrix if it was read in ABC+abc. Copied from Raspa>framework.c>UnitCellBox
-  print
-  print " ...converting CELL (ABCabc) to cell (matrix) "
+  if not args.silent: print
+  if not args.silent: print " ...converting CELL (ABCabc) to cell (matrix) "
   tempd=(math.cos(abc[0])-math.cos(abc[2])*math.cos(abc[1]))/math.sin(abc[2])
   cell=numpy.matrix([[                 ABC[0],                        0.0,                                          0.0],
 		     [ABC[1]*math.cos(abc[2]),    ABC[1]*math.sin(abc[2]),                                          0.0],
@@ -364,8 +433,8 @@ from numpy.linalg import inv
 invcell=inv(cell)
 
 if 'fract' in locals(): #convert in cartesian
-  print
-  print " ...converting fractional coordinates in cartesian"
+  if not args.silent: print
+  if not args.silent: print " ...converting fractional coordinates in cartesian"
   xyz=[] 
   for i in range(0,natoms):
 	x=fract[i][0]*cell.item((0,0))+fract[i][1]*cell.item((1,0))+fract[i][2]*cell.item((2,0))
@@ -373,8 +442,8 @@ if 'fract' in locals(): #convert in cartesian
 	z=fract[i][2]*cell.item((0,2))+fract[i][1]*cell.item((1,2))+fract[i][2]*cell.item((2,2))
 	xyz.append([x,y,z])
 elif 'xyz' in locals(): #convert in fractionals
-  print
-  print " ...converting cartesian coordinates in fractional"
+  if not args.silent: print
+  if not args.silent: print " ...converting cartesian coordinates in fractional"
   fract=[]
   for i in range(0,natoms):
 	x=xyz[i][0]*invcell.item((0,0))+xyz[i][1]*invcell.item((1,0))+xyz[i][2]*invcell.item((2,0))
@@ -383,54 +452,45 @@ elif 'xyz' in locals(): #convert in fractionals
 	fract.append([x,y,z])
 
 if not 'charge' in locals():
-  print
-  print " ...no atomic charge found: 0 charge for each atom"
+  if not args.silent: print
+  if not args.silent: print " ...no atomic charge found: 0 charge for each atom"
   charge = [0]*natoms
 
-#reading what to do
-justinfo=False
-justshow=False
-justvoid=False
-justcupw=False
-justovlp=False
-outputfile='NOTHING'
-if   sys.argv[2]=='info': justinfo=True
-elif sys.argv[2]=='show': justshow=True
-elif sys.argv[2]=='void': justvoid=True
-elif sys.argv[2]=='cupw': justcupw=True
-elif sys.argv[2]=='ovlp': justovlp=True
-else:
-  if len(sys.argv[2].split("."))>1:             # output defined as name.format
-   outputfilename = sys.argv[2].split(".")[-2]
-   outputformat   = sys.argv[2].split(".")[-1]
-   outputfile     = sys.argv[2] 
-  else:                                         # output defined as format
+
+if  args.output==None:                              #CHECK IF AN OUTPUT IS DEFINED
+   outputfile='NOTHING'
+else:                             
+  if len(args.output.split("."))>1:                  #output defined as name.format
+   outputfilename = args.output.split(".")[-2]
+   outputformat   = args.output.split(".")[-1]
+   outputfile     = args.output 
+  else:                                               #output defined as format
    outputfilename = inputfilename
-   outputformat   = sys.argv[2]
+   outputformat   = args.output
    outputfile     = outputfilename+"."+outputformat
 
    
 ############################################################################## OUTPUT INFO
-print
-print "***************************************************"
-print "  Converting %s to %s" % (inputfilename+"."+inputformat, outputfile)
-print "***************************************************"
+if not args.silent: print
+if not args.silent: print "***************************************************"
+if not args.silent: print "  Converting %s to %s" % (inputfilename+"."+inputformat, outputfile)
+if not args.silent: print "***************************************************"
 
 # count atoms
 ntypes=0
 for i in range(1,len(atom_count)):
 	if atom_count[i] != 0:
  		ntypes+=1
-		print('{0:>5} {1:3} atoms'.format(atom_count[i],atomic_symbol[i]))
+		if not args.silent: print('{0:>5} {1:3} atoms'.format(atom_count[i],atomic_symbol[i]))
 
-print " ---- --- ----- "
-print('{0:>5} {1:3} atoms'.format(natoms,'tot'))
-print
+if not args.silent: print " ---- --- ----- "
+if not args.silent: print('{0:>5} {1:3} atoms'.format(natoms,'tot'))
+if not args.silent: print
 
 #compute volume (http://www.fxsolver.com/browse/formulas/Triclinic+crystal+system+(Unit+cell's+volume))
 volume=ABC[0]*ABC[1]*ABC[2]*math.sqrt( 1-(math.cos(abc[0]))**2-(math.cos(abc[1]))**2-(math.cos(abc[2]))**2+2*math.cos(abc[0])*math.cos(abc[1])*math.cos(abc[2]) )
-print "Volume: %.3f (Angtrom^3/u.c.)" %volume
-print
+if not args.silent: print "Volume: %.3f (Angtrom^3/u.c.)" %volume
+if not args.silent: print
 
 #compute density
 weight=0
@@ -438,16 +498,12 @@ for i in range(1,len(atom_count)):
 	if atom_count[i] != 0:
            weight+=atom_count[i]*atomic_mass[i]
 rho=weight/volume/AVOGCONST*1E+10**3/1000 #Kg/m3
-print "Density: %.5f (kg/m3), %.5f (g/cm3)" %(rho,rho/1000)
-print		
+if not args.silent: print "Density: %.5f (kg/m3), %.5f (g/cm3)" %(rho,rho/1000)
+if not args.silent: print		
 
 ############################################################################## OUTPUT INFO
 
-if justinfo:
-  #sys.exit("YOU JUST ASKED FOR INFO: not converting!")
-  sys.exit()
-
-if justshow:
+if args.show:
         print "cell ---------------------------------------------------------------"
 	print "     %8.5f %8.5f %8.5f"    %(cell.item((0,0)),cell.item((0,1)),cell.item((0,2)))
 	print "     %8.5f %8.5f %8.5f"    %(cell.item((1,0)),cell.item((1,1)),cell.item((1,2)))
@@ -464,7 +520,7 @@ if justshow:
         #sys.exit("YOU JUST ASKED TO SHOW: no external files printed!")
         sys.exit()
 
-if justvoid:              #not working because of three spheres overlapping
+if args.void:              #not working because of three spheres overlapping
         volsphere=0;
         volumeocc=0;
         d=[0]*3
@@ -508,7 +564,7 @@ if justvoid:              #not working because of three spheres overlapping
         sys.exit()
 
 #This function checks if there are copper paddlewheels (= a copper atom with a close Cu and 4 close O)
-if justcupw:              
+if args.cupw:              
         ncupw_act=0 
         ncupw_sol=0
         ncupw_wrd=0
@@ -563,7 +619,7 @@ if justcupw:
         if True:
           ofile=open("000_cupw_found.txt", 'a')
           if (ncupw_act>0) or (ncupw_act>0) or (ncupw_wrd<0):
-            print >> ofile, sys.argv[1]
+            print >> ofile, args.inputfile
             print >> ofile, "Cu-paddlewheel activated found:    %d" %ncupw_act   
             print >> ofile, "Cu-paddlewheel solvated  found:    %d   (only Oxygen atoms considered)" %ncupw_sol  
             print >> ofile, "Cu-paddlewheel WEIRD     found:    %d" %ncupw_wrd        
@@ -572,7 +628,7 @@ if justcupw:
         sys.exit()
 
 #This function checks if two atoms overlap because of a bad PBC wrap
-if justovlp:     
+if args.ovlp:     
         jlist=[]    
 	for i in range(0,natoms):
 	     for j in range (i+1,natoms):         
@@ -614,8 +670,8 @@ if justovlp:
            charge=[i for j, i in enumerate(charge) if j not in jlist]
            print "OVERLAPS FOUND: %d" %len(jlist)
            #continue and overwrite the file
-           outputfile  =sys.argv[1]
-           outputformat=sys.argv[1].split(".")[-1]
+           outputfile  =args.inputfile
+           outputformat=args.inputfile.split(".")[-1]
         else:
            print "OVERLAPS FOUND: %d" %len(jlist)
            sys.exit()
@@ -624,13 +680,14 @@ if justovlp:
         
 
 ############################################################################## OUTPUT FILE
-
+if args.output==None: 
+   sys.exit()
 
 ofile=open(outputfile, 'w+')
 
 #writing a CIF file
 if outputformat=="cif":
-     if len(sys.argv)<4:
+     if not args.eqeq:                                    
 	print >> ofile, "data_crystal"
 	print >> ofile, " "
 	print >> ofile, "_cell_length_a    %.5f" %ABC[0]
@@ -659,7 +716,7 @@ if outputformat=="cif":
 		print >> ofile, ('{0:10} {1:5} {2:>9.5f} {3:>9.5f} {4:>9.5f} {5:>9.5f}'.format(label,  atom[i], fract[i][0], fract[i][1], fract[i][2], charge[i]))
         
 
-     if (len(sys.argv)>3) and (sys.argv[3]=='eqeq'):
+     if args.eqeq:
 
         print "****PRINTING .CIF TAILOR-MADE FOR EQeq***"
 
@@ -708,8 +765,8 @@ if outputformat=="xyz":
 		print >> ofile, "%3s %9.5f %9.5f %9.5f "  %(atom[i], xyz[i][0],xyz[i][1],xyz[i][2])
 
 if outputformat=="pwi":
-        if len(sys.argv)<4:
-	   sys.exit("ERROR: You have to specify the pseudo in the input!")
+        if args.pseudo==None:
+	   sys.exit("ERROR: You have to specify the -pseudo in the input!")
    	print >> ofile, "ibrav = 0 "
     	print >> ofile, "nat   = %d " %(natoms)
     	print >> ofile, "ntyp  = %d " %(ntypes)
@@ -717,7 +774,7 @@ if outputformat=="pwi":
    	print >> ofile, "ATOMIC_SPECIES " 
         for i in range(1,len(atom_count)):
 	  if atom_count[i] != 0:
-            	print >> ofile, "%3s %8.3f  %s" %(atomic_symbol[i],atomic_mass[i], atomic_pseudo[sys.argv[3]][i]) #add pseudo!
+            	print >> ofile, "%3s %8.3f  %s" %(atomic_symbol[i],atomic_mass[i], atomic_pseudo[args.pseudo][i]) #add pseudo!
        	print >> ofile, " " 
    	print >> ofile, "CELL_PARAMETERS angstrom "    
 	print >> ofile, "%8.5f %8.5f %8.5f"    %(cell.item((0,0)),cell.item((0,1)),cell.item((0,2)))
