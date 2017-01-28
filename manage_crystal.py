@@ -30,15 +30,16 @@ parser = argparse.ArgumentParser(description='Program to read, extract info and 
 
 parser.add_argument("inputfile", 
                       type=str,
-                      help="path to the input file to read")
+                      help="path to the input file to read"+
+                           "IMPLEMENTED: xyz(w/CELL),pdb,cssr,pwi,pwo,cif,xsf (next: cp2k-restart, gaussian, dcd+atoms)")
 
 parser.add_argument("-o","--output",
                       action="store", 
                       type=str,
                       dest="output",
                       default=None,
-                      help="Output filename.extension or"+ 
-                           "just the extension")
+                      help="Output filename.extension or just the extension"+
+                           "IMPLEMENTED: cif,cif_eqeq,pdb,cssr,xyz(w/CELL),pwi,cp2k,axsf')")
 '''
 parser.add_argument("-info", 
                       action="store_true", 
@@ -91,30 +92,16 @@ parser.add_argument("-eqeq",
                       default=False,
                       help="Tailor-made cif to be used with EQeq")
 
+parser.add_argument("-resp", 
+                      action="store", 
+                      type=str,
+                      dest="resp",
+                      default=None,
+                      help="Read the charges from a cp2k RESP file"+
+                           "(also checking if the atoms are the same)"+
+                           "BC1: it read the first set of charges"+
+                           "BC2: Also a cp2k output file with charges is fine!")
 args = parser.parse_args()
-'''
-############################################################################# HELP 
-if len(sys.argv)==1 or sys.argv[1]=='-h' or sys.argv[1]=='-help' or sys.argv[1]=='help':
-        print
-        print '####################################################################################'
-	print '#  Python program to read coordinates from a file and manage them:'
-	print '#'
-	print '#  $ %s inputfile.xxx outputfile.yyy z' % (sys.argv[0])
-	print '#  $ %s inputfile.xxx yyy z'            % (sys.argv[0])
-	print '#  $ %s inputfile.xxx info'             % (sys.argv[0]) 
-	print '#  $ %s inputfile.xxx show'             % (sys.argv[0]) 
-	print '#  $ %s inputfile.xxx cupw'             % (sys.argv[0]) 
-	print '#  $ %s inputfile.xxx ovlp !overwrites the file (work in progress)'             % (sys.argv[0]) 
-	print '#'
-	print '#  xxx=xyz(w/CELL),pdb,cssr,pwi,pwo,cif,xsf   (next: cp2k-restart, gaussian, dcd+atoms)'
-	print '#  yyy=cif,pdb,cssr,xyz(w/CELL),pwi,cp2k,axsf'
-       #print '#  z=f,l (for the first or the last coordinate in a dcd or pwo or axsf or log)'
-	print '#  z=pbe, pbesol (pseudo for pwi output)'
-	print '#  z=eqeq (for tailor-made cif to be used with EQeq' 
-        print '####################################################################################'
-	print
-	sys.exit()
-'''
 
 ############################################################################# STANDARD INFOS about the periodic table: atomic_symbol/name/vdw/mass
 from atomic_data import *         #import all the data stored in the file atom_data.py
@@ -367,7 +354,7 @@ if inputformat=='cif':
 		  an.append(atomic_symbol.index(atom[i]))
                   atom_count[an[i]]+=1
 		  fract.append([float(data[2]), float(data[3]), float(data[4])])   
-		  charge.append(float(data[5]))
+		  charge.append(float(data[5]))                                         #BC: it could read other info!!!
                   i+=1
                natoms=i
                break                 
@@ -405,12 +392,31 @@ if inputformat=='xsf':
 
                
 file.close()
+
+if not args.resp==None:
+  if not 'charge' in locals(): 
+   charge = [0]*natoms
+   with open(args.resp) as openfileobject:
+    i=0
+    for line in openfileobject:
+     data = line.split()
+     if not len(data)< 4 and data[0]=='RESP' and int(data[1])==(i+1) and data[2]==atom[i]:
+      charge[i]=float(data[3])
+      i=i+1
+     if i==natoms: break
+
+   if not args.silent: print
+   if not args.silent: print " ... %d atomic charges taken from %s" %(i,args.resp)
+ 
+
+
+
 ############################################################################# DO SOMETHING
 #check if xyz are really cartesian (angstrom) and if fract are really fractional coordinates.
 
 if 'cell' in locals():   #make uc ABC+abc if it was read in cell
   if not args.silent: print
-  if not args.silent: print " ...converting cell (matrix) to CELL (ABCabc)"
+  if not args.silent: print " ... converting cell (matrix) to CELL (ABCabc)"
   ABC=[0]*3
   abc=[0]*3
   ABC[0]= math.sqrt(cell.item((0,0))*cell.item((0,0))+cell.item((0,1))*cell.item((0,1))+cell.item((0,2))*cell.item((0,2)) )
@@ -422,7 +428,7 @@ if 'cell' in locals():   #make uc ABC+abc if it was read in cell
 
 elif 'ABC' in locals():  #make uc matrix if it was read in ABC+abc. Copied from Raspa>framework.c>UnitCellBox
   if not args.silent: print
-  if not args.silent: print " ...converting CELL (ABCabc) to cell (matrix) "
+  if not args.silent: print " ... converting CELL (ABCabc) to cell (matrix) "
   tempd=(math.cos(abc[0])-math.cos(abc[2])*math.cos(abc[1]))/math.sin(abc[2])
   cell=numpy.matrix([[                 ABC[0],                        0.0,                                          0.0],
 		     [ABC[1]*math.cos(abc[2]),    ABC[1]*math.sin(abc[2]),                                          0.0],
@@ -434,7 +440,7 @@ invcell=inv(cell)
 
 if 'fract' in locals(): #convert in cartesian
   if not args.silent: print
-  if not args.silent: print " ...converting fractional coordinates in cartesian"
+  if not args.silent: print " ... converting fractional coordinates in cartesian"
   xyz=[] 
   for i in range(0,natoms):
 	x=fract[i][0]*cell.item((0,0))+fract[i][1]*cell.item((1,0))+fract[i][2]*cell.item((2,0))
@@ -443,7 +449,7 @@ if 'fract' in locals(): #convert in cartesian
 	xyz.append([x,y,z])
 elif 'xyz' in locals(): #convert in fractionals
   if not args.silent: print
-  if not args.silent: print " ...converting cartesian coordinates in fractional"
+  if not args.silent: print " ... converting cartesian coordinates to fractional"
   fract=[]
   for i in range(0,natoms):
 	x=xyz[i][0]*invcell.item((0,0))+xyz[i][1]*invcell.item((1,0))+xyz[i][2]*invcell.item((2,0))
@@ -453,7 +459,7 @@ elif 'xyz' in locals(): #convert in fractionals
 
 if not 'charge' in locals():
   if not args.silent: print
-  if not args.silent: print " ...no atomic charge found: 0 charge for each atom"
+  if not args.silent: print " ... no atomic charge found: 0 charge for each atom"
   charge = [0]*natoms
 
 
@@ -471,12 +477,8 @@ else:
 
    
 ############################################################################## OUTPUT INFO
-if not args.silent: print
-if not args.silent: print "***************************************************"
-if not args.silent: print "  Converting %s to %s" % (inputfilename+"."+inputformat, outputfile)
-if not args.silent: print "***************************************************"
-
 # count atoms
+if not args.silent: print
 ntypes=0
 for i in range(1,len(atom_count)):
 	if atom_count[i] != 0:
@@ -498,9 +500,13 @@ for i in range(1,len(atom_count)):
 	if atom_count[i] != 0:
            weight+=atom_count[i]*atomic_mass[i]
 rho=weight/volume/AVOGCONST*1E+10**3/1000 #Kg/m3
-if not args.silent: print "Density: %.5f (kg/m3), %.5f (g/cm3)" %(rho,rho/1000)
-if not args.silent: print		
+if not args.silent: print "Density: %.5f (kg/m3), %.5f (g/cm3)" %(rho,rho/1000)	
 
+if not args.silent: print
+if not args.silent: print "***************************************************"
+if not args.silent: print "  Converting %s to %s" % (inputfilename+"."+inputformat, outputfile)
+if not args.silent: print "***************************************************"	
+if not args.silent: print
 ############################################################################## OUTPUT INFO
 
 if args.show:
