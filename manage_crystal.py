@@ -38,7 +38,7 @@ if len(sys.argv)==1 or sys.argv[1]=='-h' or sys.argv[1]=='-help' or sys.argv[1]=
 	print '#  $ %s inputfile.xxx cupw'             % (sys.argv[0]) 
 	print '#  $ %s inputfile.xxx ovlp !overwrites the file (work in progress)'             % (sys.argv[0]) 
 	print '#'
-	print '#  xxx=xyz(w/CELL),pdb,cssr,pwi,pwo,cif   (next: cp2k-restart, xsf,gaussian, dcd+atoms)'
+	print '#  xxx=xyz(w/CELL),pdb,cssr,pwi,pwo,cif,xsf   (next: cp2k-restart, gaussian, dcd+atoms)'
 	print '#  yyy=cif,pdb,cssr,xyz(w/CELL),pwi,cp2k,axsf'
        #print '#  z=f,l (for the first or the last coordinate in a dcd or pwo or axsf or log)'
 	print '#  z=pbe, pbesol (pseudo for pwi output)'
@@ -142,10 +142,12 @@ if inputformat=='cssr':
                 atom_count[an[i]]+=1
 		fract.append([float(data[2]), float(data[3]), float(data[4])])
 
+
+
 if inputformat=='xyz':
 	#read number of atoms
 	line = file.readline()
-	natoms=int(line.split( )[0])
+	natoms=int(line.split()[0])
 
 	#read cell in my way of writing it as a comment of xyz
 	line = file.readline()
@@ -170,6 +172,9 @@ if inputformat=='xyz':
 		an.append(atomic_symbol.index(atom[i]))
                 atom_count[an[i]]+=1
 		xyz.append([float(data[1]), float(data[2]), float(data[3])])
+
+
+
 
 if (inputformat=='pwo') or (inputformat=='pwi'):
         #search for the last time the cell/coord are printed and jump to that line (no need to be converged). ONLY if they are not found, it reads the initial input
@@ -298,6 +303,37 @@ if inputformat=='cif':
                natoms=i
                break                 
  
+
+if inputformat=='xsf':
+	while True:
+		line = file.readline()
+		if line.split()[0]=='PRIMVEC':
+			break
+	celltempA = file.readline().split()
+        celltempB = file.readline().split()
+        celltempC = file.readline().split()
+	cell=numpy.matrix([[float(celltempA[0]),float(celltempA[1]),float(celltempA[2])],
+	 	           [float(celltempB[0]),float(celltempB[1]),float(celltempB[2])],
+	   	           [float(celltempC[0]),float(celltempC[1]),float(celltempC[2])]])
+	while True:
+		line = file.readline()
+		if line.split()[0]=='PRIMCOORD':
+			break
+        line = file.readline()
+	natoms=int(line.split()[0])
+
+	#read an[index] and translate to the atomic type
+	atom=[]
+	an=[]
+	xyz=[]
+	for i in range(0,natoms):
+		line = file.readline()
+		data = line.split( )
+		an.append(int(data[0]))	
+		atom.append(atomic_symbol[an[i]])
+                atom_count[an[i]]+=1
+		xyz.append([float(data[1]), float(data[2]), float(data[3])])
+
                
 file.close()
 ############################################################################# DO SOMETHING
