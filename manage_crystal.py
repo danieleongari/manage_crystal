@@ -101,6 +101,31 @@ parser.add_argument("-resp",
                            "(also checking if the atoms are the same)"+
                            "BC1: it read the first set of charges"+
                            "BC2: Also a cp2k output file with charges is fine!")
+
+parser.add_argument("-x", 
+                      action="store", 
+                      type=int,
+                      dest="multipl_x",
+                      default=1,
+                      help="Extend in the x direction, by the specified times")
+
+parser.add_argument("-y", 
+                      action="store", 
+                      type=int,
+                      dest="multipl_y",
+                      default=1,
+                      help="Extend in the y direction, by the specified times")
+
+
+parser.add_argument("-z", 
+                      action="store", 
+                      type=int,
+                      dest="multipl_z",
+                      default=1,
+                      help="Extend in the z direction, by the specified times")
+
+
+
 args = parser.parse_args()
 
 ############################################################################# STANDARD INFOS about the periodic table: atomic_symbol/name/vdw/mass
@@ -209,7 +234,7 @@ if inputformat=='xyz':
 	line = file.readline()
 	celltemp=line.split( )
 
-	if celltemp[0]=='CELL:' or celltemp[0]=='CELL':
+	if celltemp[0]=='CELL:' or celltemp[0]=='CELL' or celltemp[0]=='Cell:' or celltemp[0]=='Cell':
 		ABC=[float( celltemp[1]),float(celltemp[2]),float(celltemp[3])]
 		abc=[math.radians(float(celltemp[4])),math.radians(float(celltemp[5])),math.radians(float( celltemp[6]))]
 
@@ -322,11 +347,11 @@ if (inputformat=='pwo') or (inputformat=='pwi'):
               break
 
 if inputformat=='cif':
-          print
-          print "**** BE CAREFUL: cif reading is tested only for the format"
-          print "****             of this output (P1,label+symbol+fract)"
-          print "****             (also CoRE MOF cif are readable!)"  
-          print
+          if not args.silent: print
+          if not args.silent: print "**** BE CAREFUL: cif reading is tested only for the format"
+          if not args.silent: print "****             of this output (P1,label+symbol+fract)"
+          if not args.silent: print "****             (also CoRE MOF cif are readable!)"  
+          if not args.silent: print
           ABC=[0]*3
           abc=[0]*3
           while True:
@@ -409,8 +434,6 @@ if not args.resp==None:
    if not args.silent: print " ... %d atomic charges taken from %s" %(i,args.resp)
  
 
-
-
 ############################################################################# DO SOMETHING
 #check if xyz are really cartesian (angstrom) and if fract are really fractional coordinates.
 
@@ -463,20 +486,68 @@ if not 'charge' in locals():
   charge = [0]*natoms
 
 
-if  args.output==None:                              #CHECK IF AN OUTPUT IS DEFINED
-   outputfile='NOTHING'
-else:                             
-  if len(args.output.split("."))>1:                  #output defined as name.format
-   outputfilename = args.output.split(".")[-2]
-   outputformat   = args.output.split(".")[-1]
-   outputfile     = args.output 
-  else:                                               #output defined as format
-   outputfilename = inputfilename
-   outputformat   = args.output
-   outputfile     = outputfilename+"."+outputformat
 
-   
-############################################################################## OUTPUT INFO
+
+############################################################################# CELL EXTENSION
+if args.multipl_x>1 or args.multipl_y>1 or args.multipl_z>1:
+
+ if args.multipl_x>1:
+   for i in range(1,args.multipl_x):
+     for j in range(0,natoms):
+  		atom.append(atom[j])	
+		an.append(atomic_symbol.index(atom[j]))
+                atom_count[an[j]]+=1
+                charge.append(charge[j])
+		xyz.append([xyz[j][0]+i*cell[0,0], 
+                            xyz[j][1]+i*cell[0,1],
+                            xyz[j][2]+i*cell[0,2]])
+   ABC[0]   *=args.multipl_x
+   cell[0,0]*=args.multipl_x #nonzero
+   cell[0,1]*=args.multipl_x #zero
+   cell[0,2]*=args.multipl_x #zero
+   natoms*=args.multipl_x
+
+ if args.multipl_y>1:
+   for i in range(1,args.multipl_y):
+     for j in range(0,natoms):
+  		atom.append(atom[j])	
+		an.append(atomic_symbol.index(atom[j]))
+                atom_count[an[j]]+=1
+                charge.append(charge[j])
+		xyz.append([xyz[j][0]+i*cell[1,0], 
+                            xyz[j][1]+i*cell[1,1],
+                            xyz[j][2]+i*cell[1,2]])
+   ABC[1]   *=args.multipl_y
+   cell[1,0]*=args.multipl_y #nonzero
+   cell[1,1]*=args.multipl_y #nonzero 
+   cell[1,2]*=args.multipl_y #zero
+   natoms*=args.multipl_y
+
+ if args.multipl_z>1:
+   for i in range(1,args.multipl_z):
+     for j in range(0,natoms):
+  		atom.append(atom[j])	
+		an.append(atomic_symbol.index(atom[j]))
+                atom_count[an[j]]+=1
+                charge.append(charge[j])
+		xyz.append([xyz[j][0]+i*cell[2,0], 
+                            xyz[j][1]+i*cell[2,1],
+                            xyz[j][2]+i*cell[2,2]])
+   ABC[2]   *=args.multipl_x
+   cell[2,0]*=args.multipl_x #nonzero
+   cell[2,1]*=args.multipl_x #nonzero
+   cell[2,2]*=args.multipl_x #nonzero
+   natoms*=args.multipl_z
+
+ fract=[]
+ invcell=inv(cell)
+ for i in range(0,natoms):
+	x=xyz[i][0]*invcell[0,0]+xyz[i][1]*invcell[1,0]+xyz[i][2]*invcell[2,0]
+	y=xyz[i][1]*invcell[0,1]+xyz[i][1]*invcell[1,1]+xyz[i][2]*invcell[2,1]
+	z=xyz[i][2]*invcell[0,2]+xyz[i][1]*invcell[1,2]+xyz[i][2]*invcell[2,2]
+	fract.append([x,y,z])
+
+########################################################################################### COMPUTE INFO
 # count atoms
 if not args.silent: print
 ntypes=0
@@ -502,12 +573,25 @@ for i in range(1,len(atom_count)):
 rho=weight/volume/AVOGCONST*1E+10**3/1000 #Kg/m3
 if not args.silent: print "Density: %.5f (kg/m3), %.5f (g/cm3)" %(rho,rho/1000)	
 
+############################################################################################## OUTPUT INFO
+if  args.output==None:                              #CHECK IF AN OUTPUT IS DEFINED
+   outputfile='NOTHING'
+else:                             
+  if len(args.output.split("."))>1:                  #output defined as name.format
+   outputfilename = args.output.split(".")[-2]
+   outputformat   = args.output.split(".")[-1]
+   outputfile     = args.output 
+  else:                                               #output defined as format
+   outputfilename = inputfilename
+   outputformat   = args.output
+   outputfile     = outputfilename+"."+outputformat
+
 if not args.silent: print
 if not args.silent: print "***************************************************"
 if not args.silent: print "  Converting %s to %s" % (inputfilename+"."+inputformat, outputfile)
 if not args.silent: print "***************************************************"	
 if not args.silent: print
-############################################################################## OUTPUT INFO
+
 
 if args.show:
         print "cell ---------------------------------------------------------------"
