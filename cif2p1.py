@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 
+# Daniele ongari 15jan2017
+
 # This script is using ASE and opanbabel (see Drive for the installation)
 # to apply the symmetries of a cif file making a cif P1 file
 # which can be read by manage_crystal.py
 # Since the parser of ASE is crappy I need obabel to make a nice cif file
 # but I needed to modify:
 # /usr/lib/python2.7/dist-packages/ase/io/cif.py (line: 233)
-#     elif '_space_group_name_h-m_alt' in tags:
-#        symbolHM = tags['_space_group_name_h-m_alt']
+#add     elif '_space_group_name_h-m_alt' in tags:
+#add        symbolHM = tags['_space_group_name_h-m_alt']
 
 # USAGE:
 # cif2p1.py input.cif flag 
@@ -21,7 +23,7 @@ import string,sys,os
 import subprocess
 
 
-openbabel="/usr/local/bin/obabel"
+openbabel="/usr/local/bin/obabel" #be sure you have a recent version of obabel (_atom_site_fract_x instead of _atom_site_Cartn_x)
 manage_crystal="/home/daniele/Programs/python_my/manage_crystal.py"
 
 
