@@ -31,7 +31,7 @@ parser = argparse.ArgumentParser(description='Program to read, extract info and 
 parser.add_argument("inputfile", 
                       type=str,
                       help="path to the input file to read"+
-                           "IMPLEMENTED: xyz(w/CELL),pdb,cssr,pwi,pwo,cif,xsf (next: cp2k-restart, gaussian, dcd+atoms)")
+                           "IMPLEMENTED: xyz(w/CELL),pdb,cssr,pwi,pwo,cif,xsf,axsf,subsys(CP2K) (next: cp2k-restart, gaussian, dcd+atoms)")
 
 parser.add_argument("-o","--output",
                       action="store", 
@@ -39,7 +39,7 @@ parser.add_argument("-o","--output",
                       dest="output",
                       default=None,
                       help="Output filename.extension or just the extension"+
-                           "IMPLEMENTED: cif,cif_eqeq,pdb,cssr,xyz(w/CELL),pwi,cp2k,axsf')")
+                           "IMPLEMENTED: cif,cif_eqeq,pdb,cssr,xyz(w/CELL),pwi,subsys(CP2K),axsf")
 
 parser.add_argument("-silent", 
                       action="store_true", 
@@ -412,7 +412,7 @@ if inputformat=='cif':
                break                 
  
 
-if inputformat=='xsf':
+if inputformat=='xsf' or inputformat=='axsf':
 	while True:
 		line = file.readline()
 		if line.split()[0]=='PRIMVEC':
@@ -430,19 +430,52 @@ if inputformat=='xsf':
         line = file.readline()
 	natoms=int(line.split()[0])
 
-	#read an[index] and translate to the atomic type
 	atom=[]
 	an=[]
 	xyz=[]
 	for i in range(0,natoms):
-		line = file.readline()
-		data = line.split( )
-		an.append(int(data[0]))	
-		atom.append(atomic_symbol[an[i]])
+		data = file.readline().split()
+                if is_number(data[0]):              #In .xsf is it specified the atom type number while in my .axsf the atom's name.
+		  an.append(int(data[0]))	
+		  atom.append(atomic_symbol[an[i]])
+                else:
+ 	          atom.append(data[0])	
+	          an.append(atomic_symbol.index(atom[i]))
                 atom_count[an[i]]+=1
 		xyz.append([float(data[1]), float(data[2]), float(data[3])])
 
-               
+
+if inputformat=='subsys':
+	while True:
+	  data = file.readline().split()
+	  if len(data)>0 and (data[0]=="A"): celltempA = data
+          if len(data)>0 and (data[0]=="B"): celltempB = data
+          if len(data)>0 and (data[0]=="C"): celltempC = data
+          if len(data)>0 and (data[0]=="&COORD"): break
+
+	cell=numpy.matrix([[float(celltempA[2]),float(celltempA[3]),float(celltempA[4])],
+	 	           [float(celltempB[2]),float(celltempB[3]),float(celltempB[4])],
+	   	           [float(celltempC[2]),float(celltempC[3]),float(celltempC[4])]])
+        
+	atom=[]
+	an=[]
+	xyz=[]
+	i=0
+	while True:
+	  data = file.readline().split()
+          if   len(data)==0: donothing=True
+          elif data[0]=="SCALED": donothing=True
+          elif data[0]=="&END": 
+            natoms=i 
+            break
+          else: 
+	    atom.append(data[0])	
+	    an.append(atomic_symbol.index(atom[i]))
+            atom_count[an[i]]+=1
+            xyz.append([float(data[1]), float(data[2]), float(data[3])])
+            i+=1
+        
+        
 file.close()
 
 if not args.resp==None:
@@ -971,7 +1004,8 @@ if outputformat=="pwi":
    	print >> ofile, " "
    	print >> ofile, "K_POINTS gamma "  
 
-if outputformat=="cp2k":                          #tip: this section can be written in another file and added in the main with: @INCLUDE 'outputname.cp2k'
+if outputformat=="subsys":                          
+        print >> ofile, "##### Include it to the main cp2k.inp using: @INCLUDE '%s.subsys'" %outputfilename
         print >> ofile, "  &SUBSYS"
         print >> ofile, "    &CELL"
         print >> ofile, "      PERIODIC XYZ"  
