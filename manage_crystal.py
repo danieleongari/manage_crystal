@@ -31,7 +31,7 @@ parser = argparse.ArgumentParser(description='Program to read, extract info and 
 parser.add_argument("inputfile", 
                       type=str,
                       help="path to the input file to read"+
-                           "IMPLEMENTED: xyz(w/CELL),pdb,cssr,pwi,pwo,cif,xsf,axsf,subsys(CP2K) (next: cp2k-restart, gaussian, dcd+atoms)")
+                           "IMPLEMENTED: xyz(w/CELL),pdb,cssr,pwi,pwo,cif,xsf,axsf,subsys(CP2K), restart (CP2K), gaussian, dcd+atoms)")
 
 parser.add_argument("-o","--output",
                       action="store", 
@@ -456,7 +456,6 @@ if inputformat=='subsys':
 	cell=numpy.matrix([[float(celltempA[2]),float(celltempA[3]),float(celltempA[4])],
 	 	           [float(celltempB[2]),float(celltempB[3]),float(celltempB[4])],
 	   	           [float(celltempC[2]),float(celltempC[3]),float(celltempC[4])]])
-        
 	atom=[]
 	an=[]
 	xyz=[]
@@ -475,6 +474,38 @@ if inputformat=='subsys':
             xyz.append([float(data[1]), float(data[2]), float(data[3])])
             i+=1
         
+if inputformat=='restart':
+        print
+        print '* Reading CP2K .restart (.restart.bak-n, are the previous n steps) *'
+	while True:
+	  data = file.readline().split()
+	  if len(data)>0 and (data[0]=="A"): celltempA = data
+          if len(data)>0 and (data[0]=="B"): celltempB = data
+          if len(data)>0 and (data[0]=="C"): celltempC = data
+          if len(data)>0 and (data[0]=="&COORD"): break
+
+	cell=numpy.matrix([[float(celltempA[1]),float(celltempA[2]),float(celltempA[3])],
+	 	           [float(celltempB[1]),float(celltempB[2]),float(celltempB[3])],
+	   	           [float(celltempC[1]),float(celltempC[2]),float(celltempC[3])]])
+	atom=[]
+	an=[]
+	xyz=[]
+	i=0
+	while True:
+	  data = file.readline().split()
+          if   len(data)==0: donothing=True
+          elif data[0]=="SCALED": donothing=True
+          elif data[0]=="&END": 
+            natoms=i 
+            break
+          else: 
+	    atom.append(data[0])	
+	    an.append(atomic_symbol.index(atom[i]))
+            atom_count[an[i]]+=1
+            xyz.append([float(data[1]), float(data[2]), float(data[3])])
+            i+=1        
+        
+
         
 file.close()
 
