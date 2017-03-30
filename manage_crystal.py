@@ -31,7 +31,7 @@ parser = argparse.ArgumentParser(description='Program to read, extract info and 
 parser.add_argument("inputfile", 
                       type=str,
                       help="path to the input file to read"+
-                           "IMPLEMENTED: xyz(w/CELL),pdb,cssr,pwi,pwo,cif,xsf,axsf,subsys(CP2K), restart (CP2K), gaussian, dcd+atoms)")
+                           "IMPLEMENTED: xyz(w/CELL),pdb,cssr,pwi,pwo,cif,xsf,axsf,subsys(CP2K),restart(CP2K) [NEXT: gaussian, dcd+atoms]")
 
 parser.add_argument("-o","--output",
                       action="store", 
@@ -753,17 +753,17 @@ if not args.silent: print
 
 if args.show:
         print "cell ---------------------------------------------------------------"
-	print "     %8.5f %8.5f %8.5f"    %(cell.item((0,0)),cell.item((0,1)),cell.item((0,2)))
-	print "     %8.5f %8.5f %8.5f"    %(cell.item((1,0)),cell.item((1,1)),cell.item((1,2)))
-	print "     %8.5f %8.5f %8.5f"    %(cell.item((2,0)),cell.item((2,1)),cell.item((2,2)))
+	print "     %10.5f %10.5f %10.5f"    %(cell.item((0,0)),cell.item((0,1)),cell.item((0,2)))
+	print "     %10.5f %10.5f %10.5f"    %(cell.item((1,0)),cell.item((1,1)),cell.item((1,2)))
+	print "     %10.5f %10.5f %10.5f"    %(cell.item((2,0)),cell.item((2,1)),cell.item((2,2)))
         print "CELL (ABC, abc) ----------------------------------------------------"
-	print " %.5f  %.5f  %.5f  %.3f  %.3f  %.3f  " %(ABC[0],ABC[1],ABC[2],math.degrees(abc[0]),math.degrees(abc[1]),math.degrees(abc[2]))
+	print " %10.5f  %10.5f  %10.5f  %10.5f  %10.5f  %10.5f  " %(ABC[0],ABC[1],ABC[2],math.degrees(abc[0]),math.degrees(abc[1]),math.degrees(abc[2]))
         print "xyz ----------------------------------------------------------------"
 	for i in range(0,natoms):
-		print "%3s %8.3f %8.3f %8.3f "  %(atom[i], xyz[i][0],xyz[i][1],xyz[i][2])
+		print "%3s %10.5f %10.5f %10.5f "  %(atom[i], xyz[i][0],xyz[i][1],xyz[i][2])
         print "fract --------------------------------------------------------------"
 	for i in range(0,natoms):
-		print "%3s %8.3f %8.3f %8.3f "  %(atom[i], fract[i][0],fract[i][1],fract[i][2])
+		print "%3s %10.5f %10.5f %10.5f "  %(atom[i], fract[i][0],fract[i][1],fract[i][2])
 
         #sys.exit("YOU JUST ASKED TO SHOW: no external files printed!")
         sys.exit()
