@@ -314,19 +314,28 @@ if (inputformat=='pwo') or (inputformat=='pwi'):
         file.close()
           
   #atomic
-	atom=[]
-	an=[]
-	xyz=[]
+
+
 
         file = open(args.inputfile,'r')
         with file as myFile:
          for num, line in enumerate(myFile, 1):
            if 'ATOMIC_POSITIONS' in line:
             atomic_line=num
+            if   line.split()[1]=='angstrom': readfractional=False
+            elif line.split()[1]=='crystal':  readfractional=True
         file.close()
+
+
 
         file = open(args.inputfile,'r') 
         if 'atomic_line' in locals(): #read atomic in vc-relax and relax calculation 
+	  atom=[]
+	  an=[]
+
+          if readfractional: fract=[]
+	  else:                xyz=[]
+
           for i in range(0,atomic_line):
 	   skip = file.readline() 
           i=0
@@ -338,11 +347,15 @@ if (inputformat=='pwo') or (inputformat=='pwi'):
 		atom.append(data[0])	
 		an.append(atomic_symbol.index(atom[i]))              
                 atom_count[an[i]]+=1
-		xyz.append([float(data[1]), float(data[2]), float(data[3])]) 
+                if readfractional: fract.append([float(data[1]), float(data[2]), float(data[3])]) 
+                else:                xyz.append([float(data[1]), float(data[2]), float(data[3])])  
                 i=i+1
           natoms=i
  
         else: #read atomic in scf calculation 
+	  atom=[]
+	  an=[]
+	  xyz=[]
           while True:
             data = file.readline().split()
             if len(data)>0 and (data[0]=="celldm(1)="):
