@@ -322,8 +322,8 @@ if (inputformat=='pwo') or (inputformat=='pwi'):
          for num, line in enumerate(myFile, 1):
            if 'ATOMIC_POSITIONS' in line:
             atomic_line=num
-            if   line.split()[1]=='angstrom': readfractional=False
-            elif line.split()[1]=='crystal':  readfractional=True
+            if   line.split()[1]=='angstrom' or line.split()[1]=='(angstrom)': readfractional=False
+            elif line.split()[1]=='crystal'  or line.split()[1]=='(crystal)':  readfractional=True
         file.close()
 
 
