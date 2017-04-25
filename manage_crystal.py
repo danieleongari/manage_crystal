@@ -25,6 +25,7 @@ import numpy
 import math
 import subprocess
 import argparse 
+import os
 
 parser = argparse.ArgumentParser(description='Program to read, extract info and convert crystal files (by Daniele Ongari)')
 
@@ -153,10 +154,11 @@ def is_number(s):       #checks if a string is a number or not
 
 ############################################################################## INPUT
 
-#reading input file: name and format
-inputfilename = args.inputfile.split(".")[-2]
-inputformat= args.inputfile.split(".")[-1]
-file = open(args.inputfile,'r')
+#reading input file: name and format (notice that if there is a path it becomes part of the name, to have the output in the same place)
+if not os.path.isfile(args.inputfile): sys.exit("ERROR: The file %s doesn't exist!" %args.inputfile) 
+inputfilename = os.path.splitext(args.inputfile)[0]
+inputformat =   os.path.splitext(args.inputfile)[1][1:] #the last commands, remove the starting point of the extension
+file = open(inputfilename+"."+inputformat,'r')
 
 """/
 if inputformat=='dcd':
@@ -749,9 +751,9 @@ if  args.output==None:                              #CHECK IF AN OUTPUT IS DEFIN
    outputfile='NOTHING'
 else:                             
   if len(args.output.split("."))>1:                  #output defined as name.format
-   outputfilename = args.output.split(".")[-2]
-   outputformat   = args.output.split(".")[-1]
-   outputfile     = args.output 
+   outputfilename = os.path.splitext(args.output)[0]
+   outputformat   = os.path.splitext(args.output)[1][1:]
+   outputfile     = outputfilename+"."+outputformat
   else:                                               #output defined as format
    outputfilename = inputfilename
    outputformat   = args.output
