@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python2.7
 """/
 Python program to read coordinates from a file and handle them. Daniele Ongari 7/11/16
 
@@ -331,7 +331,7 @@ if (inputformat=='pwo') or (inputformat=='pwi'):
 
 
         file = open(args.inputfile,'r') 
-        if 'atomic_line' in locals(): #read atomic in vc-relax and relax calculation 
+        if 'atomic_line' in locals(): #read atomic in vc-relax and relax calculation
 	  atom=[]
 	  an=[]
 
@@ -346,7 +346,9 @@ if (inputformat=='pwo') or (inputformat=='pwi'):
 	   if len(data)<4:           #if the file is finished stop  
 	  	break 
 	   else:
-		atom.append(data[0])	
+                #Check if the last character of the atom is a number (for example Cu1 Cu2)  and remove it!
+                if is_number(data[0][-1]): data[0]=data[0][:-1]
+		atom.append(data[0])       	
 		an.append(atomic_symbol.index(atom[i]))              
                 atom_count[an[i]]+=1
                 if readfractional: fract.append([float(data[1]), float(data[2]), float(data[3])]) 
@@ -728,10 +730,13 @@ if not args.silent: print "Volume: %.3f (Angtrom^3/u.c.)" %volume
 weight=0
 for i in range(1,len(atom_count)):
 	if atom_count[i] != 0:
-           weight+=atom_count[i]*atomic_mass[i]
+           weight+=atom_count[i]*atomic_mass[i]     #g/mol_uc
 rho=weight/volume/AVOGCONST*1E+10**3/1000 #Kg/m3
-if not args.silent: print
 if not args.silent: print "Density: %.5f (kg/m3), %.5f (g/cm3)" %(rho,rho/1000)	
+
+#compute conversion to mol/kg
+molkg=1000/weight #mol/g
+if not args.silent: print "Conversion: 1 molec./u.c. = %.5f (mol/kg)" %(molkg)	
 
 #compute net charge
 if not args.silent: print 

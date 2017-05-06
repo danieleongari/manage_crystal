@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python2.7
 """/
 Python program to print information from a cube file. Daniele Ongari 7/11/16
 """
