@@ -1,7 +1,6 @@
 #! /usr/bin/python2.7
 
 # domod: downloaded from http://wiki.wpi.edu/deskinsgroup/Density_of_States_-_CP2K on 12/6/17
-
 #---------------------------------------------------
 # get-smearing-pdos.py: read one or a pair alpha,  
 # beta spin files with the cp2k pdos format and
@@ -26,6 +25,7 @@
 import sys
 from math import pi, sqrt	
 import numpy as np
+import os
 
 class pdos:
     """ Projected electronic density of states from CP2K output files
@@ -74,15 +74,18 @@ class pdos:
         firstline  = input_file.readline().strip().split()
         secondline = input_file.readline().strip().split()
 
+#domod start
 
-        if 
-        # Kind of atom
-        self.atom = firstline[6]   #domod: 7 instead of 6
-        self.list = firstline[6]
-        #iterationstep
-        self.iterstep = int(firstline[12][:-1]) #[:-1] delete "," #domod: 14 instead of 12
-        # Energy of the Fermi level
-        self.efermi = float(firstline[15])   #domod: 17 instead 15
+        if firstline[4]=='list':
+         self.list = firstline[6]
+         self.iterstep = int(firstline[14][:-1]) #[:-1] delete ","
+         self.efermi = float(firstline[17])
+        elif firstline[4]=='atomic':
+         self.atom = firstline[6]   
+         self.iterstep = int(firstline[12][:-1])
+         self.efermi = float(firstline[15])   
+
+#domod end
 
         # it keeps just the orbital names
         secondline[0:5] = []
@@ -167,7 +170,8 @@ if len(sys.argv) == 2:
     alpha_smeared = alpha.smearing(npts,0.2)
     eigenvalues = np.linspace(min(alpha.e), max(alpha.e),npts)
     
-    g = open('smeared.dat','w')
+    outfilename = os.path.splitext(infilename)[0]+'_smeared.dat'
+    g = open(outfilename,'w')                                    #domod: same name 
     for i,j in zip(eigenvalues, alpha_smeared):
         t = str(i).ljust(15) + '     ' + str(j).ljust(15) + '\n'
         g.write(t)
