@@ -32,7 +32,7 @@ parser = argparse.ArgumentParser(description='Program to read, extract info and 
 parser.add_argument("inputfile", 
                       type=str,
                       help="path to the input file to read"+
-                           "IMPLEMENTED: xyz(w/CELL),pdb,cssr,pwi,pwo,cif,xsf,axsf,subsys(CP2K),restart(CP2K) [NEXT: gaussian, dcd+atoms]")
+                           "IMPLEMENTED: xyz(w/CELL),pdb,cssr,pwi,pwo,cif,xsf,axsf,subsys(CP2K),restart(CP2K), cube [NEXT: gaussian, dcd+atoms]")
 
 parser.add_argument("-o","--output",
                       action="store", 
@@ -461,7 +461,6 @@ if inputformat=='xsf' or inputformat=='axsf':
                 atom_count[an[i]]+=1
 		xyz.append([float(data[1]), float(data[2]), float(data[3])])
 
-
 if inputformat=='subsys':
 	while True:
 	  data = file.readline().split()
@@ -522,7 +521,33 @@ if inputformat=='restart':
             xyz.append([float(data[1]), float(data[2]), float(data[3])])
             i+=1        
         
+if inputformat=='cube':
+        junk = file.readline() #header1
+        junk = file.readline() #header2
+         
+        line =file.readline()
 
+	natoms=int(line.split()[0])
+        x_orig=float(line.split()[1])
+        y_orig=float(line.split()[2])
+        z_orig=float(line.split()[3])
+
+	celltempA = file.readline().split()
+        celltempB = file.readline().split()
+        celltempC = file.readline().split()
+
+	cell=numpy.matrix([[float(celltempA[0])*float(celltempA[1])/ANGS2BOHR, float(celltempA[0])*float(celltempA[2])/ANGS2BOHR, float(celltempA[0])*float(celltempA[3])/ANGS2BOHR],
+	 	           [float(celltempB[0])*float(celltempB[1])/ANGS2BOHR, float(celltempB[0])*float(celltempB[2])/ANGS2BOHR, float(celltempB[0])*float(celltempB[3])/ANGS2BOHR],
+	   	           [float(celltempC[0])*float(celltempC[1])/ANGS2BOHR, float(celltempC[0])*float(celltempC[2])/ANGS2BOHR, float(celltempC[0])*float(celltempC[3])/ANGS2BOHR]])
+	atom=[]
+	an=[]
+	xyz=[]
+	for i in range(0,natoms):
+		data = file.readline().split()
+		an.append(int(data[0]))	
+		atom.append(atomic_symbol[an[i]])
+                atom_count[an[i]]+=1
+		xyz.append([float(data[2])/ANGS2BOHR, float(data[3])/ANGS2BOHR, float(data[4])/ANGS2BOHR])
         
 file.close()
 

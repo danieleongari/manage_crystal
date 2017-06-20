@@ -190,7 +190,8 @@ elif len(sys.argv) == 3:
     
     eigenvalues = np.linspace(min(alpha.e), max(alpha.e),npts)
 
-    g = open('smeared.dat','w')
+    outfilename = os.path.splitext(infilename1)[0]+'_smeared.dat'
+    g = open(outfilename,'w')                                     #domod: same name of the first
     for i,j in zip(eigenvalues, totalDOS):
         t = str(i).ljust(15) + '     ' + str(j).ljust(15) + '\n'
         g.write(t)
