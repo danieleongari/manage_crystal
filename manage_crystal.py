@@ -26,6 +26,7 @@ import math
 import subprocess
 import argparse 
 import os
+import re           #re.split('(\d+)',"O23") = ['O', '23', '']
 
 parser = argparse.ArgumentParser(description='Program to read, extract info and convert crystal files (by Daniele Ongari)')
 
@@ -95,6 +96,13 @@ parser.add_argument("-resp",
                            "BC1: it read the first set of charges"+
                            "BC2: Also a cp2k output file with charges is fine!")
 
+parser.add_argument("-readcharge", 
+                      action="store", 
+                      type=str,
+                      dest="readcharge",
+                      default=None,
+                      help="Read the charges from a simple list")
+
 parser.add_argument("-x", 
                       action="store", 
                       type=int,
@@ -125,7 +133,12 @@ parser.add_argument("-cutoff",
                       default=None,
                       help="Automatically extend the UC so that the cutoff is respected [WORK IN PROGRESS]"+
                            "TIP: use -cutoff 0 to just know the perpendicular widths!")
-             
+
+parser.add_argument("-chargenull", 
+                      action="store_true", 
+                      dest="chargenull",
+                      default=False,
+                      help="Delete the charge of the atoms")
 
 
 args = parser.parse_args()
@@ -415,9 +428,9 @@ if inputformat=='cif':
                  if data[0]=="loop_": break #flag loop_ (CoRE mof)
     
                  if (data[0][0]!="_"):
-                  if      (VESTA_CIF):  atom.append(data[7])
-                  elif (AVOGADRO_CIF):  atom.append(data[0])
-		  else:                 atom.append(data[1])	
+                  if      (VESTA_CIF):  atom.append(re.split('(\d+)',data[7])[0])
+                  elif (AVOGADRO_CIF):  atom.append(re.split('(\d+)',data[0])[0])
+		  else:                 atom.append(re.split('(\d+)',data[1])[0])	
 		  an.append(atomic_symbol.index(atom[i]))
                   atom_count[an[i]]+=1
 		  if (AVOGADRO_CIF):   xyz.append([float(data[2]), float(data[3]), float(data[4])]) 
@@ -515,7 +528,7 @@ if inputformat=='restart':
             natoms=i 
             break
           else: 
-	    atom.append(data[0])	
+	    atom.append(re.split('(\d+)',data[0])[0])	
 	    an.append(atomic_symbol.index(atom[i]))
             atom_count[an[i]]+=1
             xyz.append([float(data[1]), float(data[2]), float(data[3])])
@@ -551,7 +564,7 @@ if inputformat=='cube':
         
 file.close()
 
-if not args.resp==None:
+if not args.resp==None :
    if 'charge' in locals(): 
      if not args.silent: print " ... THERE WERE ALREADY CHARGES BUT I'M OVERWRITING THEM!"  
    charge = [0]*natoms
@@ -563,6 +576,18 @@ if not args.resp==None:
       charge[i]=float(data[3])
       i=i+1
      if i==natoms: break
+
+if not args.readcharge==None :
+   if 'charge' in locals(): 
+     if not args.silent: print " ... THERE WERE ALREADY CHARGES BUT I'M OVERWRITING THEM!"  
+   charge = [0]*natoms
+   with open(args.readcharge) as openfileobject:
+    i=0
+    for line in openfileobject:
+     data = line.split()
+     charge[i]=float(data[0])
+     if i==natoms: break
+
 
    if not args.silent: print
    if not args.silent: print " ... %d atomic charges taken from %s" %(i,args.resp)
@@ -620,6 +645,9 @@ if not 'charge' in locals():
   if not args.silent: print " ... no atomic charge found: 0 charge for each atom"
   charge = [0]*natoms
 
+if args.chargenull:
+  if not args.silent: print "*** chargenull: DELEATING ALL THE CHARGES! ***"
+  charge = [0]*natoms
 
 
 ############################################################################# CUTOFF TEST
@@ -1069,14 +1097,14 @@ if outputformat=="pwi":
 	  if atom_count[i] != 0:
             	print >> ofile, "%3s %8.3f  %s" %(atomic_symbol[i],atomic_mass[i], atomic_pseudo[args.pseudo][i]) #add pseudo!
        	print >> ofile, " " 
-   	print >> ofile, "CELL_PARAMETERS angstrom "    
-	print >> ofile, "%8.5f %8.5f %8.5f"    %(cell.item((0,0)),cell.item((0,1)),cell.item((0,2)))
-	print >> ofile, "%8.5f %8.5f %8.5f"    %(cell.item((1,0)),cell.item((1,1)),cell.item((1,2)))
-	print >> ofile, "%8.5f %8.5f %8.5f"    %(cell.item((2,0)),cell.item((2,1)),cell.item((2,2)))
+   	print >> ofile, "CELL_PARAMETERS angstrom "    #It should be very precise (http://pw_forum.pwscf.narkive.com/26uqaajr/crash-in-routine-set-sym-bl)
+	print >> ofile, "%11.8f %11.8f %11.8f"    %(cell.item((0,0)),cell.item((0,1)),cell.item((0,2)))
+	print >> ofile, "%11.8f %11.8f %11.8f"    %(cell.item((1,0)),cell.item((1,1)),cell.item((1,2)))
+	print >> ofile, "%11.8f %11.8f %11.8f"    %(cell.item((2,0)),cell.item((2,1)),cell.item((2,2)))
    	print >> ofile, " "
    	print >> ofile, "ATOMIC_POSITIONS angstrom "  
 	for i in range(0,natoms):
-		print >> ofile, "%3s %9.5f %9.5f %9.5f "  %(atom[i], xyz[i][0],xyz[i][1],xyz[i][2])
+		print >> ofile, "%3s %12.8f %12.8f %12.8f "  %(atom[i], xyz[i][0],xyz[i][1],xyz[i][2])
    	print >> ofile, " "
    	print >> ofile, "K_POINTS gamma "  
 
