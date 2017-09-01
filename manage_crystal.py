@@ -158,6 +158,15 @@ parser.add_argument("-printatoms",
                            "1st line > all the atoms"+
                            "2nd line > all the atoms excluding H,C,O")
 
+parser.add_argument("-transl", 
+                      action="store", 
+                      type=float,
+                      nargs= '*', 
+                      dest="transl",
+                      default=None,
+                      help="x y z translation in Angs")
+
+
 args = parser.parse_args()
 
 ############################################################################# UTILITIES and STANDARD INFOS about the periodic table: atomic_symbol/name/vdw/mass
@@ -280,16 +289,24 @@ if inputformat=='xyz':
 
 	#read cell in my way of writing it as a comment of xyz
 	line = file.readline()
-	celltemp=line.split( )
+        if len(line)<7 :
+		if not args.silent: print()
+		if not args.silent: print("WARNING: no CELL properly specified... using 50 50 50")
+                ABC=[50.,50.,50.]
+                abc=[math.radians(90.),math.radians(90.),math.radians(90.)]
+        else:
+	  celltemp=line.split()
 
-	if celltemp[0]=='CELL:' or celltemp[0]=='CELL' or celltemp[0]=='Cell:' or celltemp[0]=='Cell':
+	  if celltemp[0]=='CELL:' or celltemp[0]=='CELL' or celltemp[0]=='Cell:' or celltemp[0]=='Cell':
 		ABC=[float( celltemp[1]),float(celltemp[2]),float(celltemp[3])]
 		abc=[math.radians(float(celltemp[4])),math.radians(float(celltemp[5])),math.radians(float( celltemp[6]))]
 
-	elif celltemp[0]=='cell:' or celltemp[0]=='cell':
+	  elif celltemp[0]=='cell:' or celltemp[0]=='cell':
 		cell=numpy.matrix([[float(celltemp[1]),float(celltemp[2]),float(celltemp[3])],
 		                   [float(celltemp[4]),float(celltemp[5]),float(celltemp[6])],
 		                   [float(celltemp[7]),float(celltemp[8]),float(celltemp[9])]])
+
+
 	#read atom[index]
 	atom=[]
 	an=[]
@@ -698,9 +715,29 @@ if not 'charge' in locals():
   charge = [0]*natoms
 
 if args.chargenull:
-  if not args.silent: print("*** chargenull: DELEATING ALL THE CHARGES! ***")
+  if not args.silent: print("*** chargenull: DELETING ALL THE CHARGES! ***")
   charge = [0]*natoms
 
+############################################################################ APPLY TRANSLATION
+if args.transl!=None:
+
+  if not args.silent: print()
+  if not args.silent: print("*** TRANSLATING coordinates by %f %f %f Angs" %(args.transl[0],args.transl[1],args.transl[2]))
+
+  xyz_transl=[]
+  for i in range(0,natoms): 
+	x=xyz[i][0]+args.transl[0]
+	y=xyz[i][1]+args.transl[1]
+	z=xyz[i][2]+args.transl[2]
+	xyz_transl.append([x,y,z])
+  xyz=xyz_transl #overwrite old xyz
+
+  fract=[] #clear old fract
+  for i in range(0,natoms):
+	x=xyz[i][0]*invcell.item((0,0))+xyz[i][1]*invcell.item((1,0))+xyz[i][2]*invcell.item((2,0))
+	y=xyz[i][1]*invcell.item((0,1))+xyz[i][1]*invcell.item((1,1))+xyz[i][2]*invcell.item((2,1))
+	z=xyz[i][2]*invcell.item((0,2))+xyz[i][1]*invcell.item((1,2))+xyz[i][2]*invcell.item((2,2))
+	fract.append([x,y,z])
 
 ############################################################################# CUTOFF TEST
 if not args.cutoff==None: #copied from raspa/framework.c/CellProperties(line:6184)
@@ -1212,14 +1249,14 @@ if args.printatoms!=None:
 
    for i in range(1,len(atom_count)):
 	if atom_count[i] != 0:
-           print(atomic_symbol[i],end=' ',file=ofile)
+           print(atomic_symbol[i],end='_',file=ofile)
    print("",file=ofile)
 
    for i in range(1,len(atom_count)):
 	if atom_count[i] != 0 and atomic_symbol[i]!="H" \
                               and atomic_symbol[i]!="C" \
                               and atomic_symbol[i]!="O":
-           print(atomic_symbol[i],end=' ',file=ofile)
+           print(atomic_symbol[i],end='_',file=ofile)
    print("",file=ofile)
 
    ofile.close()
