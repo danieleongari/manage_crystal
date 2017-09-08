@@ -654,9 +654,9 @@ atomic_pseudo = {'pbe': [
     ' ',  # Ti
     ' ',  # V
     ' ',  # Cr
-    ' ',  # Mn
+    ' Mn.pbe-spn-kjpaw_psl.1.0.0.UPF ! 	 57.Ry	 702.Ry',  # Mn
     ' ',  # Fe
-    ' ',  # Co
+    ' Co.pbe-n-kjpaw_psl.1.0.0.UPF ! 	 45.Ry	 238.Ry',  # Co
     ' Ni.pbesol-n-kjpaw_psl.1.0.0.UPF ! 	 41.Ry	 236.Ry (spn available)',  # Ni [1]
     ' Cu.pbesol-dn-kjpaw_psl.1.0.0.UPF ! 	 45.Ry	 236.Ry (spn available)',  # Cu [1]
     ' Zn.pbesol-dn-kjpaw_psl.1.0.0.UPF ! 	 44.Ry	 276.Ry (spn available)',  # Zn [1]

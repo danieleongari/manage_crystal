@@ -106,6 +106,13 @@ parser.add_argument("-readcharge",
                       default=None,
                       help="Read the charges from a simple list")
 
+parser.add_argument("-readrepeatcharge", 
+                      action="store", 
+                      type=str,
+                      dest="readrepeatcharge",
+                      default=None,
+                      help="Read the charges from REPEAT output of QE")
+
 parser.add_argument("-x", 
                       action="store", 
                       type=int,
@@ -192,6 +199,7 @@ def is_number(s):       #checks if a string is a number or not
         pass
 
 ############################################################################## INPUT
+if not args.silent: print()
 
 #reading input file: name and format (notice that if there is a path it becomes part of the name, to have the output in the same place)
 if not os.path.isfile(args.inputfile): sys.exit("ERROR: The file %s doesn't exist!" %args.inputfile) 
@@ -658,6 +666,19 @@ if not args.readcharge==None :
      charge[i]=float(data[0])
      i=i+1
 
+if not args.readrepeatcharge==None :
+   if 'charge' in locals(): 
+     if not args.silent: print(" ... THERE WERE ALREADY CHARGES BUT I'M OVERWRITING THEM!"  )
+   charge = [0]*natoms
+   with open(args.readrepeatcharge) as openfileobject:
+    if not args.silent: print("*** CHARGES from QE>REPEAT.out: multiplying by -0.5"  )
+    countline=0
+    for line in openfileobject:
+     data = line.split()
+     if (countline-17)>=0 and (countline-17)<natoms:    #Notice: there are 17 info lines in the header of REPEAT.out
+       charge[countline-17]=float(data[6])*(-0.5)
+     countline=countline+1
+
    if not args.silent: print()
    if not args.silent: print(" ... %d atomic charges taken from %s" %(i,args.resp))
    if not i==natoms: print("WARNING: the number of charges and atoms are different! Chech the order of your atoms!")
@@ -874,7 +895,7 @@ for i in range(1,len(atom_count)):
 	if atom_count[i] != 0:
            weight+=atom_count[i]*atomic_mass[i]     #g/mol_uc
 rho=weight/volume/AVOGCONST*1E+10**3/1000 #Kg/m3
-if not args.silent: print("Density: %.5f (kg/m3), %.5f (g/cm3)" %(rho,rho/1000))	
+if not args.silent: print("Density: %.5f (kg/m3), %.5f (g/cm3), %.5f (g/molUC)" %(rho,rho/1000,weight), )	
 
 #compute conversion to mol/kg
 molkg=1000/weight #mol/g
@@ -1176,10 +1197,48 @@ if args.output!=None:
  if outputformat=="pwi":
         if args.pseudo==None:
 	   sys.exit("ERROR: You have to specify the -pseudo in the input!")
-   	print("ibrav = 0 ",									file=ofile)
-    	print("nat   = %d " %(natoms),								file=ofile)
-    	print("ntyp  = %d " %(ntypes),								file=ofile)
-       	print(" " ,										file=ofile)
+   	print(" &CONTROL ",									file=ofile)
+   	print("    calculation = 'vc-relax' ",							file=ofile)
+   	print("    verbosity   = 'high' ",							file=ofile)  
+   	print("    restart_mode= 'from_scratch' ",						file=ofile)  
+   	print("    wf_collect  = .true. ",							file=ofile)  
+   	print("    outdir      = './' ",							file=ofile)
+   	print("    prefix      = 'pwscf' ",							file=ofile)
+   	print("    pseudo_dir  = '/scratch/ongari/0_LIBRARIES/2_espresso/%s.1.0.0' " %(args.pseudo), file=ofile)
+   	print(" / ",										file=ofile)
+   	print(" &SYSTEM ",									file=ofile)       
+   	print("    ibrav = 0 ",									file=ofile)
+    	print("    nat   = %d " %(natoms),							file=ofile)
+    	print("    ntyp  = %d " %(ntypes),							file=ofile)
+    	print("      ecutwfc = 70 ",								file=ofile) 
+    	print("      ecutrho = 350 ",								file=ofile)
+    	print("    occupations = 'smearing' ",							file=ofile)
+    	print("    smearing    = 'gaussian' ",							file=ofile)
+    	print("    degauss     = 0.02 ",							file=ofile)
+     	print("      tot_charge                 = 0.0 ",					file=ofile)
+    	print("      nspin                      = 1 ",						file=ofile)
+    	print("      tot_magnetization          = -1 ",						file=ofile)
+    	print("      !starting_magnetization(i) = + 0.1 ",					file=ofile)
+    	print(" / ",										file=ofile)
+    	print(" &ELECTRONS ",									file=ofile)
+    	print("    scf_must_converge = .false. ",						file=ofile)
+    	print("    electron_maxstep  = 100 ",							file=ofile)
+    	print("    conv_thr          = 1.0d-6 ",						file=ofile)
+    	print("    mixing_mode       = 'local-TF' ",						file=ofile)
+    	print("    mixing_beta       = 0.7 ",							file=ofile)
+    	print("    diagonalization   = 'david' ",						file=ofile)
+    	print(" / ",										file=ofile)
+    	print(" &IONS ",									file=ofile)
+    	print("    ion_dynamics = 'bfgs' ",							file=ofile)
+    	print(" / ",										file=ofile)
+    	print(" &CELL ",									file=ofile)
+    	print("    cell_dynamics  = 'bfgs' ",							file=ofile)
+    	print("    press          = 0.d0 ",							file=ofile)
+    	print("    cell_factor    = 1.2d0 ",							file=ofile)
+    	print("    press_conv_thr = 0.5d0 ",							file=ofile)
+    	print("    cell_dofree    = 'all' ",							file=ofile)
+    	print(" / ",										file=ofile)
+
    	print("ATOMIC_SPECIES " ,								file=ofile)
         for i in range(1,len(atom_count)):
 	  if atom_count[i] != 0:
