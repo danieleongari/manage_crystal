@@ -548,7 +548,7 @@ atomic_pseudo = {'pbe': [
     ' ',  # Ti
     ' ',  # V
     ' ',  # Cr
-    ' ',  # Mn
+    ' Mn.pbe-spn-kjpaw_psl.0.3.1.UPF ! 	 46.Ry	 244.Ry	 (v1.0.0 is not working!)',  # Mn
     ' ',  # Fe
     ' ',  # Co
     ' Ni.pbe-n-kjpaw_psl.1.0.0.UPF  ! 	 41.Ry	 236.Ry (spn available)',  # Ni [1]
@@ -565,7 +565,7 @@ atomic_pseudo = {'pbe': [
     ' ',  # Y
     ' ',  # Zr
     ' ',  # Nb
-    ' ',  # Mo
+    ' Mo.pbe-spn-kjpaw_psl.1.0.0.UPF ! 	 49.Ry	 306.Ry',  # Mo
     ' ',  # Tc
     ' ',  # Ru
     ' ',  # Rh
@@ -654,7 +654,7 @@ atomic_pseudo = {'pbe': [
     ' ',  # Ti
     ' ',  # V
     ' ',  # Cr
-    ' Mn.pbe-spn-kjpaw_psl.1.0.0.UPF ! 	 57.Ry	 702.Ry',  # Mn
+    ' ',  # Mn
     ' ',  # Fe
     ' Co.pbe-n-kjpaw_psl.1.0.0.UPF ! 	 45.Ry	 238.Ry',  # Co
     ' Ni.pbesol-n-kjpaw_psl.1.0.0.UPF ! 	 41.Ry	 236.Ry (spn available)',  # Ni [1]
