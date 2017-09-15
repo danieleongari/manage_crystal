@@ -690,6 +690,7 @@ if not args.readrepeatcharge==None :
 if 'cell' in locals():   #make uc ABC+abc if it was read in cell
   if not args.silent: print()
   if not args.silent: print(" ... converting cell (matrix) to CELL (ABCabc)")
+  #cell= numpy.tril(cell)
   ABC=[0]*3
   abc=[0]*3
   ABC[0]= math.sqrt(cell.item((0,0))*cell.item((0,0))+cell.item((0,1))*cell.item((0,1))+cell.item((0,2))*cell.item((0,2)) )
@@ -717,8 +718,8 @@ if 'fract' in locals(): #convert in cartesian
   xyz=[] 
   for i in range(0,natoms):
 	x=fract[i][0]*cell.item((0,0))+fract[i][1]*cell.item((1,0))+fract[i][2]*cell.item((2,0))
-	y=fract[i][1]*cell.item((0,1))+fract[i][1]*cell.item((1,1))+fract[i][2]*cell.item((2,1))
-	z=fract[i][2]*cell.item((0,2))+fract[i][1]*cell.item((1,2))+fract[i][2]*cell.item((2,2))
+	y=fract[i][0]*cell.item((0,1))+fract[i][1]*cell.item((1,1))+fract[i][2]*cell.item((2,1))
+	z=fract[i][0]*cell.item((0,2))+fract[i][1]*cell.item((1,2))+fract[i][2]*cell.item((2,2))
 	xyz.append([x,y,z])
 elif 'xyz' in locals(): #convert in fractionals
   if not args.silent: print()
@@ -726,8 +727,8 @@ elif 'xyz' in locals(): #convert in fractionals
   fract=[]
   for i in range(0,natoms):
 	x=xyz[i][0]*invcell.item((0,0))+xyz[i][1]*invcell.item((1,0))+xyz[i][2]*invcell.item((2,0))
-	y=xyz[i][1]*invcell.item((0,1))+xyz[i][1]*invcell.item((1,1))+xyz[i][2]*invcell.item((2,1))
-	z=xyz[i][2]*invcell.item((0,2))+xyz[i][1]*invcell.item((1,2))+xyz[i][2]*invcell.item((2,2))
+	y=xyz[i][0]*invcell.item((0,1))+xyz[i][1]*invcell.item((1,1))+xyz[i][2]*invcell.item((2,1))
+	z=xyz[i][0]*invcell.item((0,2))+xyz[i][1]*invcell.item((1,2))+xyz[i][2]*invcell.item((2,2))
 	fract.append([x,y,z])
 
 if not 'charge' in locals():
