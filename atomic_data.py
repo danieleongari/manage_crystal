@@ -545,7 +545,7 @@ atomic_pseudo = {'pbe': [
     ' ',  # K [1]
     ' Ca.pbe-spn-kjpaw_psl.1.0.0.UPF !   45.Ry	 274.Ry',  # Ca [5]
     ' ',  # Sc
-    ' ',  # Ti
+    ' Ti.pbe-spn-kjpaw_psl.1.0.0.UPF ! 	 52.Ry	 575.Ry',  # Ti
     ' ',  # V
     ' ',  # Cr
     ' Mn.pbe-spn-kjpaw_psl.0.3.1.UPF ! 	 46.Ry	 244.Ry	 (v1.0.0 is not working!)',  # Mn

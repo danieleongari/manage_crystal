@@ -1218,6 +1218,7 @@ if args.output!=None:
    	print("    ibrav = 0 ",									file=ofile)
     	print("    nat   = %d " %(natoms),							file=ofile)
     	print("    ntyp  = %d " %(ntypes),							file=ofile)
+    	print("    !nosymm  = .true. ",								file=ofile)
     	print("      ecutwfc = 70 ",								file=ofile) 
     	print("      ecutrho = 350 ",								file=ofile)
     	print("    occupations = 'smearing' ",							file=ofile)
