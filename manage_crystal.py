@@ -1,4 +1,4 @@
-#!/usr/bin/python2.7
+#!/usr/bin/env python2
 """/
 Python program to read coordinates from a file and handle them. Daniele Ongari 7/11/16
 
@@ -1211,14 +1211,14 @@ if args.output!=None:
    	print("      !nstep        = 50",							file=ofile)
    	print("      !etot_conv_thr= 1.0D-4",							file=ofile) # Note that etot_conv_thr is extensive: it can be hard to converge for big systems!
    	print("      !forc_conv_thr= 1.0D-3",							file=ofile) # Note that forc_conv_thr is intensive: Ok if max_forc < forc_conv_thr.
-   	print("    !maxseconds  = 3500",							file=ofile)
-   	print("    !diskio      = 'none'",							file=ofile)
+   	print("    !max_seconds  = 3500",							file=ofile)
+   	print("    !disk_io      = 'none'",							file=ofile)
    	print(" / ",										file=ofile)
    	print(" &SYSTEM ",									file=ofile)       
    	print("    ibrav = 0 ",									file=ofile)
     	print("    nat   = %d " %(natoms),							file=ofile)
     	print("    ntyp  = %d " %(ntypes),							file=ofile)
-    	print("    !nosymm  = .true. ",								file=ofile)
+    	print("    !nosym  = .true. ",								file=ofile)
     	print("      ecutwfc = 70 ",								file=ofile) 
     	print("      ecutrho = 350 ",								file=ofile)
     	print("    occupations = 'smearing' ",							file=ofile)
