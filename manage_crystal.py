@@ -36,7 +36,7 @@ parser = argparse.ArgumentParser(description='Program to read, extract info and 
 parser.add_argument("inputfile", 
                       type=str,
                       help="path to the input file to read"+
-                           "IMPLEMENTED: xyz(w/CELL),pdb,cssr,pwi,pwo,cif,xsf,axsf,subsys(CP2K),restart(CP2K), cube [NEXT: gaussian, dcd+atoms]")
+                           "IMPLEMENTED: xyz(w/CELL),pdb,cssr,pwi,pwo,cif,xsf,axsf,subsys(CP2K),restart(CP2K),inp(CP2K),cube [NEXT: gaussian, dcd+atoms]")
 
 parser.add_argument("-o","--output",
                       action="store", 
@@ -552,7 +552,7 @@ if inputformat=='xsf' or inputformat=='axsf':
                 atom_count[an[i]]+=1
 		xyz.append([float(data[1]), float(data[2]), float(data[3])])
 
-if inputformat=='subsys':
+if inputformat=='subsys' or 'inp':
 	while True:
 	  data = file.readline().split()
 	  if len(data)>0 and (data[0]=="A"): celltempA = data
@@ -560,17 +560,28 @@ if inputformat=='subsys':
           if len(data)>0 and (data[0]=="C"): celltempC = data
           if len(data)>0 and (data[0]=="&COORD"): break
 
-	cell=numpy.matrix([[float(celltempA[2]),float(celltempA[3]),float(celltempA[4])],
-	 	           [float(celltempB[2]),float(celltempB[3]),float(celltempB[4])],
-	   	           [float(celltempC[2]),float(celltempC[3]),float(celltempC[4])]])
+        if (celltempA[1]=='[angstrom]' or celltempA[1]=='[ANGSTROM]'):
+	 cell=numpy.matrix([[float(celltempA[2]),float(celltempA[3]),float(celltempA[4])],
+	 	            [float(celltempB[2]),float(celltempB[3]),float(celltempB[4])],
+	   	            [float(celltempC[2]),float(celltempC[3]),float(celltempC[4])]])
+        else:
+	 cell=numpy.matrix([[float(celltempA[1]),float(celltempA[2]),float(celltempA[3])],
+	 	            [float(celltempB[1]),float(celltempB[2]),float(celltempB[3])],
+	   	            [float(celltempC[1]),float(celltempC[2]),float(celltempC[3])]])
+
 	atom=[]
 	an=[]
-	xyz=[]
+        xyz=[]
+        scaled_coord=False
 	i=0
 	while True:
 	  data = file.readline().split()
           if   len(data)==0: donothing=True
-          elif data[0]=="SCALED": donothing=True
+          elif data[0]=="SCALED" and (data[1]=='T' or data[1]=='TRUE' or data[1]=='.TRUE.'): #Should be on the top, not after the coordinates!
+            scaled_coord=True 
+            del xyz
+            fract=[]
+          elif data[0]=="SCALED": donothing=True #Angstrom coordinates
           elif data[0]=="&END": 
             natoms=i 
             break
@@ -578,10 +589,11 @@ if inputformat=='subsys':
 	    atom.append(data[0])	
 	    an.append(atomic_symbol.index(atom[i]))
             atom_count[an[i]]+=1
-            xyz.append([float(data[1]), float(data[2]), float(data[3])])
+            if scaled_coord: fract.append([float(data[1]), float(data[2]), float(data[3])])
+            else:              xyz.append([float(data[1]), float(data[2]), float(data[3])])
             i+=1
         
-if inputformat=='restart':
+if inputformat=='restart': #less flexible than "inp" and "subsys"
         print()
         print( '* Reading CP2K .restart (.restart.bak-n, are the previous n steps) *')
 	while True:
