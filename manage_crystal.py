@@ -400,10 +400,8 @@ if (inputformat=='pwo') or (inputformat=='pwi'):
            data = file.readline().split()
 	   if len(data)<4:           #if the file is finished stop  
 	  	break 
-	   else:
-                #Check if the last character of the atom is a number (for example Cu1 Cu2)  and remove it!
-                if is_number(data[0][-1]): data[0]=data[0][:-1]
-		atom.append(data[0])       	
+	   else:  
+                atom.append(re.split('(\d+)',data[0])[0]) #takes only the atomtype from a label like "Cu34"	       	
 		an.append(atomic_symbol.index(atom[i]))              
                 atom_count[an[i]]+=1
                 if readfractional: fract.append([float(data[1]), float(data[2]), float(data[3])]) 
@@ -509,7 +507,7 @@ if inputformat=='cif':
                  if len(data)==0:     break #end of file
 
                  if (data[0][0]!="_"):
-		  atom.append(re.split('(\d+)',data[0])[0])	
+		  atom.append(re.split('(\d+)',data[0])[0]) #takes only the atomtype from a label like "Cu34"	
 		  an.append(atomic_symbol.index(atom[i]))
                   atom_count[an[i]]+=1
                   fract.append([float(data[1]), float(data[2]), float(data[3])])   
@@ -586,14 +584,14 @@ if inputformat=='subsys' or 'inp':
             natoms=i 
             break
           else: 
-	    atom.append(data[0])	
+            atom.append(re.split('(\d+)',data[0])[0]) #takes only the atomtype from a label like "Cu34"	
 	    an.append(atomic_symbol.index(atom[i]))
             atom_count[an[i]]+=1
             if scaled_coord: fract.append([float(data[1]), float(data[2]), float(data[3])])
             else:              xyz.append([float(data[1]), float(data[2]), float(data[3])])
             i+=1
         
-if inputformat=='restart': #less flexible than "inp" and "subsys"
+if inputformat=='restart': #by choice, less flexible than "inp" and "subsys": it parse the restart output written by cp2k
         print()
         print( '* Reading CP2K .restart (.restart.bak-n, are the previous n steps) *')
 	while True:
@@ -618,7 +616,7 @@ if inputformat=='restart': #less flexible than "inp" and "subsys"
             natoms=i 
             break
           else: 
-	    atom.append(re.split('(\d+)',data[0])[0])	
+	    atom.append(re.split('(\d+)',data[0])[0]) #takes only the atomtype from a label like "Cu34"		
 	    an.append(atomic_symbol.index(atom[i]))
             atom_count[an[i]]+=1
             xyz.append([float(data[1]), float(data[2]), float(data[3])])
