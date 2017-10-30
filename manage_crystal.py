@@ -569,11 +569,10 @@ if inputformat=='subsys' or 'inp' or 'restart': #CP2K files
 	atom=[]
 	an=[]
         xyz=[]
-        scaled_coord=False
+        scaled_coord=False                                                                                     #default (*SCALED*)
 	i=0
 	while True:
-	  data = file.readline().split()
-          scaled_coord=False                                                                                   #default (*SCALED*)
+	  data = file.readline().split()                                                                                
           if   len(data)==0: donothing=True
           elif data[0]=="SCALED" and (data[1]=='T' or data[1]=='TRUE' or data[1]=='.TRUE.'): scaled_coord=True #Can be before or after the coordinates (*SCALED*)
           elif data[0]=="SCALED" and (data[1]=='F' or data[1]=='FALSE' or data[1]=='.FALSE.'): donothing=True  #default (*SCALED*)
@@ -586,7 +585,7 @@ if inputformat=='subsys' or 'inp' or 'restart': #CP2K files
             atom_count[an[i]]+=1
             xyz.append([float(data[1]), float(data[2]), float(data[3])])                                       #They will be scaled later if necessary (*SCALED*)
             i+=1
-        if scaled_coordinate:                                                                                  #Using scaled coordinates (*SCALED*)
+        if scaled_coord:                                                                                  #Using scaled coordinates (*SCALED*)
             fract=xyz
             del xyz               
         
