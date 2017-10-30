@@ -575,6 +575,7 @@ if inputformat=='subsys' or 'inp' or 'restart': #CP2K files
 	  data = file.readline().split()
           if   len(data)==0: donothing=True
           elif data[0]=="SCALED" and (data[1]=='T' or data[1]=='TRUE' or data[1]=='.TRUE.'): scaled_coord=True #Can be before or after the coordinates (*SCALED*)
+          elif data[0]=="SCALED" and (data[1]=='F' or data[1]=='FALSE' or data[1]=='.FALSE.'): donothing=True #default
           elif data[0]=="&END": 
             natoms=i 
             break
