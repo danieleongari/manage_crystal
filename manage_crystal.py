@@ -550,7 +550,7 @@ if inputformat=='xsf' or inputformat=='axsf':
                 atom_count[an[i]]+=1
 		xyz.append([float(data[1]), float(data[2]), float(data[3])])
 
-if inputformat=='subsys' or 'inp':
+if inputformat=='subsys' or 'inp' or 'restart': #CP2K files
 	while True:
 	  data = file.readline().split()
 	  if len(data)>0 and (data[0]=="A"): celltempA = data
@@ -562,11 +562,10 @@ if inputformat=='subsys' or 'inp':
 	 cell=numpy.matrix([[float(celltempA[2]),float(celltempA[3]),float(celltempA[4])],
 	 	            [float(celltempB[2]),float(celltempB[3]),float(celltempB[4])],
 	   	            [float(celltempC[2]),float(celltempC[3]),float(celltempC[4])]])
-        else:
+        else: #no units specified (default=angstrom)
 	 cell=numpy.matrix([[float(celltempA[1]),float(celltempA[2]),float(celltempA[3])],
 	 	            [float(celltempB[1]),float(celltempB[2]),float(celltempB[3])],
 	   	            [float(celltempC[1]),float(celltempC[2]),float(celltempC[3])]])
-
 	atom=[]
 	an=[]
         xyz=[]
@@ -575,11 +574,7 @@ if inputformat=='subsys' or 'inp':
 	while True:
 	  data = file.readline().split()
           if   len(data)==0: donothing=True
-          elif data[0]=="SCALED" and (data[1]=='T' or data[1]=='TRUE' or data[1]=='.TRUE.'): #Should be on the top, not after the coordinates!
-            scaled_coord=True 
-            del xyz
-            fract=[]
-          elif data[0]=="SCALED": donothing=True #Angstrom coordinates
+          elif data[0]=="SCALED" and (data[1]=='T' or data[1]=='TRUE' or data[1]=='.TRUE.'): scaled_coord=True #Can be before or after the coordinates (*SCALED*)
           elif data[0]=="&END": 
             natoms=i 
             break
@@ -587,40 +582,11 @@ if inputformat=='subsys' or 'inp':
             atom.append(re.split('(\d+)',data[0])[0]) #takes only the atomtype from a label like "Cu34"	
 	    an.append(atomic_symbol.index(atom[i]))
             atom_count[an[i]]+=1
-            if scaled_coord: fract.append([float(data[1]), float(data[2]), float(data[3])])
-            else:              xyz.append([float(data[1]), float(data[2]), float(data[3])])
+            xyz.append([float(data[1]), float(data[2]), float(data[3])]) #They will be scaled later if necessary (*SCALED*)
             i+=1
-        
-if inputformat=='restart': #by choice, less flexible than "inp" and "subsys": it parse the restart output written by cp2k
-        print()
-        print( '* Reading CP2K .restart (.restart.bak-n, are the previous n steps) *')
-	while True:
-	  data = file.readline().split()
-	  if len(data)>0 and (data[0]=="A"): celltempA = data
-          if len(data)>0 and (data[0]=="B"): celltempB = data
-          if len(data)>0 and (data[0]=="C"): celltempC = data
-          if len(data)>0 and (data[0]=="&COORD"): break
-
-	cell=numpy.matrix([[float(celltempA[1]),float(celltempA[2]),float(celltempA[3])],
-	 	           [float(celltempB[1]),float(celltempB[2]),float(celltempB[3])],
-	   	           [float(celltempC[1]),float(celltempC[2]),float(celltempC[3])]])
-	atom=[]
-	an=[]
-	xyz=[]
-	i=0
-	while True:
-	  data = file.readline().split()
-          if   len(data)==0: donothing=True
-          elif data[0]=="SCALED": donothing=True
-          elif data[0]=="&END": 
-            natoms=i 
-            break
-          else: 
-	    atom.append(re.split('(\d+)',data[0])[0]) #takes only the atomtype from a label like "Cu34"		
-	    an.append(atomic_symbol.index(atom[i]))
-            atom_count[an[i]]+=1
-            xyz.append([float(data[1]), float(data[2]), float(data[3])])
-            i+=1        
+        if scaled_coordinate: #Using scaled coordinates (*SCALED*)
+            fract=xyz
+            del xyz               
         
 if inputformat=='cube':
         junk = file.readline() #header1
