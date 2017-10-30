@@ -562,7 +562,7 @@ if inputformat=='subsys' or 'inp' or 'restart': #CP2K files
 	 cell=numpy.matrix([[float(celltempA[2]),float(celltempA[3]),float(celltempA[4])],
 	 	            [float(celltempB[2]),float(celltempB[3]),float(celltempB[4])],
 	   	            [float(celltempC[2]),float(celltempC[3]),float(celltempC[4])]])
-        else: #no units specified (default=angstrom)
+        else:                                                                                                  #no units specified (default=angstrom)
 	 cell=numpy.matrix([[float(celltempA[1]),float(celltempA[2]),float(celltempA[3])],
 	 	            [float(celltempB[1]),float(celltempB[2]),float(celltempB[3])],
 	   	            [float(celltempC[1]),float(celltempC[2]),float(celltempC[3])]])
@@ -573,19 +573,20 @@ if inputformat=='subsys' or 'inp' or 'restart': #CP2K files
 	i=0
 	while True:
 	  data = file.readline().split()
+          scaled_coord=False                                                                                   #default (*SCALED*)
           if   len(data)==0: donothing=True
           elif data[0]=="SCALED" and (data[1]=='T' or data[1]=='TRUE' or data[1]=='.TRUE.'): scaled_coord=True #Can be before or after the coordinates (*SCALED*)
-          elif data[0]=="SCALED" and (data[1]=='F' or data[1]=='FALSE' or data[1]=='.FALSE.'): donothing=True #default
+          elif data[0]=="SCALED" and (data[1]=='F' or data[1]=='FALSE' or data[1]=='.FALSE.'): donothing=True  #default (*SCALED*)
           elif data[0]=="&END": 
             natoms=i 
             break
           else: 
-            atom.append(re.split('(\d+)',data[0])[0]) #takes only the atomtype from a label like "Cu34"	
+            atom.append(re.split('(\d+)',data[0])[0])                                                          #takes only the atomtype from a label like "Cu34"	
 	    an.append(atomic_symbol.index(atom[i]))
             atom_count[an[i]]+=1
-            xyz.append([float(data[1]), float(data[2]), float(data[3])]) #They will be scaled later if necessary (*SCALED*)
+            xyz.append([float(data[1]), float(data[2]), float(data[3])])                                       #They will be scaled later if necessary (*SCALED*)
             i+=1
-        if scaled_coordinate: #Using scaled coordinates (*SCALED*)
+        if scaled_coordinate:                                                                                  #Using scaled coordinates (*SCALED*)
             fract=xyz
             del xyz               
         
