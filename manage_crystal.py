@@ -550,7 +550,7 @@ if inputformat=='xsf' or inputformat=='axsf':
                 atom_count[an[i]]+=1
 		xyz.append([float(data[1]), float(data[2]), float(data[3])])
 
-if inputformat=='subsys' or 'inp' or 'restart': #CP2K files
+if inputformat=='subsys' or inputformat=='inp' or inputformat=='restart': #CP2K files
 	while True:
 	  data = file.readline().split()
 	  if len(data)>0 and (data[0]=="A"): celltempA = data
