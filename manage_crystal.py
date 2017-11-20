@@ -173,6 +173,19 @@ parser.add_argument("-transl",
                       default=None,
                       help="x y z translation in Angs")
 
+parser.add_argument("-mol", 
+                      action="store_true", 
+                      dest="mol",
+                      default=False,
+                      help="Considers a molecule for xyz: no cell!") #to ad later, now putting a 50x50x50 cell is fine!
+
+parser.add_argument("-randomize",
+                      action="store",                   		
+                      type=float,
+                      dest="randomize",
+                      default=None,
+                      help="Randomize the geometry by a gaussian"+
+                           "with the specified delta (angs)")
 
 args = parser.parse_args()
 
@@ -295,25 +308,26 @@ if inputformat=='xyz':
 	line = file.readline()
 	natoms=int(line.split()[0])
 
-	#read cell in my way of writing it as a comment of xyz
+	#read cell in my way of writing it as a comment of xyz 
 	line = file.readline()
-        if len(line)<7 :
-		if not args.silent: print()
-		if not args.silent: print("WARNING: no CELL properly specified... using 50 50 50")
-                ABC=[50.,50.,50.]
-                abc=[math.radians(90.),math.radians(90.),math.radians(90.)]
-        else:
-	  celltemp=line.split()
+	
+	if len(line)==0 or line.split()[0]!='CELL' or line.split()!='cell': #set a 50x50x50 cell if CELL is not specified
+		if not args.silent: 
+			print()
+			print("WARNING: no CELL properly specified... using 50 50 50")
+			ABC=[50.,50.,50.]
+			abc=[math.radians(90.),math.radians(90.),math.radians(90.)]
+	else:
+		celltemp=line.split()
 
-	  if celltemp[0]=='CELL:' or celltemp[0]=='CELL' or celltemp[0]=='Cell:' or celltemp[0]=='Cell':
-		ABC=[float( celltemp[1]),float(celltemp[2]),float(celltemp[3])]
-		abc=[math.radians(float(celltemp[4])),math.radians(float(celltemp[5])),math.radians(float( celltemp[6]))]
+		if celltemp[0]=='CELL:' or celltemp[0]=='CELL' or celltemp[0]=='Cell:' or celltemp[0]=='Cell':
+			ABC=[float( celltemp[1]),float(celltemp[2]),float(celltemp[3])]
+			abc=[math.radians(float(celltemp[4])),math.radians(float(celltemp[5])),math.radians(float( celltemp[6]))]
 
-	  elif celltemp[0]=='cell:' or celltemp[0]=='cell':
-		cell=numpy.matrix([[float(celltemp[1]),float(celltemp[2]),float(celltemp[3])],
+		elif celltemp[0]=='cell:' or celltemp[0]=='cell':
+			cell=numpy.matrix([[float(celltemp[1]),float(celltemp[2]),float(celltemp[3])],
 		                   [float(celltemp[4]),float(celltemp[5]),float(celltemp[6])],
 		                   [float(celltemp[7]),float(celltemp[8]),float(celltemp[9])]])
-
 
 	#read atom[index]
 	atom=[]
@@ -717,7 +731,7 @@ if args.chargenull:
   if not args.silent: print("*** chargenull: DELETING ALL THE CHARGES! ***")
   charge = [0]*natoms
 
-############################################################################ APPLY TRANSLATION
+############################################################################ APPLY TRANSLATION / RANDOMIZE
 if args.transl!=None:
 
   if not args.silent: print()
@@ -737,6 +751,27 @@ if args.transl!=None:
 	y=xyz[i][1]*invcell.item((0,1))+xyz[i][1]*invcell.item((1,1))+xyz[i][2]*invcell.item((2,1))
 	z=xyz[i][2]*invcell.item((0,2))+xyz[i][1]*invcell.item((1,2))+xyz[i][2]*invcell.item((2,2))
 	fract.append([x,y,z])
+	
+if args.randomize!=None: 
+
+  if not args.silent: print()
+  if not args.silent: print("*** RANDOMIZING XYZ coordinates by a normal distrib with delta=%f Angs" %args.randomize)
+
+  xyz_random=[]
+  for i in range(0,natoms): 
+	x=xyz[i][0]+numpy.random.normal(0,args.randomize,1)
+	y=xyz[i][1]+numpy.random.normal(0,args.randomize,1)
+	z=xyz[i][2]+numpy.random.normal(0,args.randomize,1)
+	xyz_random.append([x,y,z])
+  xyz=xyz_random #overwrite old xyz
+
+  fract=[] #clear old fract
+  for i in range(0,natoms):
+	x=xyz[i][0]*invcell.item((0,0))+xyz[i][1]*invcell.item((1,0))+xyz[i][2]*invcell.item((2,0))
+	y=xyz[i][1]*invcell.item((0,1))+xyz[i][1]*invcell.item((1,1))+xyz[i][2]*invcell.item((2,1))
+	z=xyz[i][2]*invcell.item((0,2))+xyz[i][1]*invcell.item((1,2))+xyz[i][2]*invcell.item((2,2))
+	fract.append([x,y,z])
+
 
 ############################################################################# CUTOFF TEST
 if not args.cutoff==None: #copied from raspa/framework.c/CellProperties(line:6184)
