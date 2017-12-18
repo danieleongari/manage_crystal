@@ -895,7 +895,6 @@ for i in range(1,len(atom_count)):
 if not args.silent: print(" ---- --- ----- ")
 if not args.silent: print('{0:>5} {1:3} atoms'.format(natoms,'tot'))
 
-
 #compute volume (http://www.fxsolver.com/browse/formulas/Triclinic+crystal+system+(Unit+cell's+volume))
 volume=ABC[0]*ABC[1]*ABC[2]*math.sqrt( 1-(math.cos(abc[0]))**2-(math.cos(abc[1]))**2-(math.cos(abc[2]))**2+2*math.cos(abc[0])*math.cos(abc[1])*math.cos(abc[2]) )
 if not args.silent: print()
@@ -926,6 +925,12 @@ if not sum(charge)==0:
    else: 
       print("*** BE CAREFULL: your system is not neutral, and the error is more than 0.001!")    
 
+#number of electrons
+nelectrons=0
+for i in range(1,len(atom_count)):
+	if atom_count[i] != 0:
+ 		nelectrons+=atom_count[i]*i #nuber_of_atoms_with_AN*AN
+if not args.silent: print("Tot. electrons: %d" %nelectrons)
 
 ################################################################################################# OUTPUT OPERATIONS
 if  args.output==None:                              #CHECK IF AN OUTPUT IS DEFINED
