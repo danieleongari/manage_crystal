@@ -311,20 +311,20 @@ if inputformat=='xyz':
 	#read cell in my way of writing it as a comment of xyz 
 	line = file.readline()
 	
-	if len(line)==0 or line.split()[0]!='CELL' or line.split()!='cell': #set a 50x50x50 cell if CELL is not specified
+	if len(line)==0 or (line.split()[0]!='CELL:' and line.split()[0]!='cell:'): #set a 50x50x50 cell if CELL is not specified
 		if not args.silent: 
-			print()
+			print(len(line))
 			print("WARNING: no CELL properly specified... using 50 50 50")
 			ABC=[50.,50.,50.]
 			abc=[math.radians(90.),math.radians(90.),math.radians(90.)]
 	else:
 		celltemp=line.split()
 
-		if celltemp[0]=='CELL:' or celltemp[0]=='CELL' or celltemp[0]=='Cell:' or celltemp[0]=='Cell':
+		if celltemp[0]=='CELL:':
 			ABC=[float( celltemp[1]),float(celltemp[2]),float(celltemp[3])]
 			abc=[math.radians(float(celltemp[4])),math.radians(float(celltemp[5])),math.radians(float( celltemp[6]))]
 
-		elif celltemp[0]=='cell:' or celltemp[0]=='cell':
+		elif celltemp[0]=='cell:':
 			cell=numpy.matrix([[float(celltemp[1]),float(celltemp[2]),float(celltemp[3])],
 		                   [float(celltemp[4]),float(celltemp[5]),float(celltemp[6])],
 		                   [float(celltemp[7]),float(celltemp[8]),float(celltemp[9])]])
@@ -1244,7 +1244,7 @@ if args.output!=None:
      	print("      tot_charge                 = 0.0 ",					file=ofile)
     	print("      nspin                      = 1 ",						file=ofile)
     	print("      tot_magnetization          = -1 ",						file=ofile)
-    	print("      !starting_magnetization(i) = + 0.1 ",					file=ofile)
+    	print("      !starting_magnetization(i) = +0.1 ",					file=ofile)
     	print("    !vdw_corr    = 'grimme-d2' ",						file=ofile)
     	print("    !input_dft   = 'vdw-df2-b86r' ",						file=ofile) # REMEMBER TO: generate_vdW_kernel_table.x     (vc-relax not implemented for nspin>1)
     	print("    !input_dft   = 'rvv10' ",							file=ofile) # REMEMBER TO: generate_rVV10_kernel_table.x   (vc-relax ok)
