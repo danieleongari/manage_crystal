@@ -28,22 +28,24 @@ import numpy
 import math
 import subprocess
 import argparse 
+from argparse import RawTextHelpFormatter #needed to go next line in the help text
 import os
 import re           #re.split('(\d+)',"O23") = ['O', '23', '']
 
-parser = argparse.ArgumentParser(description='Program to read, extract info and convert crystal files (by Daniele Ongari)')
+parser = argparse.ArgumentParser(description='Program to read, extract info and convert crystal files (by Daniele Ongari)', formatter_class=RawTextHelpFormatter)
 
 parser.add_argument("inputfile", 
                       type=str,
-                      help="path to the input file to read"+
-                           "IMPLEMENTED: xyz(w/CELL),pdb,cssr,pwi,pwo,cif,xsf,axsf,subsys(CP2K),restart(CP2K),inp(CP2K),cube [NEXT: gaussian, dcd+atoms]")
+                      help="path to the input file to read\n"+
+                           "IMPLEMENTED: xyz(w/CELL),pdb,cssr,pwi,pwo,cif,xsf,axsf,subsys(CP2K),\n"+
+                           "             restart(CP2K),inp(CP2K),cube [NEXT: gaussian, dcd+atoms]")
 
 parser.add_argument("-o","--output",
                       action="store", 
                       type=str,
                       dest="output",
                       default=None,
-                      help="Output filename.extension or just the extension"+
+                      help="Output filename.extension or just the extension\n"+
                            "IMPLEMENTED: cif,cif_eqeq,pdb,cssr,xyz(w/CELL),pwi,subsys(CP2K),axsf")
 
 parser.add_argument("-silent", 
@@ -94,10 +96,10 @@ parser.add_argument("-resp",
                       type=str,
                       dest="resp",
                       default=None,
-                      help="Read the charges from a cp2k RESP file"+
-                           "(also checking if the atoms are the same)"+
-                           "BC1: it read the first set of charges"+
-                           "BC2: Also a cp2k output file with charges is fine!")
+                      help="Read the charges from a cp2k RESP file\n"+
+                           "(also checking if the atoms are the same)\n"+
+                           "BC1: it read the first set of charges\n"+
+                           "BC2: Also a cp2k output file with charges is fine!\n")
 
 parser.add_argument("-readcharge", 
                       action="store", 
@@ -141,7 +143,7 @@ parser.add_argument("-cutoff",
                       type=float,
                       dest="cutoff",
                       default=None,
-                      help="Automatically extend the UC so that the cutoff is respected "+
+                      help="Automatically extend the UC so that the cutoff is respected\n"+
                            "(TIP: use -cutoff 0 to just know the perpendicular widths!)")
 
 parser.add_argument("-chargenull", 
@@ -161,8 +163,8 @@ parser.add_argument("-printatoms",
                       type=str,
                       dest="printatoms",
                       default=None,
-                      help="Print a file with the atoms:"+
-                           "1st line > all the atoms"+
+                      help="Print a file with the atoms: \n"+
+                           "1st line > all the atoms \n"+
                            "2nd line > all the atoms excluding H,C,O")
 
 parser.add_argument("-transl", 
@@ -184,7 +186,7 @@ parser.add_argument("-randomize",
                       type=float,
                       dest="randomize",
                       default=None,
-                      help="Randomize the geometry by a gaussian"+
+                      help="Randomize the geometry by a gaussian\n"+
                            "with the specified delta (angs)")
 
 args = parser.parse_args()
