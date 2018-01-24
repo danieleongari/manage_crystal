@@ -85,12 +85,6 @@ parser.add_argument("-pseudo",
                       default="pbe",
                       help="Pseudo for the .pwi output")
 
-parser.add_argument("-eqeq", 
-                      action="store_true", 
-                      dest="eqeq",
-                      default=False,
-                      help="Tailor-made cif to be used with EQeq")
-
 parser.add_argument("-resp", 
                       action="store", 
                       type=str,
@@ -156,7 +150,25 @@ parser.add_argument("-tm1",
                       action="store_true", 
                       dest="tailormade1",
                       default=False,
-                      help="Activate tailor-made 1 options")
+                      help="Tailor-made 1: read  .cif CoRE MOF w/DDEC charges")
+
+parser.add_argument("-tm2", 
+                      action="store_true", 
+                      dest="tailormade2",
+                      default=False,
+                      help="Tailor-made 2: print .cif for EQeq")
+
+parser.add_argument("-tm3", 
+                      action="store_true", 
+                      dest="tailormade3",
+                      default=False,
+                      help="Tailor-made 3: read .xyz for B.Wells Qeq")
+
+parser.add_argument("-tm4", 
+                      action="store_true", 
+                      dest="tailormade4",
+                      default=False,
+                      help="Tailor-made 4: print .xyz for B.Wells Qeq")
 
 parser.add_argument("-printatoms", 
                       action="store", 
@@ -306,6 +318,7 @@ if inputformat=='cssr':
 
 
 if inputformat=='xyz':
+     if not args.tailormade3:
 	#read number of atoms
 	line = file.readline()
 	natoms=int(line.split()[0])
@@ -343,8 +356,27 @@ if inputformat=='xyz':
                 atom_count[an[i]]+=1
 		xyz.append([float(data[1]), float(data[2]), float(data[3])])
 
-
-
+     if args.tailormade3:
+	junk = file.readline()
+	celltemp = file.readline().split()
+	ABC=[float(celltemp[1]),float(celltemp[2]),float(celltemp[3])]        
+	abc=[math.radians(float(celltemp[4])),math.radians(float(celltemp[5])),math.radians(float( celltemp[6]))]
+	natoms=int(file.readline().split()[0])
+	atom=[]
+	an=[]
+	xyz=[]
+        charge=[]
+	for i in range(0,natoms):
+		line = file.readline()
+		data = line.split( )
+		atom.append(data[0])	
+		an.append(atomic_symbol.index(atom[i]))
+                atom_count[an[i]]+=1
+		xyz.append([float(data[1]), float(data[2]), float(data[3])])
+                if len(data)>4: 
+                   charge.append(float(data[5]))
+		else:
+                   charge.append(float(0)) 
 
 if (inputformat=='pwo') or (inputformat=='pwi'):
         #search for the last time the cell/coord are printed and jump to that line (no need to be converged). ONLY if they are not found, it reads the initial input
@@ -499,7 +531,8 @@ if inputformat=='cif':
                break  
       
    else:  #Tailormade1: DDEC CoRE MOF (only site_label and no site_type_symbol)
-          if not args.silent: print("**** READING .cif using tailor-made1 settings!")
+          if not args.silent: print("**** READING .cif using tailor-made1 settings")
+          if not args.silent: print("****         = CoRE MOF DDEC w/charges       ")
           ABC=[0]*3
           abc=[0]*3
 
@@ -967,8 +1000,9 @@ if args.show:
         print("fract --------------------------------------------------------------")
 	for i in range(0,natoms):
 		print("%3s %10.5f %10.5f %10.5f "  %(atom[i], fract[i][0],fract[i][1],fract[i][2]))
-
-        #sys.exit("YOU JUST ASKED TO SHOW: no external files printed!")
+        print("charges --------------------------------------------------------------")
+	for i in range(0,natoms):
+		print("%3s %10.5f "  %(atom[i], charge[i]))
         sys.exit()
 
 if args.void:              #not working because of three spheres overlapping
@@ -1137,7 +1171,7 @@ if args.output!=None:
 
 
  if outputformat=="cif":
-     if not args.eqeq:                                    
+   if not args.tailormade2:                                   
 	print("data_crystal",					file=ofile)
 	print(" ",						file=ofile)
 	print("_cell_length_a    %.5f" %ABC[0],			file=ofile)
@@ -1166,9 +1200,9 @@ if args.output!=None:
 		print(('{0:10} {1:5} {2:>9.5f} {3:>9.5f} {4:>9.5f} {5:>14.10f}'.format(label,  atom[i], fract[i][0], fract[i][1], fract[i][2], charge[i])),file=ofile) 
                                                                                  #Better to keep a lot of decimals to avoid small net charged
 
-     if args.eqeq:
+   if args.tailormade2: 
 
-        print("****PRINTING .CIF TAILOR-MADE FOR EQeq***",	file=ofile)
+        print("****PRINTING .CIF TAILOR-MADE2 FOR EQeq***",	file=ofile)
 
 	print("data_crystal",					file=ofile)
 	print("loop_",						file=ofile)
@@ -1190,7 +1224,7 @@ if args.output!=None:
 	print("_atom_site_fract_z",				file=ofile)
 	for i in range(0,natoms):	
         	label=atom[i]    #removed: label=atom[i]+"_"+str(i+1) 
-		print(('{0:10} {1:5} {2:>9.5f} {3:>9.5f} {4:>14.10f}'.format(label,  atom[i], fract[i][0], fract[i][1], fract[i][2])),file=ofile)       
+		print(('{0:10} {1:5} {2:>9.5f} {3:>9.5f} {4:>9.5f}'.format(label,  atom[i], fract[i][0], fract[i][1], fract[i][2])),file=ofile)       
 	print("_loop",					        file=ofile)
  
 
@@ -1209,10 +1243,17 @@ if args.output!=None:
 		print("%4d %3s %8.5f %8.5f %8.5f    0  0  0  0  0  0  0  0  0.000"    %(i+1, atom[i], fract[i][0],fract[i][1],fract[i][2]),		file=ofile)
  
  if outputformat=="xyz":
+   if not args.tailormade4:   
    	print("%d"   %(natoms),																file=ofile)
-	print("CELL: %.5f  %.5f  %.5f  %.3f  %.3f  %.3f  " %(ABC[0],ABC[1],ABC[2],math.degrees(abc[0]),math.degrees(abc[1]),math.degrees(abc[2])),	file=ofile)
+	print("CELL:  %.5f  %.5f  %.5f  %.3f  %.3f  %.3f  " %(ABC[0],ABC[1],ABC[2],math.degrees(abc[0]),math.degrees(abc[1]),math.degrees(abc[2])),	file=ofile)
 	for i in range(0,natoms):
 		print("%3s %9.5f %9.5f %9.5f "  %(atom[i], xyz[i][0],xyz[i][1],xyz[i][2]),								file=ofile)
+   if args.tailormade4: 
+        print("****PRINTING .xyz TAILOR-MADE4 FOR Qeq program by B.Wells***",											file=ofile)      
+	print("      FRAC       %.5f  %.5f  %.5f  %.3f  %.3f  %.3f  " %(ABC[0],ABC[1],ABC[2],math.degrees(abc[0]),math.degrees(abc[1]),math.degrees(abc[2])),	file=ofile)
+   	print("%d"   %(natoms),																	file=ofile)
+	for i in range(0,natoms):	
+		print("%3s %9.5f %9.5f %9.5f "  %(atom[i], fract[i][0], fract[i][1], fract[i][2]),							 	file=ofile)
 
  if outputformat=="pwi":
         if args.pseudo==None:
