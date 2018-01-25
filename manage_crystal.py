@@ -46,7 +46,7 @@ parser.add_argument("-o","--output",
                       dest="output",
                       default=None,
                       help="Output filename.extension or just the extension\n"+
-                           "IMPLEMENTED: cif,cif_eqeq,pdb,cssr,xyz(w/CELL),pwi,subsys(CP2K),axsf")
+                           "IMPLEMENTED: cif,pdb,cssr,xyz(w/CELL),pwi,subsys(CP2K),axsf")
 
 parser.add_argument("-silent", 
                       action="store_true", 
@@ -205,7 +205,7 @@ parser.add_argument("-tm3",
                       action="store_true", 
                       dest="tailormade3",
                       default=False,
-                      help="Tailor-made 3: read .xyz for B.Wells Qeq")
+                      help="Tailor-made 3: read  .xyz for B.Wells Qeq")
 
 parser.add_argument("-tm4", 
                       action="store_true", 
@@ -377,7 +377,7 @@ if inputformat=='xyz':
 	natoms=int(file.readline().split()[0])
 	atom=[]
 	an=[]
-	xyz=[]
+	fract=[]
         charge=[]
 	for i in range(0,natoms):
 		line = file.readline()
@@ -385,7 +385,7 @@ if inputformat=='xyz':
 		atom.append(data[0])	
 		an.append(atomic_symbol.index(atom[i]))
                 atom_count[an[i]]+=1
-		xyz.append([float(data[1]), float(data[2]), float(data[3])])
+		fract.append([float(data[1]), float(data[2]), float(data[3])])
                 if len(data)>4: 
                    charge.append(float(data[5]))
 		else:
