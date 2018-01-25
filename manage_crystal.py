@@ -58,8 +58,18 @@ parser.add_argument("-show",
                       action="store_true", 
                       dest="show",
                       default=False,
-                      help="Show all the information known")
+                      help="Show all the info\n"+
+			   "[skip -silent]")
 
+parser.add_argument("-showonly", 
+                      action="store", 
+                      type=str, 
+                      dest="showonly",
+                      default=None,
+                      help="Show only the required info:\n"+		
+			   "cell, CELL, xyz, fract, charges\n"+
+			   "[skip -silent]")
+                     
 parser.add_argument("-cupw", 
                       action="store_true", 
                       dest="cupw",
@@ -1026,25 +1036,29 @@ if not args.silent: print("***************************************************")
 if not args.silent: print()
 
 
-if args.show:
-        print("cell ---------------------------------------------------------------")
-	print("     %10.5f %10.5f %10.5f"    %(cell.item((0,0)),cell.item((0,1)),cell.item((0,2))))
-	print("     %10.5f %10.5f %10.5f"    %(cell.item((1,0)),cell.item((1,1)),cell.item((1,2))))
-	print("     %10.5f %10.5f %10.5f"    %(cell.item((2,0)),cell.item((2,1)),cell.item((2,2))))
-        print("CELL (ABC, abc) ----------------------------------------------------")
-	print(" %10.5f  %10.5f  %10.5f  %10.5f  %10.5f  %10.5f  " %(ABC[0],ABC[1],ABC[2],math.degrees(abc[0]),math.degrees(abc[1]),math.degrees(abc[2])))
-        print("xyz ----------------------------------------------------------------")
-	for i in range(0,natoms):
-		print("%3s %10.5f %10.5f %10.5f "  %(atom[i], xyz[i][0],xyz[i][1],xyz[i][2]))
-        print("fract --------------------------------------------------------------")
-	for i in range(0,natoms):
-		print("%3s %10.5f %10.5f %10.5f "  %(atom[i], fract[i][0],fract[i][1],fract[i][2]))
-        print("charges --------------------------------------------------------------")
-	for i in range(0,natoms):
-		print("%3s %10.5f "  %(atom[i], charge[i]))
-        sys.exit()
+#show and showonly 
+if args.show:        				print("cell ---------------------------------------------------------------")
+if args.show or args.showonly=="cell":		print("     %10.5f %10.5f %10.5f"    %(cell.item((0,0)),cell.item((0,1)),cell.item((0,2))))
+if args.show or args.showonly=="cell":		print("     %10.5f %10.5f %10.5f"    %(cell.item((1,0)),cell.item((1,1)),cell.item((1,2))))
+if args.show or args.showonly=="cell":		print("     %10.5f %10.5f %10.5f"    %(cell.item((2,0)),cell.item((2,1)),cell.item((2,2))))
+if args.show:        				print("CELL (ABC, abc) ----------------------------------------------------")
+if args.show or args.showonly=="CELL":		print(" %10.5f  %10.5f  %10.5f  %10.5f  %10.5f  %10.5f  " %(ABC[0],ABC[1],ABC[2],math.degrees(abc[0]),math.degrees(abc[1]),math.degrees(abc[2])))
+if args.show:         				print("xyz ----------------------------------------------------------------")
+if args.show or args.showonly=="xyz":		
+						for i in range(0,natoms):
+							print("%3s %10.5f %10.5f %10.5f "  %(atom[i], xyz[i][0],xyz[i][1],xyz[i][2]))
+if args.show:         				print("fract --------------------------------------------------------------")
+if args.show or args.showonly=="fract":		
+						for i in range(0,natoms):
+							print("%3s %10.5f %10.5f %10.5f "  %(atom[i], fract[i][0],fract[i][1],fract[i][2]))
+if args.show:         				print("charges --------------------------------------------------------------")
+if args.show or args.showonly=="charge":		
+						for i in range(0,natoms):
+							print("%3s %10.5f "  %(atom[i], charge[i]))
+if args.show or args.showonly!=None:        	sys.exit()
 
-if args.void:              #not working because of three spheres overlapping
+#computing void matematically: not working because of three spheres overlapping
+if args.void:              
         volsphere=0;
         volumeocc=0;
         d=[0]*3
