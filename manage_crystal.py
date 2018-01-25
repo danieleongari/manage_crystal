@@ -146,6 +146,49 @@ parser.add_argument("-chargenull",
                       default=False,
                       help="Delete the charge of the atoms")
 
+
+parser.add_argument("-printatoms", 
+                      action="store_true", 
+                      dest="printatoms",
+                      default=False,
+                      help="Print all atoms types\n"+
+                           "[skip -silent]")
+
+parser.add_argument("-printatoms_noHCO", 
+                      action="store_true", 
+                      dest="printatoms_noHCO",
+                      default=False,
+                      help="Print all atoms types exc. H,C,O\n"+
+                           "[skip -silent]")
+
+parser.add_argument("-transl", 
+                      action="store", 
+                      type=float,
+                      nargs= '*', 
+                      dest="transl",
+                      default=None,
+                      help="x y z translation in Angs")
+
+parser.add_argument("-mol", 
+                      action="store_true", 
+                      dest="mol",
+                      default=False,
+                      help="Considers a molecule for xyz: no cell!") #to ad later, now putting a 50x50x50 cell is fine!
+
+parser.add_argument("-randomize",
+                      action="store",                   		
+                      type=float,
+                      dest="randomize",
+                      default=None,
+                      help="Randomize the geometry by a gaussian\n"+
+                           "with the specified delta (angs)")
+parser.add_argument("-chkmetalcharge", 
+                      action="store_true", 
+                      dest="chkmetalcharge",
+                      default=False,
+                      help="Check if the charge on a metal (see list) is neg.\n"+
+                           "[skip -silent]")
+
 parser.add_argument("-tm1", 
                       action="store_true", 
                       dest="tailormade1",
@@ -170,36 +213,6 @@ parser.add_argument("-tm4",
                       default=False,
                       help="Tailor-made 4: print .xyz for B.Wells Qeq")
 
-parser.add_argument("-printatoms", 
-                      action="store", 
-                      type=str,
-                      dest="printatoms",
-                      default=None,
-                      help="Print a file with the atoms: \n"+
-                           "1st line > all the atoms \n"+
-                           "2nd line > all the atoms excluding H,C,O")
-
-parser.add_argument("-transl", 
-                      action="store", 
-                      type=float,
-                      nargs= '*', 
-                      dest="transl",
-                      default=None,
-                      help="x y z translation in Angs")
-
-parser.add_argument("-mol", 
-                      action="store_true", 
-                      dest="mol",
-                      default=False,
-                      help="Considers a molecule for xyz: no cell!") #to ad later, now putting a 50x50x50 cell is fine!
-
-parser.add_argument("-randomize",
-                      action="store",                   		
-                      type=float,
-                      dest="randomize",
-                      default=None,
-                      help="Randomize the geometry by a gaussian\n"+
-                           "with the specified delta (angs)")
 
 args = parser.parse_args()
 
@@ -948,18 +961,31 @@ if not args.silent: print("Density: %.5f (kg/m3), %.5f (g/cm3), %.5f (g/molUC)" 
 molkg=1000/weight #mol/g
 if not args.silent: print("Conversion: 1 molec./u.c. = %.5f (mol/kg)" %(molkg))	
 
-#compute net charge
+#check the NET_CHARGE
 if not args.silent: print()
-if not args.silent: print("Net charge: %.10f" %sum(charge))
-if not sum(charge)==0:
-   if sum(charge)>-0.001 and sum(charge)<+0.001:  
-      print("The net charge is negligible.")
+#if not args.silent: print("Net charge: %.10f" %sum(charge))
+if sum(charge)==0 and max(charge)<0.001: 
+      if not args.silent: print("NET_CHARGE: all the charges are zero.")
+elif sum(charge)>-0.001 and sum(charge)<+0.001:  
+      if not args.silent: print("NET_CHARGE: negligible (|sum|<0.001).")
       #charge[0]=charge[0]-sum(charge)
       #print("*** Negligible error due to the rounding: subtracted from the first atom!")
       #print("*** Now the net charge is %.10f" %sum(charge))
-   else: 
-      print("*** BE CAREFULL: your system is not neutral, and the error is more than 0.001!")    
+else: 
+      if not args.silent: print("NET_CHARGE: nonzero (%.3f). ***WARNING***" %sum(charge))
 
+#check negatove charge on metals [skip -silent]
+if args.chkmetalcharge:
+	metal_list=["Li","Be","Na","Mg","Al","K","Ca","Sc","Ti","V","Cr","Mn","Fe","Co","Ni","Cu","Zn","Zr","Pd","Cd"]
+	negmetfound=False
+	for i in range(1,natoms):
+    		if (atom[i] in metal_list) and (charge[i]<0):
+                   print("CHK_METAL_CHARGE: ko >>> %s=%.3f" %(atom[i],charge[i]))
+                   negmetfound=True
+                   break
+	if not negmetfound:
+        	print("CHK_METAL_CHARGE: ok")
+	      
 #number of electrons
 nelectrons=0
 for i in range(1,len(atom_count)):
@@ -967,6 +993,19 @@ for i in range(1,len(atom_count)):
  		nelectrons+=atom_count[i]*i #nuber_of_atoms_with_AN*AN
 if not args.silent: print("Tot. electrons: %d" %nelectrons)
 
+#print atoms on one line for info
+if args.printatoms: 
+   for i in range(1,len(atom_count)):
+	if atom_count[i] != 0:
+           print(atomic_symbol[i],end='_')
+   print("")
+if args.printatoms_noHCO: 
+   for i in range(1,len(atom_count)):
+	if atom_count[i] != 0 and atomic_symbol[i]!="H" \
+                              and atomic_symbol[i]!="C" \
+                              and atomic_symbol[i]!="O":
+           print(atomic_symbol[i],end='_')
+   print("")
 ################################################################################################# OUTPUT OPERATIONS
 if  args.output==None:                              #CHECK IF AN OUTPUT IS DEFINED
    outputfile='NOTHING'
@@ -1369,6 +1408,7 @@ if args.output!=None:
 
 ############################################################################## Write supplementary outputs
 
+"""
 if args.printatoms!=None:
    ofile=open(args.printatoms, 'w+')
 
@@ -1388,8 +1428,11 @@ if args.printatoms!=None:
                               and atomic_symbol[i]!="O":
            print(atomic_symbol[i],end='_',file=ofile)
    print("",file=ofile)
-
    ofile.close()
+"""
+
+
+
 
 
 
