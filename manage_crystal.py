@@ -945,7 +945,7 @@ if args.multipl_x>1 or args.multipl_y>1 or args.multipl_z>1:
 # count atoms
 if not args.silent: print()
 ntypes=0
-for i in range(1,len(atom_count)):
+for i in range(0,len(atom_count)):
 	if atom_count[i] != 0:
  		ntypes+=1
 		if not args.silent: print('{0:>5} {1:3} atoms'.format(atom_count[i],atomic_symbol[i]))
@@ -961,7 +961,7 @@ if not args.silent: print("Volume: %.3f (Angtrom^3/u.c.)" %volume)
 
 #compute density
 weight=0
-for i in range(1,len(atom_count)):
+for i in range(0,len(atom_count)):
 	if atom_count[i] != 0:
            weight+=atom_count[i]*atomic_mass[i]     #g/mol_uc
 rho=weight/volume/AVOGCONST*1E+10**3/1000 #Kg/m3
@@ -986,31 +986,41 @@ else:
 
 #check negatove charge on metals [skip -silent]
 if args.chkmetalcharge:
-	metal_list=["Li","Be","Na","Mg","Al","K","Ca","Sc","Ti","V","Cr","Mn","Fe","Co","Ni","Cu","Zn","Zr","Pd","Cd"]
-	negmetfound=False
-	for i in range(1,natoms):
-    		if (atom[i] in metal_list) and (charge[i]<0):
-                   print("CHK_METAL_CHARGE: ko >>> %s=%.3f" %(atom[i],charge[i]))
-                   negmetfound=True
-                   break
-	if not negmetfound:
-        	print("CHK_METAL_CHARGE: ok")
-	      
+	metal_list=["Li","Be","Na","Mg","Al", "K","Ca","Sc","Ti","V","Cr","Mn","Fe","Co","Ni","Cu","Zn","Ga","Rb","Sr","Y","Zr","Nb","Mo","Tc","Ru","Rh","Pd","Ag","Cd","In","Sn","Cs","Ba","La","Hf","Ta","W"]
+	found_met=False
+	found_met_neg=False
+	found_met_nonzero=False
+	found_met_notnumber=False
+	for i in range(0,natoms):
+    		if (atom[i] in metal_list):
+		   found_met=True
+	           if math.isnan(charge[i]):
+                        print("CHK_METAL_CHARGE: not_number >>> %s=%s" %(atom[i],charge[i]))
+                        found_met_notnumber=True
+		   elif charge[i]<0:	
+                   	print("CHK_METAL_CHARGE: found_negative >>> %s=%.3f" %(atom[i],charge[i]))
+                   	found_met_neg=True
+		   elif	charge[i]>0:
+			found_met_nonzero=True
+        	if found_met_notnumber or found_met_neg: break      
+	if not found_met: print("CHK_METAL_CHARGE: no_metals")
+	if found_met and not found_met_neg and not found_met_notnumber and not found_met_nonzero: print("CHK_METAL_CHARGE: all_zero")
+	if found_met and not found_met_neg and not found_met_notnumber and found_met_nonzero: print("CHK_METAL_CHARGE: ok_positive")	      
 #number of electrons
 nelectrons=0
-for i in range(1,len(atom_count)):
+for i in range(0,len(atom_count)):
 	if atom_count[i] != 0:
  		nelectrons+=atom_count[i]*i #nuber_of_atoms_with_AN*AN
 if not args.silent: print("Tot. electrons: %d" %nelectrons)
 
 #print atoms on one line for info
 if args.printatoms: 
-   for i in range(1,len(atom_count)):
+   for i in range(0,len(atom_count)):
 	if atom_count[i] != 0:
            print(atomic_symbol[i],end='_')
    print("")
 if args.printatoms_noHCO: 
-   for i in range(1,len(atom_count)):
+   for i in range(0,len(atom_count)):
 	if atom_count[i] != 0 and atomic_symbol[i]!="H" \
                               and atomic_symbol[i]!="C" \
                               and atomic_symbol[i]!="O":
@@ -1364,7 +1374,7 @@ if args.output!=None:
     	print("    cell_dofree    = 'all' ",							file=ofile)
     	print(" / ",										file=ofile)
    	print("ATOMIC_SPECIES " ,								file=ofile)
-        for i in range(1,len(atom_count)):
+        for i in range(0,len(atom_count)):
 	  if atom_count[i] != 0:
             	print("%3s %8.3f  %s" %(atomic_symbol[i],atomic_mass[i], atomic_pseudo[args.pseudo][i]),file=ofile) #add pseudo!
        	print(" ",										file=ofile) 
@@ -1397,7 +1407,7 @@ if args.output!=None:
 		print("%3s %9.5f %9.5f %9.5f "  %(atom[i], xyz[i][0],xyz[i][1],xyz[i][2]),			file=ofile)
         print("    &END COORD",											file=ofile)
         print(" ",												file=ofile)
-        for i in range(1,len(atom_count)):
+        for i in range(0,len(atom_count)):
 	  if atom_count[i] != 0:
             print("    &KIND %3s" %(atomic_symbol[i]) ,								file=ofile)
             print("      BASIS_SET DZVP-MOLOPT-GTH",								file=ofile)
@@ -1431,12 +1441,12 @@ if args.printatoms!=None:
    if not args.silent: print("*** 2nd line: all atoms except for H, C, O")
    if not args.silent: print()
 
-   for i in range(1,len(atom_count)):
+   for i in range(0,len(atom_count)):
 	if atom_count[i] != 0:
            print(atomic_symbol[i],end='_',file=ofile)
    print("",file=ofile)
 
-   for i in range(1,len(atom_count)):
+   for i in range(0,len(atom_count)):
 	if atom_count[i] != 0 and atomic_symbol[i]!="H" \
                               and atomic_symbol[i]!="C" \
                               and atomic_symbol[i]!="O":
