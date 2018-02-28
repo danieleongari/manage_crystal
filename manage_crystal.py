@@ -199,6 +199,20 @@ parser.add_argument("-chkmetalcharge",
                       help="Check if the charge on a metal (see list) is neg.\n"+
                            "[skip -silent]")
 
+parser.add_argument("-chkdef2", 
+                      action="store_true", 
+                      dest="chkdef2",
+                      default=False,
+                      help="Check if there is a non def2 BS atom (H-La, Hf-Rn).\n"+
+                           "[skip -silent]")
+
+parser.add_argument("-chkmepo", 
+                      action="store_true", 
+                      dest="chkmepo",
+                      default=False,
+                      help="Check if there is a non MEPO atom (H,V,Cu,Zn,C,N,O,F,Cl,Br,I).\n"+
+                           "[skip -silent]")
+
 parser.add_argument("-tm1", 
                       action="store_true", 
                       dest="tailormade1",
@@ -222,6 +236,12 @@ parser.add_argument("-tm4",
                       dest="tailormade4",
                       default=False,
                       help="Tailor-made 4: print .xyz for B.Wells Qeq")
+
+parser.add_argument("-tm5", 
+                      action="store_true", 
+                      dest="tailormade5",
+                      default=False,
+                      help="Tailor-made 5: print .xyz for B.Wells Qeq w/zero FC")
 
 
 args = parser.parse_args()
@@ -984,7 +1004,7 @@ elif sum(charge)>-0.001 and sum(charge)<+0.001:
 else: 
       if not args.silent: print("NET_CHARGE: nonzero (%.3f). ***WARNING***" %sum(charge))
 
-#check negatove charge on metals [skip -silent]
+#check negative charge on metals [skip -silent]
 if args.chkmetalcharge:
 	metal_list=["Li","Be","Na","Mg","Al", "K","Ca","Sc","Ti","V","Cr","Mn","Fe","Co","Ni","Cu","Zn","Ga","Rb","Sr","Y","Zr","Nb","Mo","Tc","Ru","Rh","Pd","Ag","Cd","In","Sn","Cs","Ba","La","Hf","Ta","W"]
 	found_met=False
@@ -1005,7 +1025,29 @@ if args.chkmetalcharge:
         	if found_met_notnumber or found_met_neg: break      
 	if not found_met: print("CHK_METAL_CHARGE: no_metals")
 	if found_met and not found_met_neg and not found_met_notnumber and not found_met_nonzero: print("CHK_METAL_CHARGE: all_zero")
-	if found_met and not found_met_neg and not found_met_notnumber and found_met_nonzero: print("CHK_METAL_CHARGE: ok_positive")	      
+	if found_met and not found_met_neg and not found_met_notnumber and found_met_nonzero: print("CHK_METAL_CHARGE: ok_positive")	
+
+#check non-def2 atoms [skip -silent]
+if args.chkdef2:
+	found_nondef2=False
+	for i in range(0,natoms):   
+     		if 58<=an[i]<=71 or an[i]>=87:
+		   	found_nondef2=True
+                        print("CHK_def2: found %s" %atom[i])
+			break 
+	if not found_nondef2: print("CHK_def2: ok")
+
+#check non-mepo atoms [skip -silent]
+if args.chkmepo:
+        mepo_list=["H","V","Cu","Zn","C","N","O","F","Cl","Br","I"]
+	found_nonmepo=False
+	for i in range(0,natoms):   
+     		if not (atom[i] in mepo_list):
+		   	found_nonmepo=True
+                        print("CHK_mepo: found %s" %atom[i])
+			break 
+	if not found_nonmepo: print("CHK_mepo: ok")
+
 #number of electrons
 nelectrons=0
 for i in range(0,len(atom_count)):
@@ -1306,7 +1348,7 @@ if args.output!=None:
 		print("%4d %3s %8.5f %8.5f %8.5f    0  0  0  0  0  0  0  0  0.000"    %(i+1, atom[i], fract[i][0],fract[i][1],fract[i][2]),		file=ofile)
  
  if outputformat=="xyz":
-   if not args.tailormade4:   
+   if not (args.tailormade4 or args.tailormade5):   
    	print("%d"   %(natoms),																file=ofile)
 	print("CELL:  %.5f  %.5f  %.5f  %.3f  %.3f  %.3f  " %(ABC[0],ABC[1],ABC[2],math.degrees(abc[0]),math.degrees(abc[1]),math.degrees(abc[2])),	file=ofile)
 	for i in range(0,natoms):
@@ -1317,6 +1359,12 @@ if args.output!=None:
    	print("%d"   %(natoms),																	file=ofile)
 	for i in range(0,natoms):	
 		print("%3s %9.5f %9.5f %9.5f "  %(atom[i], fract[i][0], fract[i][1], fract[i][2]),							 	file=ofile)
+   if args.tailormade5: 
+        print("****PRINTING .xyz TAILOR-MADE5 FOR Qeq program by B.Wells (with FC=0)***",									file=ofile)      
+	print("      FRAC       %.5f  %.5f  %.5f  %.3f  %.3f  %.3f  " %(ABC[0],ABC[1],ABC[2],math.degrees(abc[0]),math.degrees(abc[1]),math.degrees(abc[2])),	file=ofile)
+   	print("%d"   %(natoms),																	file=ofile)
+	for i in range(0,natoms):	
+		print("%3s %9.5f %9.5f %9.5f   xx   0.000   0.000"  %(atom[i], fract[i][0], fract[i][1], fract[i][2]),						file=ofile)
 
  if outputformat=="pwi":
         if args.pseudo==None:
