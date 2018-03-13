@@ -192,11 +192,20 @@ parser.add_argument("-randomize",
                       default=None,
                       help="Randomize the geometry by a gaussian\n"+
                            "with the specified delta (angs)")
+
+################################################################################################### START stuff for Qeq project-22
 parser.add_argument("-chkmetalcharge", 
                       action="store_true", 
                       dest="chkmetalcharge",
                       default=False,
                       help="Check if the charge on a metal (see list) is neg.\n"+
+                           "[skip -silent]")
+
+parser.add_argument("-chkcharge", 
+                      action="store_true", 
+                      dest="chkcharge",
+                      default=False,
+                      help="Check if all the charges are zero.\n"+
                            "[skip -silent]")
 
 parser.add_argument("-chkdef2", 
@@ -212,6 +221,14 @@ parser.add_argument("-chkmepo",
                       default=False,
                       help="Check if there is a non MEPO atom (H,V,Cu,Zn,C,N,O,F,Cl,Br,I).\n"+
                            "[skip -silent]")
+
+parser.add_argument("-avgcharges", 
+                      action="store_true", 
+                      dest="avgcharges",
+                      default=False,
+                      help="Use average charges from DDEC")
+
+################################################################################################### END stuff for Qeq project-22
 
 parser.add_argument("-tm1", 
                       action="store_true", 
@@ -242,6 +259,12 @@ parser.add_argument("-tm5",
                       dest="tailormade5",
                       default=False,
                       help="Tailor-made 5: print .xyz for B.Wells Qeq w/zero FC")
+
+parser.add_argument("-tm6", 
+                      action="store_true", 
+                      dest="tailormade6",
+                      default=False,
+                      help="Tailor-made 6: read GULP's cif")
 
 
 args = parser.parse_args()
@@ -524,7 +547,7 @@ if (inputformat=='pwo') or (inputformat=='pwi'):
               break
 
 if inputformat=='cif':
-   if not args.tailormade1:
+   if not (args.tailormade1 or args.tailormade6):
           if not args.silent: print("**** BE CAREFUL: cif reading is tested only for the format")
           if not args.silent: print("****             of this output (P1,label+symbol+fract)")
           if not args.silent: print("****             (also CoRE MOF cif are readable!)")  
@@ -574,8 +597,12 @@ if inputformat=='cif':
                break  
       
    else:  #Tailormade1: DDEC CoRE MOF (only site_label and no site_type_symbol)
+         if args.tailormade1:
           if not args.silent: print("**** READING .cif using tailor-made1 settings")
           if not args.silent: print("****         = CoRE MOF DDEC w/charges       ")
+         if args.tailormade6:
+          if not args.silent: print("**** READING .cif using tailor-made6 settings")
+          if not args.silent: print("****         = GULP's cif w/charges          ")
           ABC=[0]*3
           abc=[0]*3
 
@@ -602,8 +629,10 @@ if inputformat=='cif':
 		  atom.append(re.split('(\d+)',data[0])[0]) #takes only the atomtype from a label like "Cu34"	
 		  an.append(atomic_symbol.index(atom[i]))
                   atom_count[an[i]]+=1
-                  fract.append([float(data[1]), float(data[2]), float(data[3])])   
-		  charge.append(float(data[4])) 
+                  if args.tailormade1: fract.append([float(data[1]), float(data[2]), float(data[3])])  
+                  if args.tailormade6: fract.append([float(data[3]), float(data[4]), float(data[5])])                
+		  if args.tailormade1: charge.append(float(data[4])) 
+		  if args.tailormade6: charge.append(float(data[6])) 
                   i+=1
                natoms=i
                break    
@@ -808,6 +837,11 @@ if not 'charge' in locals():
 if args.chargenull:
   if not args.silent: print("*** chargenull: DELETING ALL THE CHARGES! ***")
   charge = [0]*natoms
+
+if args.avgcharges:
+  if not args.silent: print("*** avgcharges: Taking charges from atomic_ddecavgcharges ***")
+  for i in range(0,natoms):
+   charge[i] = atomic_ddecavgcharges[an[i]]  
 
 ############################################################################ APPLY TRANSLATION / RANDOMIZE
 if args.transl!=None:
@@ -1025,7 +1059,27 @@ if args.chkmetalcharge:
         	if found_met_notnumber or found_met_neg: break      
 	if not found_met: print("CHK_METAL_CHARGE: no_metals")
 	if found_met and not found_met_neg and not found_met_notnumber and not found_met_nonzero: print("CHK_METAL_CHARGE: all_zero")
-	if found_met and not found_met_neg and not found_met_notnumber and found_met_nonzero: print("CHK_METAL_CHARGE: ok_positive")	
+	if found_met and not found_met_neg and not found_met_notnumber and found_met_nonzero: print("CHK_METAL_CHARGE: ok_positive")
+
+#check if the charges are assigned / all zero / nan [skip -silent]
+if args.chkcharge:
+	found_nonzero=False
+        found_notnumber=False
+        found_weird=False
+	for i in range(0,natoms):
+	           if math.isnan(charge[i]):
+                        print("CHK_CHARGE: not_number >>> %s=%s" %(atom[i],charge[i]))
+                        found_notnumber=True
+                        break
+		   elif	charge[i]>3 or charge[i]<-3:
+			found_weird=True
+                        print("CHK_CHARGE: weird_charges")
+                        break
+                   elif charge[i] != 0:
+			found_nonzero=True
+                        print("CHK_CHARGE: charged_framework")
+                        break
+	if not found_notnumber and not found_weird and not found_nonzero: print("CHK_CHARGE: all_zero")	
 
 #check non-def2 atoms [skip -silent]
 if args.chkdef2:
