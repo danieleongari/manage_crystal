@@ -228,6 +228,12 @@ parser.add_argument("-avgcharges",
                       default=False,
                       help="Use average charges from DDEC")
 
+parser.add_argument("-normalizecharges", 
+                      action="store_true", 
+                      dest="normalizecharges",
+                      default=False,
+                      help="Normalize the charges to have a null total charge.")
+
 ################################################################################################### END stuff for Qeq project-22
 
 parser.add_argument("-tm1", 
@@ -842,6 +848,33 @@ if args.avgcharges:
   if not args.silent: print("*** avgcharges: Taking charges from atomic_ddecavgcharges ***")
   for i in range(0,natoms):
    charge[i] = atomic_ddecavgcharges[an[i]]  
+
+if args.normalizecharges:
+  if not args.silent: print("")
+  if not args.silent: print("*** NORMALIZING CHARGES ***")
+  pos_charge=0
+  neg_charge=0
+  for i in range(0,natoms):
+   if charge[i]>0:
+    pos_charge+=charge[i]
+   else:
+    neg_charge+=charge[i]
+
+  tot_charge=pos_charge+neg_charge
+  tot_abs=pos_charge-neg_charge
+  pos_fract=pos_charge/tot_abs
+
+  if not args.silent: print("total charge: %f" %tot_charge)
+  if not args.silent: print("positive charges: %f" %pos_charge)
+  if not args.silent: print("negative charges: %f" %neg_charge)
+  if not args.silent: print("total absolute ch.: %f" %tot_abs)
+
+  for i in range(0,natoms):
+    if charge[i]>0: 
+      charge[i]=charge[i]-tot_charge*pos_fract*charge[i]/pos_charge
+    else: 
+      charge[i]=charge[i]-tot_charge*(1-pos_fract)*charge[i]/neg_charge
+
 
 ############################################################################ APPLY TRANSLATION / RANDOMIZE
 if args.transl!=None:
