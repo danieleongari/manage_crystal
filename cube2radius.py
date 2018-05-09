@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python2
 """/
 Compute radius from cube density (B.Wells, eq 18). Tested for Gaussian.
 """
@@ -32,7 +32,7 @@ binsize=[0]*3 #works only with orthogonal cells
 
 #reading input file: name and format
 for nfile in range(1,len(sys.argv)):
-	print("Reading: %s" %sys.argv[nfile])
+	#print("Reading: %s" %sys.argv[nfile])
 	file = open(sys.argv[nfile],'r')
 	header1 = file.readline()
 	header2 = file.readline()
@@ -82,4 +82,4 @@ for nfile in range(1,len(sys.argv)):
 	   rxrho=rxrho+r*float(gridvalue)
 	   rho=rho+float(gridvalue)
 
-	print("radius (bohr)= %f" %(rxrho/rho))
+	print("radius (angs)= %f" %(rxrho/rho*BOHR2ANGS))

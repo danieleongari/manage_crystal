@@ -67,7 +67,7 @@ parser.add_argument("-showonly",
                       dest="showonly",
                       default=None,
                       help="Show only the required info:\n"+		
-			   "cell, CELL, xyz, fract, charges\n"+
+			   "cell, CELL, xyz, fract, charge\n"+
 			   "[skip -silent]")
                      
 parser.add_argument("-cupw", 
