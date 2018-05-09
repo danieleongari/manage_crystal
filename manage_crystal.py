@@ -398,28 +398,34 @@ if inputformat=='xyz':
 	#read cell in my way of writing it as a comment of xyz 
 	line = file.readline()
 	
-	if len(line)==0 or (line.split()[0]!='CELL:' and line.split()[0]!='cell:'): #set a 50x50x50 cell if CELL is not specified
+	if len(line)==0 or (line.split()[0]!='CELL:' and line.split()[0]!='cell:' and line.split()[0]!='jmolscript:'): #set a 50x50x50 cell if CELL is not specified
 		if not args.silent: 
 			print(len(line))
 			print("WARNING: no CELL properly specified... using 50 50 50")
 			ABC=[50.,50.,50.]
 			abc=[math.radians(90.),math.radians(90.),math.radians(90.)]
+
 	else:
 		celltemp=line.split()
 
-		if celltemp[0]=='CELL:':
+		if celltemp[0]=='CELL:': #ABC alpha/beta/gamma
 			ABC=[float( celltemp[1]),float(celltemp[2]),float(celltemp[3])]
 			abc=[math.radians(float(celltemp[4])),math.radians(float(celltemp[5])),math.radians(float( celltemp[6]))]
 
-		elif celltemp[0]=='cell:':
+		elif celltemp[0]=='cell:': #cellmatrix
 			cell=numpy.matrix([[float(celltemp[1]),float(celltemp[2]),float(celltemp[3])],
-		                   [float(celltemp[4]),float(celltemp[5]),float(celltemp[6])],
-		                   [float(celltemp[7]),float(celltemp[8]),float(celltemp[9])]])
+		                           [float(celltemp[4]),float(celltemp[5]),float(celltemp[6])],
+		                           [float(celltemp[7]),float(celltemp[8]),float(celltemp[9])]])
+                elif celltemp[0]=='jmolscript:': #working for ddec output
+                 	cell=numpy.matrix([[float(celltemp[10]),float(celltemp[11]),float(celltemp[12])],
+		                           [float(celltemp[15]),float(celltemp[16]),float(celltemp[17])],
+		                           [float(celltemp[20]),float(celltemp[21]),float(celltemp[22])]])
 
 	#read atom[index]
 	atom=[]
 	an=[]
 	xyz=[]
+        charge=[]
 	for i in range(0,natoms):
 		line = file.readline()
 		data = line.split( )
@@ -427,6 +433,9 @@ if inputformat=='xyz':
 		an.append(atomic_symbol.index(atom[i]))
                 atom_count[an[i]]+=1
 		xyz.append([float(data[1]), float(data[2]), float(data[3])])
+                if len(data)==5: charge.append(float(data[4])) #if there is an extra column is the charge!
+        if len(charge)==0: del charge
+
 
      if args.tailormade3:
 	junk = file.readline()
