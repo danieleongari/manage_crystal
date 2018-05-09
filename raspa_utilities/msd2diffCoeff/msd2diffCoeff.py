@@ -15,6 +15,13 @@ parser.add_argument("inputfile",
                       type=str,
                       help="MSD file msd_self_molecule_n.dat")
 
+parser.add_argument("-timerange", 
+                      action="store", 
+                      type=float,
+                      nargs=2, 
+                      dest="timerange",
+                      default=[1.0,16.0],
+                      help="tmin tmax [ps] for the fitting")
 
 args = parser.parse_args()
 
@@ -22,12 +29,11 @@ data=np.genfromtxt(args.inputfile, delimiter="", comments="#",usecols = (0,1,2,3
 
 [rows,columns]=np.shape(data)
 
-time_range=[1.0,16.0] #ps !Hardcoded!
 time_fit=[]
 msd_fit=[]
 
 for i in range(0,rows):
-	if time_range[0] <= data[i][0] <= time_range[1]:
+	if args.timerange[0] <= data[i][0] <= args.timerange[1]:
 		time_fit.append(data[i][0])
 		msd_fit.append(data[i][1])
 
