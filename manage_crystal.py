@@ -89,12 +89,19 @@ parser.add_argument("-ovlp",
                       default=False,
                       help="Look for an overlap and modify the file [WORK IN PROGRESS]")
 
-parser.add_argument("-pseudo", 
+parser.add_argument("-pseudopw", 
                       action="store", 
                       type=str,
-                      dest="pseudo",
+                      dest="pseudopw",
                       default="pbe",
                       help="Pseudo for the .pwi output")
+
+parser.add_argument("-bscp2k", 
+                      action="store", 
+                      type=str,
+                      dest="bscp2k",
+                      default="DZVP-MOLOPT-SR-GTH",
+                      help="Gaussian Basis Set for CP2K")
 
 parser.add_argument("-resp", 
                       action="store", 
@@ -1495,9 +1502,7 @@ if args.output!=None:
 		print("%3s %9.5f %9.5f %9.5f   xx   0.000   0.000"  %(atom[i], fract[i][0], fract[i][1], fract[i][2]),						file=ofile)
 
  if outputformat=="pwi":
-        if args.pseudo==None:
-	   sys.exit("ERROR: You have to specify the -pseudo in the input!")
-        if not args.silent: print("QE input .pwi using the pseudo: %s" %(args.pseudo))
+        if not args.silent: print("QE input .pwi using the pseudo: %s" %(args.pseudopw))
         if not args.silent: print()
    	print(" &CONTROL ",									file=ofile)
    	print("    calculation = 'vc-relax' ",							file=ofile)
@@ -1506,7 +1511,7 @@ if args.output!=None:
    	print("    wf_collect  = .true. ",							file=ofile)  
    	print("    outdir      = './' ",							file=ofile)
    	print("    prefix      = 'pwscf' ",							file=ofile)
-   	print("    pseudo_dir  = '/scratch/ongari/0_LIBRARIES/2_espresso/%s.1.0.0' " %(args.pseudo), file=ofile)
+   	print("    pseudo_dir  = '/scratch/ongari/0_LIBRARIES/2_espresso/%s.1.0.0' " %(args.pseudopw), file=ofile)
    	print("      !nstep        = 50",							file=ofile)
    	print("      !etot_conv_thr= 1.0D-4",							file=ofile) # Note that etot_conv_thr is extensive: it can be hard to converge for big systems!
    	print("      !forc_conv_thr= 1.0D-3",							file=ofile) # Note that forc_conv_thr is intensive: Ok if max_forc < forc_conv_thr.
@@ -1552,7 +1557,7 @@ if args.output!=None:
    	print("ATOMIC_SPECIES " ,								file=ofile)
         for i in range(0,len(atom_count)):
 	  if atom_count[i] != 0:
-            	print("%3s %8.3f  %s" %(atomic_symbol[i],atomic_mass[i], atomic_pseudo[args.pseudo][i]),file=ofile) #add pseudo!
+            	print("%3s %8.3f  %s" %(atomic_symbol[i],atomic_mass[i], atomic_pseudo[args.pseudopw][i]),file=ofile) #add pseudo!
        	print(" ",										file=ofile) 
    	print("K_POINTS gamma ",								file=ofile)  
    	print(" ",										file=ofile)
@@ -1585,9 +1590,13 @@ if args.output!=None:
         print(" ",												file=ofile)
         for i in range(0,len(atom_count)):
 	  if atom_count[i] != 0:
-            print("    &KIND %3s" %(atomic_symbol[i]) ,								file=ofile)
-            print("      BASIS_SET DZVP-MOLOPT-SR-GTH",								file=ofile)
+            print("    &KIND %s" %(atomic_symbol[i]) ,								file=ofile)
+            print("      BASIS_SET %s" %(args.bscp2k),								file=ofile)
             print("      POTENTIAL GTH-PBE" ,									file=ofile)
+            print("    &END KIND" ,										file=ofile)
+            print("    &KIND %s_GHOST" %(atomic_symbol[i]) ,						        file=ofile)
+            print("      BASIS_SET %s" %(args.bscp2k),								file=ofile)
+            print("      GHOST" ,									        file=ofile)
             print("    &END KIND" ,										file=ofile)
             print(" " ,												file=ofile)
         print("  &END SUBSYS",											file=ofile)
