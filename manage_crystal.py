@@ -38,7 +38,8 @@ parser.add_argument("inputfile",
                       type=str,
                       help="path to the input file to read\n"+
                            "IMPLEMENTED: xyz(w/CELL),pdb,cssr,pwi,pwo,cif,xsf,axsf,subsys(CP2K),\n"+
-                           "             restart(CP2K),inp(CP2K),cube [NEXT: gaussian, dcd+atoms]")
+                           "             restart(CP2K),inp(CP2K),cube [NEXT: gaussian, dcd+atoms,\n"+
+                           "             POSCAR(VASP)]")
 
 parser.add_argument("-o","--output",
                       action="store", 
@@ -365,6 +366,37 @@ if inputformat=='pdb':
 		i=i+1	
 	 natoms=i
 
+if inputformat=='POSCAR':
+	junk_title = file.readline()
+        junk_symm  = file.readline()
+        a_vect = file.readline().split()
+        b_vect = file.readline().split()
+        c_vect = file.readline().split()
+	cell=numpy.matrix([[float(a_vect[0]),float(a_vect[1]),float(a_vect[2])],
+		           [float(b_vect[0]),float(b_vect[1]),float(b_vect[2])],
+		           [float(c_vect[0]),float(c_vect[1]),float(c_vect[2])]])
+ 	poscar_atomtypes=file.readline().split()
+        poscar_atomnumbers=file.readline().split()
+        atom=[]
+        an=[]
+        for i in range(len(poscar_atomtypes)):
+            for j in range(int(poscar_atomnumbers[i])):
+                atom.append(poscar_atomtypes[i])
+                an.append(atomic_symbol.index(poscar_atomtypes[i]))
+                atom_count[atomic_symbol.index(poscar_atomtypes[i])]+=1
+        natoms=len(atom)
+        coord_type = file.readline().split()[0]
+        if coord_type=='Direct' or coord_type=='direct':
+         fract=[]
+	 for i in range(natoms):
+		coord = file.readline().split()
+		fract.append([float(coord[0]), float(coord[1]), float(coord[2])])
+        elif coord_type=='Cartesian' or coord_type=='cartesian':
+         xyz=[]
+	 for i in range(natoms):
+		coord = file.readline().split()
+		xyz.append([float(data[0]), float(data[1]), float(data[2])])
+
 if inputformat=='cssr':
 	line = file.readline()
  	celltemp=line.split( )
@@ -378,16 +410,13 @@ if inputformat=='cssr':
         atom=[]
         an=[]
         fract=[]
-	i=0
-	for i in range(0,natoms):
+	for i in range(natoms):
 		line = file.readline()
 		data = line.split( )
 		atom.append(data[1])	
 		an.append(atomic_symbol.index(atom[i]))
                 atom_count[an[i]]+=1
 		fract.append([float(data[2]), float(data[3]), float(data[4])])
-
-
 
 if inputformat=='xyz':
      if not args.tailormade3:
