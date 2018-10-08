@@ -38,8 +38,8 @@ parser.add_argument("inputfile",
                       type=str,
                       help="path to the input file to read\n"+
                            "IMPLEMENTED: xyz(w/CELL),pdb,cssr,pwi,pwo,cif,xsf,axsf,subsys(CP2K),\n"+
-                           "             restart(CP2K),inp(CP2K),cube [NEXT: gaussian, dcd+atoms,\n"+
-                           "             POSCAR(VASP)]")
+                           "             restart(CP2K),inp(CP2K),cube,POSCAR(VASP) \n"+
+                           "             [NEXT: gaussian, dcd+atoms,POSCAR(VASP)]")
 
 parser.add_argument("-o","--output",
                       action="store", 
@@ -402,7 +402,7 @@ if inputformat=='POSCAR':
          xyz=[]
 	 for i in range(natoms):
 		coord = file.readline().split()
-		xyz.append([float(data[0]), float(data[1]), float(data[2])])
+		xyz.append([float(coord[0]), float(coord[1]), float(coord[2])])
 
 if inputformat=='cssr':
 	line = file.readline()
