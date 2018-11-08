@@ -385,7 +385,7 @@ if inputformat == 'pdb':
         line = file.readline()
         if line.split()[0] == 'CRYST1' or line.split()[0] == 'COMPD':
             break
-    ABC = [float(line[0o6:15]), float(line[15:24]), float(line[24:33])]
+    ABC = [float(line[06:15]), float(line[15:24]), float(line[24:33])]
     abc = [
         math.radians(float(line[33:40])),
         math.radians(float(line[40:47])),
