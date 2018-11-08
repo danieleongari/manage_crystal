@@ -1,5 +1,5 @@
-#!/usr/bin/env python2
-"""/
+#!/usr/bin/env python
+"""
 Python program to read coordinates from a file and handle them. Daniele Ongari 7/11/16
 
 inputfilename          name of the input filename.inpformat
@@ -20,9 +20,9 @@ charge[index]          partial charge
 atom_count[an]         number of atoms for atomic number an
 atomic_symbol[an]      symbol of atom for atomic number an 
 
-
 """
 from __future__ import print_function #python3 like print()
+from builtins import range
 import string,sys
 import numpy
 import math
@@ -349,7 +349,7 @@ if inputformat=='pdb':
 		line = file.readline()
 		if line.split()[0]=='CRYST1' or line.split()[0]=='COMPD':
 			break
-	ABC=[float(line[06:15]),float(line[15:24]),float(line[24:33])]
+	ABC=[float(line[0o6:15]),float(line[15:24]),float(line[24:33])]
 	abc=[math.radians(float(line[33:40])),math.radians(float(line[40:47])),math.radians(float(line[47:54]))]
 	#read atom[index]
         atom=[]
