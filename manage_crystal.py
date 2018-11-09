@@ -18,7 +18,7 @@ cell(3x3)              unit cell matrix in angstrom
 charge[index]          partial charge
 
 atom_count[an]         number of atoms for atomic number an
-atomic_symbol[an]      symbol of atom for atomic number an 
+atomic_symbol[an]      symbol of atom for atomic number an
 
 
 """
@@ -27,14 +27,14 @@ import string,sys
 import numpy
 import math
 import subprocess
-import argparse 
+import argparse
 from argparse import RawTextHelpFormatter #needed to go next line in the help text
 import os
 import re           #re.split('(\d+)',"O23") = ['O', '23', '']
 
 parser = argparse.ArgumentParser(description='Program to read, extract info and convert crystal files (by Daniele Ongari)', formatter_class=RawTextHelpFormatter)
 
-parser.add_argument("inputfile", 
+parser.add_argument("inputfile",
                       type=str,
                       help="path to the input file to read\n"+
                            "IMPLEMENTED: xyz(w/CELL),pdb,cssr,pwi,pwo,cif,xsf,axsf,subsys(CP2K),\n"+
@@ -42,69 +42,69 @@ parser.add_argument("inputfile",
                            "             [NEXT: gaussian, dcd+atoms,POSCAR(VASP)]")
 
 parser.add_argument("-o","--output",
-                      action="store", 
+                      action="store",
                       type=str,
                       dest="output",
                       default=None,
                       help="Output filename.extension or just the extension\n"+
                            "IMPLEMENTED: cif,pdb,cssr,xyz(w/CELL),pwi,subsys(CP2K),axsf,geo(GULP)")
 
-parser.add_argument("-silent", 
-                      action="store_true", 
+parser.add_argument("-silent",
+                      action="store_true",
                       dest="silent",
                       default=False,
                       help="No output info on the screen")
 
-parser.add_argument("-show", 
-                      action="store_true", 
+parser.add_argument("-show",
+                      action="store_true",
                       dest="show",
                       default=False,
                       help="Show all the info\n"+
 			   "[skip -silent]")
 
-parser.add_argument("-showonly", 
-                      action="store", 
-                      type=str, 
+parser.add_argument("-showonly",
+                      action="store",
+                      type=str,
                       dest="showonly",
                       default=None,
-                      help="Show only the required info:\n"+		
+                      help="Show only the required info:\n"+
 			   "cell, CELL, xyz, fract, charge\n"+
 			   "[skip -silent]")
-                     
-parser.add_argument("-cupw", 
-                      action="store_true", 
+
+parser.add_argument("-cupw",
+                      action="store_true",
                       dest="cupw",
                       default=False,
                       help="Look for a Copper PaddleWheel")
 
-parser.add_argument("-void", 
-                      action="store_true", 
+parser.add_argument("-void",
+                      action="store_true",
                       dest="void",
                       default=False,
                       help="Compute void geometrically [NOT WORKING]")
 
-parser.add_argument("-ovlp", 
-                      action="store_true", 
+parser.add_argument("-ovlp",
+                      action="store_true",
                       dest="ovlp",
                       default=False,
                       help="Look for an overlap and modify the file [WORK IN PROGRESS]")
 
-parser.add_argument("-pseudopw", 
-                      action="store", 
+parser.add_argument("-pseudopw",
+                      action="store",
                       type=str,
                       dest="pseudopw",
                       default="pbe",
                       help="Pseudo for the .pwi output")
 
-parser.add_argument("-bscp2k", 
-                      action="store", 
+parser.add_argument("-bscp2k",
+                      action="store",
                       type=str,
                       dest="bscp2k",
                       default="DZVP-MOLOPT-SR-GTH",
                       help="Gaussian Basis Set for CP2K")
 
-parser.add_argument("-resp", 
-                      action="store", 
+parser.add_argument("-resp",
+                      action="store",
                       type=str,
                       dest="resp",
                       default=None,
@@ -113,88 +113,88 @@ parser.add_argument("-resp",
                            "BC1: it read the first set of charges\n"+
                            "BC2: Also a cp2k output file with charges is fine!\n")
 
-parser.add_argument("-readcharge", 
-                      action="store", 
+parser.add_argument("-readcharge",
+                      action="store",
                       type=str,
                       dest="readcharge",
                       default=None,
                       help="Read the charges from a simple list")
 
-parser.add_argument("-readrepeatcharge", 
-                      action="store", 
+parser.add_argument("-readrepeatcharge",
+                      action="store",
                       type=str,
                       dest="readrepeatcharge",
                       default=None,
                       help="Read the charges from REPEAT output of QE")
 
-parser.add_argument("-x", 
-                      action="store", 
+parser.add_argument("-x",
+                      action="store",
                       type=int,
                       dest="multipl_x",
                       default=1,
                       help="Extend in the x direction, by the specified times")
 
-parser.add_argument("-y", 
-                      action="store", 
+parser.add_argument("-y",
+                      action="store",
                       type=int,
                       dest="multipl_y",
                       default=1,
                       help="Extend in the y direction, by the specified times")
 
 
-parser.add_argument("-z", 
-                      action="store", 
+parser.add_argument("-z",
+                      action="store",
                       type=int,
                       dest="multipl_z",
                       default=1,
                       help="Extend in the z direction, by the specified times")
 
 
-parser.add_argument("-cutoff", 
-                      action="store", 
+parser.add_argument("-cutoff",
+                      action="store",
                       type=float,
                       dest="cutoff",
                       default=None,
                       help="Automatically extend the UC so that the cutoff is respected\n"+
                            "(TIP: use -cutoff 0 to just know the perpendicular widths!)")
 
-parser.add_argument("-chargenull", 
-                      action="store_true", 
+parser.add_argument("-chargenull",
+                      action="store_true",
                       dest="chargenull",
                       default=False,
                       help="Delete the charge of the atoms")
 
 
-parser.add_argument("-printatoms", 
-                      action="store_true", 
+parser.add_argument("-printatoms",
+                      action="store_true",
                       dest="printatoms",
                       default=False,
                       help="Print all atoms types\n"+
                            "[skip -silent]")
 
-parser.add_argument("-printatoms_noHCO", 
-                      action="store_true", 
+parser.add_argument("-printatoms_noHCO",
+                      action="store_true",
                       dest="printatoms_noHCO",
                       default=False,
                       help="Print all atoms types exc. H,C,O\n"+
                            "[skip -silent]")
 
-parser.add_argument("-transl", 
-                      action="store", 
+parser.add_argument("-transl",
+                      action="store",
                       type=float,
-                      nargs= '*', 
+                      nargs= '*',
                       dest="transl",
                       default=None,
                       help="x y z translation in Angs")
 
-parser.add_argument("-mol", 
-                      action="store_true", 
+parser.add_argument("-mol",
+                      action="store_true",
                       dest="mol",
                       default=False,
                       help="Considers a molecule for xyz: no cell!") #to ad later, now putting a 50x50x50 cell is fine!
 
 parser.add_argument("-randomize",
-                      action="store",                   		
+                      action="store",
                       type=float,
                       dest="randomize",
                       default=None,
@@ -202,80 +202,80 @@ parser.add_argument("-randomize",
                            "with the specified delta (angs)")
 
 ################################################################################################### START stuff for Qeq project-22
-parser.add_argument("-chkmetalcharge", 
-                      action="store_true", 
+parser.add_argument("-chkmetalcharge",
+                      action="store_true",
                       dest="chkmetalcharge",
                       default=False,
                       help="Check if the charge on a metal (see list) is neg.\n"+
                            "[skip -silent]")
 
-parser.add_argument("-chkcharge", 
-                      action="store_true", 
+parser.add_argument("-chkcharge",
+                      action="store_true",
                       dest="chkcharge",
                       default=False,
                       help="Check if all the charges are zero.\n"+
                            "[skip -silent]")
 
-parser.add_argument("-chkdef2", 
-                      action="store_true", 
+parser.add_argument("-chkdef2",
+                      action="store_true",
                       dest="chkdef2",
                       default=False,
                       help="Check if there is a non def2 BS atom (H-La, Hf-Rn).\n"+
                            "[skip -silent]")
 
-parser.add_argument("-chkmepo", 
-                      action="store_true", 
+parser.add_argument("-chkmepo",
+                      action="store_true",
                       dest="chkmepo",
                       default=False,
                       help="Check if there is a non MEPO atom (H,V,Cu,Zn,C,N,O,F,Cl,Br,I).\n"+
                            "[skip -silent]")
 
-parser.add_argument("-avgcharges", 
-                      action="store_true", 
+parser.add_argument("-avgcharges",
+                      action="store_true",
                       dest="avgcharges",
                       default=False,
                       help="Use average charges from DDEC")
 
-parser.add_argument("-normalizecharges", 
-                      action="store_true", 
+parser.add_argument("-normalizecharges",
+                      action="store_true",
                       dest="normalizecharges",
                       default=False,
                       help="Normalize the charges to have a null total charge.")
 
 ################################################################################################### END stuff for Qeq project-22
 
-parser.add_argument("-tm1", 
-                      action="store_true", 
+parser.add_argument("-tm1",
+                      action="store_true",
                       dest="tailormade1",
                       default=False,
                       help="Tailor-made 1: read  .cif CoRE MOF w/DDEC charges")
 
-parser.add_argument("-tm2", 
-                      action="store_true", 
+parser.add_argument("-tm2",
+                      action="store_true",
                       dest="tailormade2",
                       default=False,
                       help="Tailor-made 2: print .cif for EQeq")
 
-parser.add_argument("-tm3", 
-                      action="store_true", 
+parser.add_argument("-tm3",
+                      action="store_true",
                       dest="tailormade3",
                       default=False,
                       help="Tailor-made 3: read  .xyz for B.Wells Qeq")
 
-parser.add_argument("-tm4", 
-                      action="store_true", 
+parser.add_argument("-tm4",
+                      action="store_true",
                       dest="tailormade4",
                       default=False,
                       help="Tailor-made 4: print .xyz for B.Wells Qeq")
 
-parser.add_argument("-tm5", 
-                      action="store_true", 
+parser.add_argument("-tm5",
+                      action="store_true",
                       dest="tailormade5",
                       default=False,
                       help="Tailor-made 5: print .xyz for B.Wells Qeq w/zero FC")
 
-parser.add_argument("-tm6", 
-                      action="store_true", 
+parser.add_argument("-tm6",
+                      action="store_true",
                       dest="tailormade6",
                       default=False,
                       help="Tailor-made 6: read GULP's cif")
@@ -288,7 +288,7 @@ from atomic_data import *         #import all the data stored in the file atom_d
 
 atom_count=[0]*119 #anything assigned to 0, H_index=1, He_index=2, ...
 
-ANGS2BOHR=1.88973 
+ANGS2BOHR=1.88973
 AVOGCONST=6.022E+23
 
 def is_number(s):       #checks if a string is a number or not
@@ -297,7 +297,7 @@ def is_number(s):       #checks if a string is a number or not
         return True
     except ValueError:
         pass
- 
+
     try:
         import unicodedata
         unicodedata.numeric(s)
@@ -309,7 +309,7 @@ def is_number(s):       #checks if a string is a number or not
 if not args.silent: print()
 
 #reading input file: name and format (notice that if there is a path it becomes part of the name, to have the output in the same place)
-if not os.path.isfile(args.inputfile): sys.exit("ERROR: The file %s doesn't exist!" %args.inputfile) 
+if not os.path.isfile(args.inputfile): sys.exit("ERROR: The file %s doesn't exist!" %args.inputfile)
 inputfilename = os.path.splitext(args.inputfile)[0]
 inputformat =   os.path.splitext(args.inputfile)[1][1:] #the last commands, remove the starting point of the extension
 file = open(inputfilename+"."+inputformat,'r')
@@ -322,7 +322,7 @@ if inputformat=='dcd':
 	abc=[ math.acos(cc[-1][3]), math.acos(cc[-1][4]), math.acos(cc[-1][5]) ]
 	cell=numpy.matrix([[                 ABC[0],                    0.0,                                                                           0.0],
 			   [ABC[1]*math.cos(abc[2]),ABC[1]*math.sin(abc[2]),                                                                           0.0],
-			   [ABC[2]*math.cos(abc[1]),ABC[2]*math.cos(abc[0]),math.sqrt(ABC[2]**2-(ABC[2]*math.cos(abc[1]))**2-(ABC[2]*math.cos(abc[0]))**2)]]) 
+			   [ABC[2]*math.cos(abc[1]),ABC[2]*math.cos(abc[0]),math.sqrt(ABC[2]**2-(ABC[2]*math.cos(abc[1]))**2-(ABC[2]*math.cos(abc[0]))**2)]])
 	xyz=co[-1]
 	file.close()
 	user_input = raw_input("Give me a file with the atoms: ")
@@ -336,13 +336,13 @@ if inputformat=='dcd':
 	for i in range(0,natoms):
 		line = file.readlines()[i+2]
 		data = line.split()
-		atom.append(data[0])	
+		atom.append(data[0])
 		#an.append(atomic_symbol.index(atom[i]))
                 #atom_count[an[i]]+=1
 		an.append(1)
                 atom_count[an[i]]+=1
 		#xyz.append([float(data[1]), float(data[2]), float(data[3])])
-		charge.append(0.000)       """                                        
+		charge.append(0.000)       """
 
 if inputformat=='pdb':
 	while True:
@@ -359,18 +359,18 @@ if inputformat=='pdb':
         while True:
          line = file.readline()
          data = line.split()
-	 if len(data)==0:           #if the file is finished stop  
-		break 			
- 	 elif data[0]=='END' or data[0]=='ENDMDL':        #if the file says "END" 
+	 if len(data)==0:           #if the file is finished stop
 		break
-         elif data[0]!="ATOM" and data[0]!="HETATM":       #avoid other stuff 
+ 	 elif data[0]=='END' or data[0]=='ENDMDL':        #if the file says "END"
+		break
+         elif data[0]!="ATOM" and data[0]!="HETATM":       #avoid other stuff
                 donothing=True
-	 else:		
+	 else:
                 atom.append(data[2])
                 an.append(atomic_symbol.index(atom[i]))
                 atom_count[an[i]]+=1
 		xyz.append([float(line[30:38]), float(line[38:46]), float(line[46:54])])
-		i=i+1	
+		i=i+1
 	 natoms=i
 
 if inputformat=='POSCAR':
@@ -404,26 +404,28 @@ if inputformat=='POSCAR':
 		coord = file.readline().split()
 		xyz.append([float(coord[0]), float(coord[1]), float(coord[2])])
 
-if inputformat=='cssr':
-	line = file.readline()
- 	celltemp=line.split( )
-	ABC=[float(celltemp[0]),float(celltemp[1]),float(celltemp[2])]
-	line = file.readline()
- 	celltemp=line.split( )
-	abc=[math.radians(float(celltemp[0])),math.radians(float(celltemp[1])),math.radians(float( celltemp[2]))]
-	line = file.readline()
-        natoms=int(line.split( )[0])
-        line = file.readline() 
-        atom=[]
-        an=[]
-        fract=[]
-	for i in range(natoms):
-		line = file.readline()
-		data = line.split( )
-		atom.append(data[1])	
-		an.append(atomic_symbol.index(atom[i]))
-                atom_count[an[i]]+=1
-		fract.append([float(data[2]), float(data[3]), float(data[4])])
+if inputformat=='cssr': #file format description: http://www.chem.cmu.edu/courses/09-560/docs/msi/modenv/D_Files.html#944777
+    celltemp = file.readline().split()
+    ABC=[float(celltemp[0]),float(celltemp[1]),float(celltemp[2])]
+    celltemp = file.readline().split()
+    abc=[math.radians(float(celltemp[0])),math.radians(float(celltemp[1])),math.radians(float( celltemp[2]))]
+    data = file.readline().split()
+    natoms=int(data[0])
+    junk = file.readline()
+    atom=[]
+    an=[]
+    fract=[]
+    charge=[]
+    for i in range(natoms):
+        data = file.readline().split() #Atom serial number, atom name, x, y, z coordinates, bonding connectivities (max 8), charge
+        atom.append(data[1])
+        an.append(atomic_symbol.index(atom[i]))
+        atom_count[an[i]]+=1
+        fract.append([float(data[2]), float(data[3]), float(data[4])])
+        if len(data)==14:
+            charge.append(float(data[13]))
+        else:
+            charge.append(0.0)
 
 if inputformat=='xyz':
      if not args.tailormade3:
@@ -431,11 +433,11 @@ if inputformat=='xyz':
 	line = file.readline()
 	natoms=int(line.split()[0])
 
-	#read cell in my way of writing it as a comment of xyz 
+	#read cell in my way of writing it as a comment of xyz
 	line = file.readline()
-	
+
 	if len(line)==0 or (line.split()[0]!='CELL:' and line.split()[0]!='cell:' and line.split()[0]!='jmolscript:'): #set a 50x50x50 cell if CELL is not specified
-		if not args.silent: 
+		if not args.silent:
 			print(len(line))
 			print("WARNING: no CELL properly specified... using 50 50 50")
 			ABC=[50.,50.,50.]
@@ -465,7 +467,7 @@ if inputformat=='xyz':
 	for i in range(0,natoms):
 		line = file.readline()
 		data = line.split( )
-		atom.append(data[0])	
+		atom.append(data[0])
 		an.append(atomic_symbol.index(atom[i]))
                 atom_count[an[i]]+=1
 		xyz.append([float(data[1]), float(data[2]), float(data[3])])
@@ -476,7 +478,7 @@ if inputformat=='xyz':
      if args.tailormade3:
 	junk = file.readline()
 	celltemp = file.readline().split()
-	ABC=[float(celltemp[1]),float(celltemp[2]),float(celltemp[3])]        
+	ABC=[float(celltemp[1]),float(celltemp[2]),float(celltemp[3])]
 	abc=[math.radians(float(celltemp[4])),math.radians(float(celltemp[5])),math.radians(float( celltemp[6]))]
 	natoms=int(file.readline().split()[0])
 	atom=[]
@@ -486,26 +488,26 @@ if inputformat=='xyz':
 	for i in range(0,natoms):
 		line = file.readline()
 		data = line.split( )
-		atom.append(data[0])	
+		atom.append(data[0])
 		an.append(atomic_symbol.index(atom[i]))
                 atom_count[an[i]]+=1
 		fract.append([float(data[1]), float(data[2]), float(data[3])])
-                if len(data)>4: 
+                if len(data)>4:
                    charge.append(float(data[5]))
 		else:
-                   charge.append(float(0)) 
+                   charge.append(float(0))
 
 if (inputformat=='pwo') or (inputformat=='pwi'):
         #search for the last time the cell/coord are printed and jump to that line (no need to be converged). ONLY if they are not found, it reads the initial input
-  #cell        
+  #cell
         with file as myFile:
          for num, line in enumerate(myFile, 1):
            if 'CELL_PARAMETERS' in line:
             cell_line=num
         file.close()
- 
+
         file = open(args.inputfile,'r')
-        if 'cell_line' in locals():  #read cell in vc-relax calculation    
+        if 'cell_line' in locals():  #read cell in vc-relax calculation
           for i in range(0,cell_line):
 	   skip = file.readline() #title line
 
@@ -534,7 +536,7 @@ if (inputformat=='pwo') or (inputformat=='pwi'):
                break
 
         file.close()
-          
+
   #atomic
 
 
@@ -550,7 +552,7 @@ if (inputformat=='pwo') or (inputformat=='pwi'):
 
 
 
-        file = open(args.inputfile,'r') 
+        file = open(args.inputfile,'r')
         if 'atomic_line' in locals(): #read atomic in vc-relax and relax calculation
 	  atom=[]
 	  an=[]
@@ -559,22 +561,22 @@ if (inputformat=='pwo') or (inputformat=='pwi'):
 	  else:                xyz=[]
 
           for i in range(0,atomic_line):
-	   skip = file.readline() 
+	   skip = file.readline()
           i=0
           while True:
            data = file.readline().split()
-	   if len(data)<4:           #if the file is finished stop  
-	  	break 
-	   else:  
-                atom.append(re.split('(\d+)',data[0])[0]) #takes only the atomtype from a label like "Cu34"	       	
-		an.append(atomic_symbol.index(atom[i]))              
+	   if len(data)<4:           #if the file is finished stop
+	  	break
+	   else:
+                atom.append(re.split('(\d+)',data[0])[0]) #takes only the atomtype from a label like "Cu34"
+		an.append(atomic_symbol.index(atom[i]))
                 atom_count[an[i]]+=1
-                if readfractional: fract.append([float(data[1]), float(data[2]), float(data[3])]) 
-                else:                xyz.append([float(data[1]), float(data[2]), float(data[3])])  
+                if readfractional: fract.append([float(data[1]), float(data[2]), float(data[3])])
+                else:                xyz.append([float(data[1]), float(data[2]), float(data[3])])
                 i=i+1
           natoms=i
- 
-        else: #read atomic in scf calculation 
+
+        else: #read atomic in scf calculation
 	  atom=[]
 	  an=[]
 	  xyz=[]
@@ -586,13 +588,13 @@ if (inputformat=='pwo') or (inputformat=='pwi'):
               i=0
               while True:
                 data = file.readline().split()
-	        if len(data)<10:           #if the file is finished stop  
-	          break 
+	        if len(data)<10:           #if the file is finished stop
+	          break
 	        else:
-		  atom.append(data[1])	
+		  atom.append(data[1])
 		  an.append(atomic_symbol.index(atom[i]))
                   atom_count[an[i]]+=1
-		  xyz.append([float(data[6])*celldm1, float(data[7])*celldm1, float(data[8])*celldm1]) 
+		  xyz.append([float(data[6])*celldm1, float(data[7])*celldm1, float(data[8])*celldm1])
                   i=i+1
               natoms=i
               break
@@ -601,7 +603,7 @@ if inputformat=='cif':
    if not (args.tailormade1 or args.tailormade6):
           if not args.silent: print("**** BE CAREFUL: cif reading is tested only for the format")
           if not args.silent: print("****             of this output (P1,label+symbol+fract)")
-          if not args.silent: print("****             (also CoRE MOF cif are readable!)")  
+          if not args.silent: print("****             (also CoRE MOF cif are readable!)")
           if not args.silent: print("****             (ok for VESTA, AVOGADRO, ZEO++)")
           if not args.silent: print("**** Use obabel to have: label, type, x, y, z, occupancy")
           if not args.silent: print()
@@ -610,18 +612,18 @@ if inputformat=='cif':
           VESTA_CIF=False
           AVOGADRO_CIF=False
           ZEOPP_CIF=False
-          while True: 
+          while True:
             line = file.readline()
             data = line.split()
             if len(data)>0 and (data[0]=="data_VESTA_phase_1"):                                                  VESTA_CIF=True
             if len(data)>0 and (line=="# CIF file generated by openbabel 2.3.2, see http://openbabel.sf.net\n"): AVOGADRO_CIF=True;
             if len(data)>0 and (line=="# CIF file created by Zeo++\n"):                                          ZEOPP_CIF=True;
             if len(data)>0 and (data[0]=="_cell_length_a"): ABC[0]=float(data[1])
-            if len(data)>0 and (data[0]=="_cell_length_b"): ABC[1]=float(data[1]) 
+            if len(data)>0 and (data[0]=="_cell_length_b"): ABC[1]=float(data[1])
             if len(data)>0 and (data[0]=="_cell_length_c"): ABC[2]=float(data[1])
             if len(data)>0 and (data[0]=="_cell_angle_alpha"): abc[0]=math.radians(float(data[1]))
             if len(data)>0 and (data[0]=="_cell_angle_beta"):  abc[1]=math.radians(float(data[1]))
-            if len(data)>0 and (data[0]=="_cell_angle_gamma"): abc[2]=math.radians(float(data[1]))    
+            if len(data)>0 and (data[0]=="_cell_angle_gamma"): abc[2]=math.radians(float(data[1]))
             if len(data)>0 and (data[0]=="_atom_site_fract_x" or data[0]=="_atom_site_Cartn_x"):
                atom=[]
                an=[]
@@ -634,22 +636,22 @@ if inputformat=='cif':
 
                  if len(data)==0:     break #end of file
                  if data[0]=="loop_": break #flag loop_ (CoRE mof)
-    
+
                  if (data[0][0]!="_"):
                   if      (VESTA_CIF):  atom.append(re.split('(\d+)',data[7])[0])
                   elif (AVOGADRO_CIF):  atom.append(re.split('(\d+)',data[0])[0])
-                  elif    (ZEOPP_CIF):  atom.append(data[1]) 
-		  else:                 atom.append(re.split('(\d+)',data[0])[0])	
+                  elif    (ZEOPP_CIF):  atom.append(data[1])
+		  else:                 atom.append(re.split('(\d+)',data[0])[0])
 		  an.append(atomic_symbol.index(atom[i]))
                   atom_count[an[i]]+=1
-		  if (AVOGADRO_CIF):   xyz.append([float(data[2]), float(data[3]), float(data[4])]) 
-                  else:              fract.append([float(data[2]), float(data[3]), float(data[4])])   
+		  if (AVOGADRO_CIF):   xyz.append([float(data[2]), float(data[3]), float(data[4])])
+                  else:              fract.append([float(data[2]), float(data[3]), float(data[4])])
 		  if len(data)>5 and is_number(data[5]): charge.append(float(data[5]))             #BE CAREFUL: it could read other numbers!!!
                   else: charge.append(0.0)
                   i+=1
                natoms=i
-               break  
-      
+               break
+
    else:  #Tailormade1: DDEC CoRE MOF (only site_label and no site_type_symbol)
          if args.tailormade1:
           if not args.silent: print("**** READING .cif using tailor-made1 settings")
@@ -660,15 +662,15 @@ if inputformat=='cif':
           ABC=[0]*3
           abc=[0]*3
 
-          while True: 
+          while True:
             line = file.readline()
             data = line.split()
             if len(data)>0 and (data[0]=="_cell_length_a"): ABC[0]=float(data[1])
-            if len(data)>0 and (data[0]=="_cell_length_b"): ABC[1]=float(data[1]) 
+            if len(data)>0 and (data[0]=="_cell_length_b"): ABC[1]=float(data[1])
             if len(data)>0 and (data[0]=="_cell_length_c"): ABC[2]=float(data[1])
             if len(data)>0 and (data[0]=="_cell_angle_alpha"): abc[0]=math.radians(float(data[1]))
             if len(data)>0 and (data[0]=="_cell_angle_beta"):  abc[1]=math.radians(float(data[1]))
-            if len(data)>0 and (data[0]=="_cell_angle_gamma"): abc[2]=math.radians(float(data[1]))    
+            if len(data)>0 and (data[0]=="_cell_angle_gamma"): abc[2]=math.radians(float(data[1]))
             if len(data)>0 and (data[0]=="_atom_site_fract_x"):
                atom=[]
                an=[]
@@ -680,18 +682,18 @@ if inputformat=='cif':
                  if len(data)==0:     break #end of file
 
                  if (data[0][0]!="_"):
-		  atom.append(re.split('(\d+)',data[0])[0]) #takes only the atomtype from a label like "Cu34"	
+		  atom.append(re.split('(\d+)',data[0])[0]) #takes only the atomtype from a label like "Cu34"
 		  an.append(atomic_symbol.index(atom[i]))
                   atom_count[an[i]]+=1
-                  if args.tailormade1: fract.append([float(data[1]), float(data[2]), float(data[3])])  
-                  if args.tailormade6: fract.append([float(data[3]), float(data[4]), float(data[5])])                
-		  if args.tailormade1: charge.append(float(data[4])) 
-		  if args.tailormade6: charge.append(float(data[6])) 
+                  if args.tailormade1: fract.append([float(data[1]), float(data[2]), float(data[3])])
+                  if args.tailormade6: fract.append([float(data[3]), float(data[4]), float(data[5])])
+		  if args.tailormade1: charge.append(float(data[4]))
+		  if args.tailormade6: charge.append(float(data[6]))
                   i+=1
                natoms=i
-               break    
-       
- 
+               break
+
+
 
 if inputformat=='xsf' or inputformat=='axsf':
 	while True:
@@ -717,10 +719,10 @@ if inputformat=='xsf' or inputformat=='axsf':
 	for i in range(0,natoms):
 		data = file.readline().split()
                 if is_number(data[0]):              #In .xsf is it specified the atom type number while in my .axsf the atom's name.
-		  an.append(int(data[0]))	
+		  an.append(int(data[0]))
 		  atom.append(atomic_symbol[an[i]])
                 else:
- 	          atom.append(data[0])	
+ 	          atom.append(data[0])
 	          an.append(atomic_symbol.index(atom[i]))
                 atom_count[an[i]]+=1
 		xyz.append([float(data[1]), float(data[2]), float(data[3])])
@@ -747,27 +749,27 @@ if inputformat=='subsys' or inputformat=='inp' or inputformat=='restart': #CP2K 
         scaled_coord=False                                                                                     #default (*SCALED*)
 	i=0
 	while True:
-	  data = file.readline().split()                                                                                
+	  data = file.readline().split()
           if   len(data)==0: donothing=True
           elif data[0]=="SCALED" and (data[1]=='T' or data[1]=='TRUE' or data[1]=='.TRUE.'): scaled_coord=True #Can be before or after the coordinates (*SCALED*)
           elif data[0]=="SCALED" and (data[1]=='F' or data[1]=='FALSE' or data[1]=='.FALSE.'): donothing=True  #default (*SCALED*)
-          elif data[0]=="&END": 
-            natoms=i 
+          elif data[0]=="&END":
+            natoms=i
             break
-          else: 
-            atom.append(re.split('(\d+)',data[0])[0])                                                          #takes only the atomtype from a label like "Cu34"	
+          else:
+            atom.append(re.split('(\d+)',data[0])[0])                                                          #takes only the atomtype from a label like "Cu34"
 	    an.append(atomic_symbol.index(atom[i]))
             atom_count[an[i]]+=1
             xyz.append([float(data[1]), float(data[2]), float(data[3])])                                       #They will be scaled later if necessary (*SCALED*)
             i+=1
         if scaled_coord:                                                                                  #Using scaled coordinates (*SCALED*)
             fract=xyz
-            del xyz               
-        
+            del xyz
+
 if inputformat=='cube':
         junk = file.readline() #header1
         junk = file.readline() #header2
-         
+
         line =file.readline()
 
 	natoms=int(line.split()[0])
@@ -787,15 +789,15 @@ if inputformat=='cube':
 	xyz=[]
 	for i in range(0,natoms):
 		data = file.readline().split()
-		an.append(int(data[0]))	
+		an.append(int(data[0]))
 		atom.append(atomic_symbol[an[i]])
                 atom_count[an[i]]+=1
 		xyz.append([float(data[2])/ANGS2BOHR, float(data[3])/ANGS2BOHR, float(data[4])/ANGS2BOHR])
-        
+
 file.close()
 
 if not args.resp==None :
-   if 'charge' in locals(): 
+   if 'charge' in locals():
      if not args.silent: print(" ... THERE WERE ALREADY CHARGES BUT I'M OVERWRITING THEM!"  )
    charge = [0]*natoms
    with open(args.resp) as openfileobject:
@@ -808,7 +810,7 @@ if not args.resp==None :
      if i==natoms: break
 
 if not args.readcharge==None :
-   if 'charge' in locals(): 
+   if 'charge' in locals():
      if not args.silent: print(" ... THERE WERE ALREADY CHARGES BUT I'M OVERWRITING THEM!"  )
    charge = [0]*natoms
    with open(args.readcharge) as openfileobject:
@@ -819,7 +821,7 @@ if not args.readcharge==None :
      i=i+1
 
 if not args.readrepeatcharge==None :
-   if 'charge' in locals(): 
+   if 'charge' in locals():
      if not args.silent: print(" ... THERE WERE ALREADY CHARGES BUT I'M OVERWRITING THEM!"  )
    charge = [0]*natoms
    with open(args.readrepeatcharge) as openfileobject:
@@ -834,7 +836,7 @@ if not args.readrepeatcharge==None :
    if not args.silent: print()
    if not args.silent: print(" ... %d atomic charges taken from %s" %(i,args.resp))
    if not i==natoms: print("WARNING: the number of charges and atoms are different! Chech the order of your atoms!")
- 
+
 
 ############################################################################# DO SOMETHING
 #check if xyz are really cartesian (angstrom) and if fract are really fractional coordinates.
@@ -858,7 +860,7 @@ elif 'ABC' in locals():  #make uc matrix if it was read in ABC+abc. Copied from 
   tempd=(math.cos(abc[0])-math.cos(abc[2])*math.cos(abc[1]))/math.sin(abc[2])
   cell=numpy.matrix([[                 ABC[0],                        0.0,                                          0.0],
 		     [ABC[1]*math.cos(abc[2]),    ABC[1]*math.sin(abc[2]),                                          0.0],
-		     [ABC[2]*math.cos(abc[1]),    ABC[2]*tempd,    ABC[2]*math.sqrt(1-(math.cos(abc[1]))**2-(tempd)**2)]]) 
+		     [ABC[2]*math.cos(abc[1]),    ABC[2]*tempd,    ABC[2]*math.sqrt(1-(math.cos(abc[1]))**2-(tempd)**2)]])
 
 
 from numpy.linalg import inv
@@ -867,7 +869,7 @@ invcell=inv(cell)
 if 'fract' in locals(): #convert in cartesian
   if not args.silent: print()
   if not args.silent: print(" ... converting fractional coordinates in cartesian")
-  xyz=[] 
+  xyz=[]
   for i in range(0,natoms):
 	x=fract[i][0]*cell.item((0,0))+fract[i][1]*cell.item((1,0))+fract[i][2]*cell.item((2,0))
 	y=fract[i][0]*cell.item((0,1))+fract[i][1]*cell.item((1,1))+fract[i][2]*cell.item((2,1))
@@ -895,7 +897,7 @@ if args.chargenull:
 if args.avgcharges:
   if not args.silent: print("*** avgcharges: Taking charges from atomic_ddecavgcharges ***")
   for i in range(0,natoms):
-   charge[i] = atomic_ddecavgcharges[an[i]]  
+   charge[i] = atomic_ddecavgcharges[an[i]]
 
 if args.normalizecharges:
   if not args.silent: print("")
@@ -918,9 +920,9 @@ if args.normalizecharges:
   if not args.silent: print("total absolute ch.: %f" %tot_abs)
 
   for i in range(0,natoms):
-    if charge[i]>0: 
+    if charge[i]>0:
       charge[i]=charge[i]-tot_charge*pos_fract*charge[i]/pos_charge
-    else: 
+    else:
       charge[i]=charge[i]-tot_charge*(1-pos_fract)*charge[i]/neg_charge
 
 
@@ -931,7 +933,7 @@ if args.transl!=None:
   if not args.silent: print("*** TRANSLATING coordinates by %f %f %f Angs" %(args.transl[0],args.transl[1],args.transl[2]))
 
   xyz_transl=[]
-  for i in range(0,natoms): 
+  for i in range(0,natoms):
 	x=xyz[i][0]+args.transl[0]
 	y=xyz[i][1]+args.transl[1]
 	z=xyz[i][2]+args.transl[2]
@@ -944,14 +946,14 @@ if args.transl!=None:
 	y=xyz[i][1]*invcell.item((0,1))+xyz[i][1]*invcell.item((1,1))+xyz[i][2]*invcell.item((2,1))
 	z=xyz[i][2]*invcell.item((0,2))+xyz[i][1]*invcell.item((1,2))+xyz[i][2]*invcell.item((2,2))
 	fract.append([x,y,z])
-	
-if args.randomize!=None: 
+
+if args.randomize!=None:
 
   if not args.silent: print()
   if not args.silent: print("*** RANDOMIZING XYZ coordinates by a normal distrib with delta=%f Angs" %args.randomize)
 
   xyz_random=[]
-  for i in range(0,natoms): 
+  for i in range(0,natoms):
 	x=xyz[i][0]+numpy.random.normal(0,args.randomize,1)
 	y=xyz[i][1]+numpy.random.normal(0,args.randomize,1)
 	z=xyz[i][2]+numpy.random.normal(0,args.randomize,1)
@@ -968,18 +970,18 @@ if args.randomize!=None:
 
 ############################################################################# CUTOFF TEST
 if not args.cutoff==None: #copied from raspa/framework.c/CellProperties(line:6184)
-      
+
       if args.multipl_x>1 or args.multipl_y>1 or args.multipl_z>1: sys.exit("Why did you ask for both -cutoff and -x -y -z ????")
- 
-      ax=cell.item((0,0)); 
-      ay=cell.item((0,1)); 
-      az=cell.item((0,2)); 
-      bx=cell.item((1,0)); 
-      by=cell.item((1,1)); 
-      bz=cell.item((1,2)); 
-      cx=cell.item((2,0)); 
-      cy=cell.item((2,1)); 
-      cz=cell.item((2,2)); 
+
+      ax=cell.item((0,0));
+      ay=cell.item((0,1));
+      az=cell.item((0,2));
+      bx=cell.item((1,0));
+      by=cell.item((1,1));
+      bz=cell.item((1,2));
+      cx=cell.item((2,0));
+      cy=cell.item((2,1));
+      cz=cell.item((2,2));
 
       # calculate vector products of cell vectors
       axb1=ay*bz-az*by;
@@ -1003,8 +1005,8 @@ if not args.cutoff==None: #copied from raspa/framework.c/CellProperties(line:618
       perp_z=VOLUME/math.sqrt(axb1**2+axb2**2+axb3**2);
 
       print()
-      print("CUTOFF_TEST | Cutoff: %.1f" %(args.cutoff)) 
-      print("CUTOFF_TEST | Cell perpendicular widths: %.3f %.3f %.3f" %(perp_x, perp_y, perp_z)) 
+      print("CUTOFF_TEST | Cutoff: %.1f" %(args.cutoff))
+      print("CUTOFF_TEST | Cell perpendicular widths: %.3f %.3f %.3f" %(perp_x, perp_y, perp_z))
 
       # compute how big the cell must be
       args.multipl_x=int(math.ceil(2*args.cutoff/perp_x))
@@ -1015,7 +1017,7 @@ if not args.cutoff==None: #copied from raspa/framework.c/CellProperties(line:618
          print("CUTOFF_TEST | Expansion_done: %d %d %d for %s" %(args.multipl_x, args.multipl_y, args.multipl_z,args.inputfile))
       else:
          print("CUTOFF_TEST | Expansion_unnecesary: 1 1 1 for %s" %(args.inputfile))
-     
+
 
 ############################################################################# CELL EXTENSION
 if args.multipl_x>1 or args.multipl_y>1 or args.multipl_z>1:
@@ -1023,11 +1025,11 @@ if args.multipl_x>1 or args.multipl_y>1 or args.multipl_z>1:
  if args.multipl_x>1:
    for i in range(1,args.multipl_x):
      for j in range(0,natoms):
-  		atom.append(atom[j])	
+  		atom.append(atom[j])
 		an.append(atomic_symbol.index(atom[j]))
                 atom_count[an[j]]+=1
                 charge.append(charge[j])
-		xyz.append([xyz[j][0]+i*cell[0,0], 
+		xyz.append([xyz[j][0]+i*cell[0,0],
                             xyz[j][1]+i*cell[0,1],
                             xyz[j][2]+i*cell[0,2]])
    ABC[0]   *=args.multipl_x
@@ -1039,27 +1041,27 @@ if args.multipl_x>1 or args.multipl_y>1 or args.multipl_z>1:
  if args.multipl_y>1:
    for i in range(1,args.multipl_y):
      for j in range(0,natoms):
-  		atom.append(atom[j])	
+  		atom.append(atom[j])
 		an.append(atomic_symbol.index(atom[j]))
                 atom_count[an[j]]+=1
                 charge.append(charge[j])
-		xyz.append([xyz[j][0]+i*cell[1,0], 
+		xyz.append([xyz[j][0]+i*cell[1,0],
                             xyz[j][1]+i*cell[1,1],
                             xyz[j][2]+i*cell[1,2]])
    ABC[1]   *=args.multipl_y
    cell[1,0]*=args.multipl_y #nonzero
-   cell[1,1]*=args.multipl_y #nonzero 
+   cell[1,1]*=args.multipl_y #nonzero
    cell[1,2]*=args.multipl_y #zero
    natoms*=args.multipl_y
 
  if args.multipl_z>1:
    for i in range(1,args.multipl_z):
      for j in range(0,natoms):
-  		atom.append(atom[j])	
+  		atom.append(atom[j])
 		an.append(atomic_symbol.index(atom[j]))
                 atom_count[an[j]]+=1
                 charge.append(charge[j])
-		xyz.append([xyz[j][0]+i*cell[2,0], 
+		xyz.append([xyz[j][0]+i*cell[2,0],
                             xyz[j][1]+i*cell[2,1],
                             xyz[j][2]+i*cell[2,2]])
    ABC[2]   *=args.multipl_z
@@ -1100,23 +1102,23 @@ for i in range(0,len(atom_count)):
 	if atom_count[i] != 0:
            weight+=atom_count[i]*atomic_mass[i]     #g/mol_uc
 rho=weight/volume/AVOGCONST*1E+10**3/1000 #Kg/m3
-if not args.silent: print("Density: %.5f (kg/m3), %.5f (g/cm3), %.5f (g/molUC)" %(rho,rho/1000,weight), )	
+if not args.silent: print("Density: %.5f (kg/m3), %.5f (g/cm3), %.5f (g/molUC)" %(rho,rho/1000,weight), )
 
 #compute conversion to mol/kg
 molkg=1000/weight #mol/g
-if not args.silent: print("Conversion: 1 molec./u.c. = %.5f (mol/kg)" %(molkg))	
+if not args.silent: print("Conversion: 1 molec./u.c. = %.5f (mol/kg)" %(molkg))
 
 #check the NET_CHARGE
 if not args.silent: print()
 #if not args.silent: print("Net charge: %.10f" %sum(charge))
-if sum(charge)==0 and max(charge)<0.001: 
+if sum(charge)==0 and max(charge)<0.001:
       if not args.silent: print("NET_CHARGE: all the charges are zero.")
-elif sum(charge)>-0.001 and sum(charge)<+0.001:  
+elif sum(charge)>-0.001 and sum(charge)<+0.001:
       if not args.silent: print("NET_CHARGE: negligible (|sum|<0.001).")
       #charge[0]=charge[0]-sum(charge)
       #print("*** Negligible error due to the rounding: subtracted from the first atom!")
       #print("*** Now the net charge is %.10f" %sum(charge))
-else: 
+else:
       if not args.silent: print("NET_CHARGE: nonzero (%.3f). ***WARNING***" %sum(charge))
 
 #check negative charge on metals [skip -silent]
@@ -1132,12 +1134,12 @@ if args.chkmetalcharge:
 	           if math.isnan(charge[i]):
                         print("CHK_METAL_CHARGE: not_number >>> %s=%s" %(atom[i],charge[i]))
                         found_met_notnumber=True
-		   elif charge[i]<0:	
+		   elif charge[i]<0:
                    	print("CHK_METAL_CHARGE: found_negative >>> %s=%.3f" %(atom[i],charge[i]))
                    	found_met_neg=True
 		   elif	charge[i]>0:
 			found_met_nonzero=True
-        	if found_met_notnumber or found_met_neg: break      
+        	if found_met_notnumber or found_met_neg: break
 	if not found_met: print("CHK_METAL_CHARGE: no_metals")
 	if found_met and not found_met_neg and not found_met_notnumber and not found_met_nonzero: print("CHK_METAL_CHARGE: all_zero")
 	if found_met and not found_met_neg and not found_met_notnumber and found_met_nonzero: print("CHK_METAL_CHARGE: ok_positive")
@@ -1160,27 +1162,27 @@ if args.chkcharge:
 			found_nonzero=True
                         print("CHK_CHARGE: charged_framework")
                         break
-	if not found_notnumber and not found_weird and not found_nonzero: print("CHK_CHARGE: all_zero")	
+	if not found_notnumber and not found_weird and not found_nonzero: print("CHK_CHARGE: all_zero")
 
 #check non-def2 atoms [skip -silent]
 if args.chkdef2:
 	found_nondef2=False
-	for i in range(0,natoms):   
+	for i in range(0,natoms):
      		if 58<=an[i]<=71 or an[i]>=87:
 		   	found_nondef2=True
                         print("CHK_def2: found %s" %atom[i])
-			break 
+			break
 	if not found_nondef2: print("CHK_def2: ok")
 
 #check non-mepo atoms [skip -silent]
 if args.chkmepo:
         mepo_list=["H","V","Cu","Zn","C","N","O","F","Cl","Br","I"]
 	found_nonmepo=False
-	for i in range(0,natoms):   
+	for i in range(0,natoms):
      		if not (atom[i] in mepo_list):
 		   	found_nonmepo=True
                         print("CHK_mepo: found %s" %atom[i])
-			break 
+			break
 	if not found_nonmepo: print("CHK_mepo: ok")
 
 #number of electrons
@@ -1191,12 +1193,12 @@ for i in range(0,len(atom_count)):
 if not args.silent: print("Tot. electrons: %d" %nelectrons)
 
 #print atoms on one line for info
-if args.printatoms: 
+if args.printatoms:
    for i in range(0,len(atom_count)):
 	if atom_count[i] != 0:
            print(atomic_symbol[i],end='_')
    print("")
-if args.printatoms_noHCO: 
+if args.printatoms_noHCO:
    for i in range(0,len(atom_count)):
 	if atom_count[i] != 0 and atomic_symbol[i]!="H" \
                               and atomic_symbol[i]!="C" \
@@ -1206,7 +1208,7 @@ if args.printatoms_noHCO:
 ################################################################################################# OUTPUT OPERATIONS
 if  args.output==None:                              #CHECK IF AN OUTPUT IS DEFINED
    outputfile='NOTHING'
-else:                             
+else:
   if len(args.output.split("."))>1:                  #output defined as name.format
    outputfilename = os.path.splitext(args.output)[0]
    outputformat   = os.path.splitext(args.output)[1][1:]
@@ -1219,11 +1221,11 @@ else:
 if not args.silent: print()
 if not args.silent: print("***************************************************")
 if not args.silent: print("  Converting %s to %s" % (inputfilename+"."+inputformat, outputfile))
-if not args.silent: print("***************************************************")	
+if not args.silent: print("***************************************************")
 if not args.silent: print()
 
 
-#show and showonly 
+#show and showonly
 if args.show:        				print("cell ---------------------------------------------------------------")
 if args.show or args.showonly=="cell":		print("     %10.5f %10.5f %10.5f"    %(cell.item((0,0)),cell.item((0,1)),cell.item((0,2))))
 if args.show or args.showonly=="cell":		print("     %10.5f %10.5f %10.5f"    %(cell.item((1,0)),cell.item((1,1)),cell.item((1,2))))
@@ -1231,21 +1233,21 @@ if args.show or args.showonly=="cell":		print("     %10.5f %10.5f %10.5f"    %(c
 if args.show:        				print("CELL (ABC, abc) ----------------------------------------------------")
 if args.show or args.showonly=="CELL":		print(" %10.5f  %10.5f  %10.5f  %10.5f  %10.5f  %10.5f  " %(ABC[0],ABC[1],ABC[2],math.degrees(abc[0]),math.degrees(abc[1]),math.degrees(abc[2])))
 if args.show:         				print("xyz ----------------------------------------------------------------")
-if args.show or args.showonly=="xyz":		
+if args.show or args.showonly=="xyz":
 						for i in range(0,natoms):
 							print("%3s %10.5f %10.5f %10.5f "  %(atom[i], xyz[i][0],xyz[i][1],xyz[i][2]))
 if args.show:         				print("fract --------------------------------------------------------------")
-if args.show or args.showonly=="fract":		
+if args.show or args.showonly=="fract":
 						for i in range(0,natoms):
 							print("%3s %10.5f %10.5f %10.5f "  %(atom[i], fract[i][0],fract[i][1],fract[i][2]))
 if args.show:         				print("charges --------------------------------------------------------------")
-if args.show or args.showonly=="charge":		
+if args.show or args.showonly=="charge":
 						for i in range(0,natoms):
 							print("%3s %10.5f "  %(atom[i], charge[i]))
 if args.show or args.showonly!=None:        	sys.exit()
 
 #computing void matematically: not working because of three spheres overlapping
-if args.void:              
+if args.void:
         volsphere=0;
         volumeocc=0;
         d=[0]*3
@@ -1257,11 +1259,11 @@ if args.void:
           volumeocc+=(4./3.)*math.pi*(Ri**3)
           for j in range ((i+1),natoms):
             Rj=atomic_vdw_UFF[an[j]]
-              
+
             d[0]=xyz[i][0]-xyz[j][0]
             d[1]=xyz[i][1]-xyz[j][1]
             d[2]=xyz[i][2]-xyz[j][2]
-            
+
             s[0]=invcell.item((0,0))*d[0]+invcell.item((1,0))*d[1]+invcell.item((2,0))*d[2]
             s[1]=invcell.item((0,1))*d[0]+invcell.item((1,1))*d[1]+invcell.item((2,1))*d[2]
             s[2]=invcell.item((0,2))*d[0]+invcell.item((1,2))*d[1]+invcell.item((2,2))*d[2]
@@ -1279,18 +1281,18 @@ if args.void:
             if (Ri+Rj<mindist): V_ovlp=0
             else: V_ovlp=math.pi*(Ri+Rj-mindist)**2 * (mindist**2+2*mindist*Rj-3*Rj**2+2*mindist*Ri+6*Rj*Ri-3*Ri**2) / (12.*mindist)
             volumeocc-=V_ovlp #works only if there are not three spheres with a common overlapping
-            
+
 
 	#print("Volume without atom spheres:  %.3f (Angtrom^3/u.c.)" %(volume-volumeocc))
-        print("Void fraction (cons. ovlp):       %.6f [= %.3f non-void (A^3)]" %(1-volumeocc/volume,volumeocc))   
-        print("Void fraction (negl. ovlp):       %.6f [= %.3f non-void (A^3)]" %(1-volsphere/volume,volsphere))             
+        print("Void fraction (cons. ovlp):       %.6f [= %.3f non-void (A^3)]" %(1-volumeocc/volume,volumeocc))
+        print("Void fraction (negl. ovlp):       %.6f [= %.3f non-void (A^3)]" %(1-volsphere/volume,volsphere))
         print()
         #sys.exit("YOU JUST ASKED for VOID: no external files printed!")
         sys.exit()
 
 #This function checks if there are copper paddlewheels (= a copper atom with a close Cu and 4 close O)
-if args.cupw:              
-        ncupw_act=0 
+if args.cupw:
+        ncupw_act=0
         ncupw_sol=0
         ncupw_wrd=0
 	for i in range(0,natoms):
@@ -1300,11 +1302,11 @@ if args.cupw:
 
           if (an[i]==29):
 	     for j in range (0,natoms):
-		if (j!=i):          
+		if (j!=i):
                  	d=[0]*3
                  	s=[0]*3
                  	t=[0]*3
-              
+
             		#d[0]=xyz[i][0]-xyz[j][0]
             		#d[1]=xyz[i][1]-xyz[j][1]
             		#d[2]=xyz[i][2]-xyz[j][2]
@@ -1324,20 +1326,20 @@ if args.cupw:
             		d[1]=cell.item((0,1))*t[0]+cell.item((1,1))*t[1]+cell.item((2,1))*t[2]
             		d[2]=cell.item((0,2))*t[0]+cell.item((1,2))*t[1]+cell.item((2,2))*t[2]
 
-            		mindist=math.sqrt(d[0]**2+d[1]**2+d[2]**2)       
-                        
-                        if (an[j]==29) and (1.8<mindist<2.8):                closeCu+=1; #print("%d %d %f     %d %d" %(i,j,mindist,closeO,closeX)                       
-                        if (an[j]==8)  and (1.5<mindist<2.5):                 closeO+=1;  
+            		mindist=math.sqrt(d[0]**2+d[1]**2+d[2]**2)
+
+                        if (an[j]==29) and (1.8<mindist<2.8):                closeCu+=1; #print("%d %d %f     %d %d" %(i,j,mindist,closeO,closeX)
+                        if (an[j]==8)  and (1.5<mindist<2.5):                 closeO+=1;
                         if (an[j]!=29) and (an[j]!=8) and (1.8<mindist<2.5):  closeX+=1; #print("%d %d %s  %f------%f %f %f " %(i,j,an[j],mindist,s[0],s[1],s[2]); print(fract[i]; print(fract[j]
 
 	     if   (closeCu==1) and (closeO==4):                ncupw_act+=1
-             #elif (closeCu==1) and (closeO==4) and (closeX>0):  ncupw_sol+=1 
+             #elif (closeCu==1) and (closeO==4) and (closeX>0):  ncupw_sol+=1
              elif (closeCu==1) and (closeO==5):                ncupw_sol+=1
-             elif (closeCu<0):                                 ncupw_wrd+=1 
+             elif (closeCu<0):                                 ncupw_wrd+=1
 
-        print("Cu-paddlewheel activated found:    %d" %ncupw_act)   
-        print("Cu-paddlewheel solvated  found:    %d   (only Oxygen atoms considered)" %ncupw_sol) 
-        print("Cu-paddlewheel WEIRD     found:    %d" %ncupw_wrd)                        
+        print("Cu-paddlewheel activated found:    %d" %ncupw_act)
+        print("Cu-paddlewheel solvated  found:    %d   (only Oxygen atoms considered)" %ncupw_sol)
+        print("Cu-paddlewheel WEIRD     found:    %d" %ncupw_wrd)
         print()
 
         #print that I found it
@@ -1345,18 +1347,18 @@ if args.cupw:
           ofile=open("000_cupw_found.txt", 'a')
           if (ncupw_act>0) or (ncupw_act>0) or (ncupw_wrd<0):
             print(args.inputfile, file=ofile)
-            print("Cu-paddlewheel activated found:    %d" %ncupw_act, file=ofile)   
-            print("Cu-paddlewheel solvated  found:    %d   (only Oxygen atoms considered)" %ncupw_sol, file=ofile)   
-            print("Cu-paddlewheel WEIRD     found:    %d" %ncupw_wrd, file=ofile)     
+            print("Cu-paddlewheel activated found:    %d" %ncupw_act, file=ofile)
+            print("Cu-paddlewheel solvated  found:    %d   (only Oxygen atoms considered)" %ncupw_sol, file=ofile)
+            print("Cu-paddlewheel WEIRD     found:    %d" %ncupw_wrd, file=ofile)
             print(" ", file=ofile)
 
         sys.exit()
 
 #This function checks if two atoms overlap because of a bad PBC wrap
-if args.ovlp:     
-        jlist=[]    
+if args.ovlp:
+        jlist=[]
 	for i in range(0,natoms):
-	     for j in range (i+1,natoms):         
+	     for j in range (i+1,natoms):
                  	d=[0]*3
                  	s=[0]*3
                  	t=[0]*3
@@ -1373,16 +1375,16 @@ if args.ovlp:
             		d[1]=cell.item((0,1))*t[0]+cell.item((1,1))*t[1]+cell.item((2,1))*t[2]
             		d[2]=cell.item((0,2))*t[0]+cell.item((1,2))*t[1]+cell.item((2,2))*t[2]
 
-            		mindist=math.sqrt(d[0]**2+d[1]**2+d[2]**2)       
-                        
-                        if (mindist<0.2): 
+            		mindist=math.sqrt(d[0]**2+d[1]**2+d[2]**2)
+
+                        if (mindist<0.2):
                            print("Overlap found between:")
                            print("%3s %9.5f %9.5f %9.5f "  %(atom[i], xyz[i][0],xyz[i][1],xyz[i][2]))
-                           print("%3s %9.5f %9.5f %9.5f "  %(atom[j], xyz[j][0],xyz[j][1],xyz[j][2])) 
+                           print("%3s %9.5f %9.5f %9.5f "  %(atom[j], xyz[j][0],xyz[j][1],xyz[j][2]))
                            if atom[i]==atom[j]: #the two atoms are the same and they are overlapping
                             jlist.append(j)
                            else:                #something weird is happening, two different atoms are overlapping
-                            print("!!!!!! CHECK THE CRYSTAL, DIFFERENT ATOMS OVERLAPPING !!!!!!")    
+                            print("!!!!!! CHECK THE CRYSTAL, DIFFERENT ATOMS OVERLAPPING !!!!!!")
                             sys.exit("!!!!!! CHECK THE CRYSTAL, DIFFERENT ATOMS OVERLAPPING !!!!!!")
 
 
@@ -1401,17 +1403,17 @@ if args.ovlp:
            print("OVERLAPS FOUND: %d" %len(jlist))
            sys.exit()
 
-                          
-        
+
+
 
 ############################################################################## Write converted files
-if args.output!=None: 
+if args.output!=None:
 
  ofile=open(outputfile, 'w+')
 
 
  if outputformat=="cif":
-   if not args.tailormade2:                                   
+   if not args.tailormade2:
 	print("data_crystal",					file=ofile)
 	print(" ",						file=ofile)
 	print("_cell_length_a    %.5f" %ABC[0],			file=ofile)
@@ -1435,12 +1437,12 @@ if args.output!=None:
 	print("_atom_site_fract_y",				file=ofile)
 	print("_atom_site_fract_z",				file=ofile)
 	print("_atom_site_charge",				file=ofile)
-	for i in range(0,natoms):	
+	for i in range(0,natoms):
         	label=atom[i]    #removed: label=atom[i]+"_"+str(i+1) because the number makes Raspa extremely verbose
-		print(('{0:10} {1:5} {2:>9.5f} {3:>9.5f} {4:>9.5f} {5:>14.10f}'.format(label,  atom[i], fract[i][0], fract[i][1], fract[i][2], charge[i])),file=ofile) 
+		print(('{0:10} {1:5} {2:>9.5f} {3:>9.5f} {4:>9.5f} {5:>14.10f}'.format(label,  atom[i], fract[i][0], fract[i][1], fract[i][2], charge[i])),file=ofile)
                                                                                  #Better to keep a lot of decimals to avoid small net charged
 
-   if args.tailormade2: 
+   if args.tailormade2:
 
         print("****PRINTING .CIF TAILOR-MADE2 FOR EQeq***",	file=ofile)
 
@@ -1462,11 +1464,11 @@ if args.output!=None:
 	print("_atom_site_fract_x",				file=ofile)
 	print("_atom_site_fract_y",				file=ofile)
 	print("_atom_site_fract_z",				file=ofile)
-	for i in range(0,natoms):	
-        	label=atom[i]    #removed: label=atom[i]+"_"+str(i+1) 
-		print(('{0:10} {1:5} {2:>9.5f} {3:>9.5f} {4:>9.5f}'.format(label,  atom[i], fract[i][0], fract[i][1], fract[i][2])),file=ofile)       
+	for i in range(0,natoms):
+        	label=atom[i]    #removed: label=atom[i]+"_"+str(i+1)
+		print(('{0:10} {1:5} {2:>9.5f} {3:>9.5f} {4:>9.5f}'.format(label,  atom[i], fract[i][0], fract[i][1], fract[i][2])),file=ofile)
 	print("_loop",					        file=ofile)
- 
+
 
  if outputformat=="pdb":
 	print(('CRYST1{0:>9.3f}{1:>9.3f}{2:>9.3f}{3:>7.2f}{4:>7.2f}{5:>7.2f} P 1           1'.format(ABC[0],ABC[1],ABC[2],math.degrees(abc[0]),math.degrees(abc[1]),math.degrees(abc[2]))),file=ofile)
@@ -1480,25 +1482,25 @@ if args.output!=None:
 	print("%d   0"							     %(natoms),									file=ofile)
 	print("0 %s       : %s"                                                    %(inputfilename,inputfilename),					file=ofile)
 	for i in range(0,natoms):
-		print("%4d %3s %8.5f %8.5f %8.5f    0  0  0  0  0  0  0  0  0.000"    %(i+1, atom[i], fract[i][0],fract[i][1],fract[i][2]),		file=ofile)
- 
+		print("%4d %3s %8.5f %8.5f %8.5f    0  0  0  0  0  0  0  0  %7.5f"    %(i+1, atom[i], fract[i][0],fract[i][1],fract[i][2],charge[i]),file=ofile)
+
  if outputformat=="xyz":
-   if not (args.tailormade4 or args.tailormade5):   
+   if not (args.tailormade4 or args.tailormade5):
    	print("%d"   %(natoms),																file=ofile)
 	print("CELL:  %.5f  %.5f  %.5f  %.3f  %.3f  %.3f  " %(ABC[0],ABC[1],ABC[2],math.degrees(abc[0]),math.degrees(abc[1]),math.degrees(abc[2])),	file=ofile)
 	for i in range(0,natoms):
 		print("%3s %9.5f %9.5f %9.5f "  %(atom[i], xyz[i][0],xyz[i][1],xyz[i][2]),								file=ofile)
-   if args.tailormade4: 
-        print("****PRINTING .xyz TAILOR-MADE4 FOR Qeq program by B.Wells***",											file=ofile)      
+   if args.tailormade4:
+        print("****PRINTING .xyz TAILOR-MADE4 FOR Qeq program by B.Wells***",											file=ofile)
 	print("      FRAC       %.5f  %.5f  %.5f  %.3f  %.3f  %.3f  " %(ABC[0],ABC[1],ABC[2],math.degrees(abc[0]),math.degrees(abc[1]),math.degrees(abc[2])),	file=ofile)
    	print("%d"   %(natoms),																	file=ofile)
-	for i in range(0,natoms):	
+	for i in range(0,natoms):
 		print("%3s %9.5f %9.5f %9.5f "  %(atom[i], fract[i][0], fract[i][1], fract[i][2]),							 	file=ofile)
-   if args.tailormade5: 
-        print("****PRINTING .xyz TAILOR-MADE5 FOR Qeq program by B.Wells (with FC=0)***",									file=ofile)      
+   if args.tailormade5:
+        print("****PRINTING .xyz TAILOR-MADE5 FOR Qeq program by B.Wells (with FC=0)***",									file=ofile)
 	print("      FRAC       %.5f  %.5f  %.5f  %.3f  %.3f  %.3f  " %(ABC[0],ABC[1],ABC[2],math.degrees(abc[0]),math.degrees(abc[1]),math.degrees(abc[2])),	file=ofile)
    	print("%d"   %(natoms),																	file=ofile)
-	for i in range(0,natoms):	
+	for i in range(0,natoms):
 		print("%3s %9.5f %9.5f %9.5f   xx   0.000   0.000"  %(atom[i], fract[i][0], fract[i][1], fract[i][2]),						file=ofile)
 
  if outputformat=="pwi":
@@ -1506,9 +1508,9 @@ if args.output!=None:
         if not args.silent: print()
    	print(" &CONTROL ",									file=ofile)
    	print("    calculation = 'vc-relax' ",							file=ofile)
-   	print("    verbosity   = 'high' ",							file=ofile)  
-   	print("    !restart_mode= 'restart' ",							file=ofile)  
-   	print("    wf_collect  = .true. ",							file=ofile)  
+   	print("    verbosity   = 'high' ",							file=ofile)
+   	print("    !restart_mode= 'restart' ",							file=ofile)
+   	print("    wf_collect  = .true. ",							file=ofile)
    	print("    outdir      = './' ",							file=ofile)
    	print("    prefix      = 'pwscf' ",							file=ofile)
    	print("    pseudo_dir  = '/scratch/ongari/0_LIBRARIES/2_espresso/%s.1.0.0' " %(args.pseudopw), file=ofile)
@@ -1518,12 +1520,12 @@ if args.output!=None:
    	print("    !max_seconds  = 3500",							file=ofile)
    	print("    !disk_io      = 'none'",							file=ofile)
    	print(" / ",										file=ofile)
-   	print(" &SYSTEM ",									file=ofile)       
+   	print(" &SYSTEM ",									file=ofile)
    	print("    ibrav = 0 ",									file=ofile)
     	print("    nat   = %d " %(natoms),							file=ofile)
     	print("    ntyp  = %d " %(ntypes),							file=ofile)
     	print("    !nosym  = .true. ",								file=ofile)
-    	print("      ecutwfc = 70 ",								file=ofile) 
+    	print("      ecutwfc = 70 ",								file=ofile)
     	print("      ecutrho = 350 ",								file=ofile)
     	print("    occupations = 'smearing' ",							file=ofile)
     	print("    smearing    = 'gaussian' ",							file=ofile)
@@ -1558,19 +1560,19 @@ if args.output!=None:
         for i in range(0,len(atom_count)):
 	  if atom_count[i] != 0:
             	print("%3s %8.3f  %s" %(atomic_symbol[i],atomic_mass[i], atomic_pseudo[args.pseudopw][i]),file=ofile) #add pseudo!
-       	print(" ",										file=ofile) 
-   	print("K_POINTS gamma ",								file=ofile)  
+       	print(" ",										file=ofile)
+   	print("K_POINTS gamma ",								file=ofile)
    	print(" ",										file=ofile)
    	print("CELL_PARAMETERS angstrom ",					file=ofile)    #It should be very precise (http://pw_forum.pwscf.narkive.com/26uqaajr/crash-in-routine-set-sym-bl)
 	print("%11.8f %11.8f %11.8f"    %(cell.item((0,0)),cell.item((0,1)),cell.item((0,2))),	file=ofile)
 	print("%11.8f %11.8f %11.8f"    %(cell.item((1,0)),cell.item((1,1)),cell.item((1,2))),	file=ofile)
 	print("%11.8f %11.8f %11.8f"    %(cell.item((2,0)),cell.item((2,1)),cell.item((2,2))),	file=ofile)
    	print(" ",										file=ofile)
-   	print("ATOMIC_POSITIONS angstrom ",							file=ofile)  
+   	print("ATOMIC_POSITIONS angstrom ",							file=ofile)
 	for i in range(0,natoms):
 		print("%3s %12.8f %12.8f %12.8f "  %(atom[i], xyz[i][0],xyz[i][1],xyz[i][2]),	file=ofile)
 
- if outputformat=="subsys":                          
+ if outputformat=="subsys":
         print("##### Include it to the main cp2k.inp using: @INCLUDE '%s.subsys'" %outputfilename,		file=ofile)
         print("  &SUBSYS",											file=ofile)
         print("    &CELL",											file=ofile)
@@ -1601,7 +1603,7 @@ if args.output!=None:
             print(" " ,												file=ofile)
         print("  &END SUBSYS",											file=ofile)
 
- if outputformat=="axsf":                          
+ if outputformat=="axsf":
         print("ANIMSTEPS 1",										file=ofile)
         print("CRYSTAL",										file=ofile)
         print("PRIMVEC 1",										file=ofile)
@@ -1613,7 +1615,7 @@ if args.output!=None:
 	for i in range(0,natoms):
 		print("%3s %8.3f %8.3f %8.3f "  %(atom[i], xyz[i][0],xyz[i][1],xyz[i][2]),		file=ofile)
 
- if outputformat=="geo":                          
+ if outputformat=="geo":
         print("Made with manage_crystal.py",								file=ofile)
 	print("     %8.5f %8.5f %8.5f"    %(cell.item((0,0)),cell.item((0,1)),cell.item((0,2))),	file=ofile)
 	print("     %8.5f %8.5f %8.5f"    %(cell.item((1,0)),cell.item((1,1)),cell.item((1,2))),	file=ofile)
@@ -1648,12 +1650,3 @@ if args.printatoms!=None:
    print("",file=ofile)
    ofile.close()
 """
-
-
-
-
-
-
-
-
-
