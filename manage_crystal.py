@@ -77,8 +77,8 @@ parser.add_argument(
     type=str,
     dest="showonly",
     default=None,
-    help="Show only the required info:\n" +
-    "cell, CELL, xyz, fract, charge\n" + "[skip -silent]")
+    help="Show only the required info:\n" + "cell, CELL, xyz, fract, charge\n"
+    + "[skip -silent]")
 
 parser.add_argument(
     "-cupw",
@@ -535,15 +535,17 @@ if inputformat == 'xyz':
                     float(celltemp[10]),
                     float(celltemp[11]),
                     float(celltemp[12])
-                ], [
-                    float(celltemp[15]),
-                    float(celltemp[16]),
-                    float(celltemp[17])
-                ], [
-                    float(celltemp[20]),
-                    float(celltemp[21]),
-                    float(celltemp[22])
-                ]])
+                ],
+                                     [
+                                         float(celltemp[15]),
+                                         float(celltemp[16]),
+                                         float(celltemp[17])
+                                     ],
+                                     [
+                                         float(celltemp[20]),
+                                         float(celltemp[21]),
+                                         float(celltemp[22])
+                                     ]])
 
         #read atom[index]
         atom = []
@@ -589,8 +591,9 @@ if inputformat == 'xyz':
                 charge.append(float(0))
 
 if (inputformat == 'pwo') or (inputformat == 'pwi'):
-    #search for the last time the cell/coord are printed and jump to that line (no need to be converged). ONLY if they are not found, it reads the initial input
-    #cell
+    # search for the last time the cell/coord are printed and jump to that
+    # line (no need to be converged). ONLY if they are not found, it reads the
+    # initial input cell
     with file as myFile:
         for num, line in enumerate(myFile, 1):
             if 'CELL_PARAMETERS' in line:
@@ -631,15 +634,17 @@ if (inputformat == 'pwo') or (inputformat == 'pwi'):
                     float(celltempA[3]),
                     float(celltempA[4]),
                     float(celltempA[5])
-                ], [
-                    float(celltempB[3]),
-                    float(celltempB[4]),
-                    float(celltempB[5])
-                ], [
-                    float(celltempC[3]),
-                    float(celltempC[4]),
-                    float(celltempC[5])
-                ]])
+                ],
+                                     [
+                                         float(celltempB[3]),
+                                         float(celltempB[4]),
+                                         float(celltempB[5])
+                                     ],
+                                     [
+                                         float(celltempC[3]),
+                                         float(celltempC[4]),
+                                         float(celltempC[5])
+                                     ]])
                 cell *= celldm1
                 break
 
@@ -677,8 +682,9 @@ if (inputformat == 'pwo') or (inputformat == 'pwi'):
             if len(data) < 4:  #if the file is finished stop
                 break
             else:
-                atom.append(re.split('(\d+)', data[0])[
-                    0])  #takes only the atomtype from a label like "Cu34"
+                atom.append(
+                    re.split('(\d+)', data[0])
+                    [0])  #takes only the atomtype from a label like "Cu34"
                 an.append(atomic_symbol.index(atom[i]))
                 atom_count[an[i]] += 1
                 if readfractional:
@@ -991,19 +997,22 @@ if inputformat == 'cube':
     celltempB = file.readline().split()
     celltempC = file.readline().split()
 
-    cell = numpy.matrix([[
-        float(celltempA[0]) * float(celltempA[1]) / ANGS2BOHR,
-        float(celltempA[0]) * float(celltempA[2]) / ANGS2BOHR,
-        float(celltempA[0]) * float(celltempA[3]) / ANGS2BOHR
-    ], [
-        float(celltempB[0]) * float(celltempB[1]) / ANGS2BOHR,
-        float(celltempB[0]) * float(celltempB[2]) / ANGS2BOHR,
-        float(celltempB[0]) * float(celltempB[3]) / ANGS2BOHR
-    ], [
-        float(celltempC[0]) * float(celltempC[1]) / ANGS2BOHR,
-        float(celltempC[0]) * float(celltempC[2]) / ANGS2BOHR,
-        float(celltempC[0]) * float(celltempC[3]) / ANGS2BOHR
-    ]])
+    cell = numpy.matrix(
+        [[
+            float(celltempA[0]) * float(celltempA[1]) / ANGS2BOHR,
+            float(celltempA[0]) * float(celltempA[2]) / ANGS2BOHR,
+            float(celltempA[0]) * float(celltempA[3]) / ANGS2BOHR
+        ],
+         [
+             float(celltempB[0]) * float(celltempB[1]) / ANGS2BOHR,
+             float(celltempB[0]) * float(celltempB[2]) / ANGS2BOHR,
+             float(celltempB[0]) * float(celltempB[3]) / ANGS2BOHR
+         ],
+         [
+             float(celltempC[0]) * float(celltempC[1]) / ANGS2BOHR,
+             float(celltempC[0]) * float(celltempC[2]) / ANGS2BOHR,
+             float(celltempC[0]) * float(celltempC[3]) / ANGS2BOHR
+         ]])
     atom = []
     an = []
     xyz = []
@@ -1029,9 +1038,8 @@ if not args.resp == None:
         i = 0
         for line in openfileobject:
             data = line.split()
-            if not len(
-                    data
-            ) < 4 and data[0] == 'RESP' and data[2] == atom[i]:  #Removed condition {and int(data[1])==(i+1)} so that i can assemble the RESP file without changing the indexes !USE WITH CARE
+            if not len(data) < 4 and data[0] == 'RESP' and data[2] == atom[
+                    i]:  #Removed condition {and int(data[1])==(i+1)} so that i can assemble the RESP file without changing the indexes !USE WITH CARE
                 charge[i] = float(data[3])
                 i = i + 1
             if i == natoms: break
@@ -1106,11 +1114,12 @@ elif 'ABC' in locals(
     if not args.silent: print()
     if not args.silent:
         print(" ... converting CELL (ABCabc) to cell (matrix) ")
-    tempd = (math.cos(abc[0]) - math.cos(abc[2]) * math.cos(abc[1])
-             ) / math.sin(abc[2])
+    tempd = (math.cos(abc[0]) -
+             math.cos(abc[2]) * math.cos(abc[1])) / math.sin(abc[2])
     cell = numpy.matrix(
         [[ABC[0], 0.0, 0.0],
-         [ABC[1] * math.cos(abc[2]), ABC[1] * math.sin(abc[2]), 0.0], [
+         [ABC[1] * math.cos(abc[2]), ABC[1] * math.sin(abc[2]), 0.0],
+         [
              ABC[2] * math.cos(abc[1]), ABC[2] * tempd,
              ABC[2] * math.sqrt(1 - (math.cos(abc[1]))**2 - (tempd)**2)
          ]])
@@ -1183,8 +1192,8 @@ if args.normalizecharges:
 
     for i in range(0, natoms):
         if charge[i] > 0:
-            charge[
-                i] = charge[i] - tot_charge * pos_fract * charge[i] / pos_charge
+            charge[i] = charge[
+                i] - tot_charge * pos_fract * charge[i] / pos_charge
         else:
             charge[i] = charge[i] - tot_charge * (
                 1 - pos_fract) * charge[i] / neg_charge
@@ -1354,18 +1363,12 @@ if args.multipl_x > 1 or args.multipl_y > 1 or args.multipl_z > 1:
     fract = []
     invcell = inv(cell)
     for i in range(0, natoms):
-        x = xyz[i][0] * invcell[0,
-                                0] + xyz[i][1] * invcell[1,
-                                                         0] + xyz[i][2] * invcell[2,
-                                                                                  0]
-        y = xyz[i][1] * invcell[0,
-                                1] + xyz[i][1] * invcell[1,
-                                                         1] + xyz[i][2] * invcell[2,
-                                                                                  1]
-        z = xyz[i][2] * invcell[0,
-                                2] + xyz[i][1] * invcell[1,
-                                                         2] + xyz[i][2] * invcell[2,
-                                                                                  2]
+        x = xyz[i][0] * invcell[0, 0] + xyz[i][1] * invcell[1, 0] + xyz[i][
+            2] * invcell[2, 0]
+        y = xyz[i][1] * invcell[0, 1] + xyz[i][1] * invcell[1, 1] + xyz[i][
+            2] * invcell[2, 1]
+        z = xyz[i][2] * invcell[0, 2] + xyz[i][1] * invcell[1, 2] + xyz[i][
+            2] * invcell[2, 2]
         fract.append([x, y, z])
 
 ########################################################################################### COMPUTE INFO
@@ -1395,8 +1398,9 @@ for i in range(0, len(atom_count)):
         weight += atom_count[i] * atomic_mass[i]  #g/mol_uc
 rho = weight / volume / AVOGCONST * 1E+10**3 / 1000  #Kg/m3
 if not args.silent:
-    print("Density: %.5f (kg/m3), %.5f (g/cm3), %.5f (g/molUC)" %
-          (rho, rho / 1000, weight), )
+    print(
+        "Density: %.5f (kg/m3), %.5f (g/cm3), %.5f (g/molUC)" %
+        (rho, rho / 1000, weight), )
 
 #compute conversion to mol/kg
 molkg = 1000 / weight  #mol/g
@@ -1539,14 +1543,14 @@ if args.show:
     print(
         "cell ---------------------------------------------------------------")
 if args.show or args.showonly == "cell":
-    print("     %10.5f %10.5f %10.5f" % (cell.item((0, 0)), cell.item((0, 1)),
-                                         cell.item((0, 2))))
+    print("     %10.5f %10.5f %10.5f" % (cell.item((0, 0)), cell.item(
+        (0, 1)), cell.item((0, 2))))
 if args.show or args.showonly == "cell":
-    print("     %10.5f %10.5f %10.5f" % (cell.item((1, 0)), cell.item((1, 1)),
-                                         cell.item((1, 2))))
+    print("     %10.5f %10.5f %10.5f" % (cell.item((1, 0)), cell.item(
+        (1, 1)), cell.item((1, 2))))
 if args.show or args.showonly == "cell":
-    print("     %10.5f %10.5f %10.5f" % (cell.item((2, 0)), cell.item((2, 1)),
-                                         cell.item((2, 2))))
+    print("     %10.5f %10.5f %10.5f" % (cell.item((2, 0)), cell.item(
+        (2, 1)), cell.item((2, 2))))
 if args.show:
     print(
         "CELL (ABC, abc) ----------------------------------------------------")
@@ -1618,9 +1622,8 @@ if args.void:
             if (Ri + Rj < mindist): V_ovlp = 0
             else:
                 V_ovlp = math.pi * (Ri + Rj - mindist)**2 * (
-                    mindist**2 + 2 * mindist * Rj - 3 * Rj**2 +
-                    2 * mindist * Ri + 6 * Rj * Ri - 3 * Ri**2) / (
-                        12. * mindist)
+                    mindist**2 + 2 * mindist * Rj - 3 * Rj**2 + 2 * mindist *
+                    Ri + 6 * Rj * Ri - 3 * Ri**2) / (12. * mindist)
             volumeocc -= V_ovlp  #works only if there are not three spheres with a common overlapping
 
 #print("Volume without atom spheres:  %.3f (Angtrom^3/u.c.)" %(volume-volumeocc))
@@ -1838,20 +1841,17 @@ if args.output != None:
             print("_atom_site_fract_z", file=ofile)
             for i in range(0, natoms):
                 label = atom[i]  #removed: label=atom[i]+"_"+str(i+1)
-                print(
-                    ('{0:10} {1:5} {2:>9.5f} {3:>9.5f} {4:>9.5f}'.format(
-                        label, atom[i], fract[i][0], fract[i][1],
-                        fract[i][2])),
-                    file=ofile)
+                print(('{0:10} {1:5} {2:>9.5f} {3:>9.5f} {4:>9.5f}'.format(
+                    label, atom[i], fract[i][0], fract[i][1], fract[i][2])),
+                      file=ofile)
             print("_loop", file=ofile)
 
     if outputformat == "pdb":
-        print(
-            ('CRYST1{0:>9.3f}{1:>9.3f}{2:>9.3f}{3:>7.2f}{4:>7.2f}{5:>7.2f} P 1           1'.
-             format(ABC[0], ABC[1], ABC[2],
-                    math.degrees(abc[0]),
+        print((
+            'CRYST1{0:>9.3f}{1:>9.3f}{2:>9.3f}{3:>7.2f}{4:>7.2f}{5:>7.2f} P 1           1'
+            .format(ABC[0], ABC[1], ABC[2], math.degrees(abc[0]),
                     math.degrees(abc[1]), math.degrees(abc[2]))),
-            file=ofile)
+              file=ofile)
         for i in range(0, natoms):
             print(
                 "%-6s%5d %4s%1s%3s %1s%4d%1s   %8.5f%8.5f%8.5f%6.2f%6.2f          %2s%2s"
@@ -1866,8 +1866,8 @@ if args.output != None:
             file=ofile)
         print(
             "                %.3f   %.3f   %.3f   SPGR =  1 P 1         OPT = 1"
-            % (math.degrees(abc[0]), math.degrees(abc[1]),
-               math.degrees(abc[2])),
+            % (math.degrees(abc[0]), math.degrees(abc[1]), math.degrees(
+                abc[2])),
             file=ofile)
         print("%d   0" % (natoms), file=ofile)
         print("0 %s       : %s" % (inputfilename, inputfilename), file=ofile)
@@ -2003,16 +2003,16 @@ if args.output != None:
             "CELL_PARAMETERS angstrom ", file=ofile
         )  #It should be very precise (http://pw_forum.pwscf.narkive.com/26uqaajr/crash-in-routine-set-sym-bl)
         print(
-            "%11.8f %11.8f %11.8f" % (cell.item((0, 0)), cell.item((0, 1)),
-                                      cell.item((0, 2))),
+            "%11.8f %11.8f %11.8f" % (cell.item((0, 0)), cell.item(
+                (0, 1)), cell.item((0, 2))),
             file=ofile)
         print(
-            "%11.8f %11.8f %11.8f" % (cell.item((1, 0)), cell.item((1, 1)),
-                                      cell.item((1, 2))),
+            "%11.8f %11.8f %11.8f" % (cell.item((1, 0)), cell.item(
+                (1, 1)), cell.item((1, 2))),
             file=ofile)
         print(
-            "%11.8f %11.8f %11.8f" % (cell.item((2, 0)), cell.item((2, 1)),
-                                      cell.item((2, 2))),
+            "%11.8f %11.8f %11.8f" % (cell.item((2, 0)), cell.item(
+                (2, 1)), cell.item((2, 2))),
             file=ofile)
         print(" ", file=ofile)
         print("ATOMIC_POSITIONS angstrom ", file=ofile)
@@ -2073,16 +2073,16 @@ if args.output != None:
         print("CRYSTAL", file=ofile)
         print("PRIMVEC 1", file=ofile)
         print(
-            "     %8.5f %8.5f %8.5f" % (cell.item((0, 0)), cell.item((0, 1)),
-                                        cell.item((0, 2))),
+            "     %8.5f %8.5f %8.5f" % (cell.item((0, 0)), cell.item(
+                (0, 1)), cell.item((0, 2))),
             file=ofile)
         print(
-            "     %8.5f %8.5f %8.5f" % (cell.item((1, 0)), cell.item((1, 1)),
-                                        cell.item((1, 2))),
+            "     %8.5f %8.5f %8.5f" % (cell.item((1, 0)), cell.item(
+                (1, 1)), cell.item((1, 2))),
             file=ofile)
         print(
-            "     %8.5f %8.5f %8.5f" % (cell.item((2, 0)), cell.item((2, 1)),
-                                        cell.item((2, 2))),
+            "     %8.5f %8.5f %8.5f" % (cell.item((2, 0)), cell.item(
+                (2, 1)), cell.item((2, 2))),
             file=ofile)
         print("PRIMCOORD 1", file=ofile)
         print("%d 1" % (natoms), file=ofile)
@@ -2095,16 +2095,16 @@ if args.output != None:
     if outputformat == "geo":
         print("Made with manage_crystal.py", file=ofile)
         print(
-            "     %8.5f %8.5f %8.5f" % (cell.item((0, 0)), cell.item((0, 1)),
-                                        cell.item((0, 2))),
+            "     %8.5f %8.5f %8.5f" % (cell.item((0, 0)), cell.item(
+                (0, 1)), cell.item((0, 2))),
             file=ofile)
         print(
-            "     %8.5f %8.5f %8.5f" % (cell.item((1, 0)), cell.item((1, 1)),
-                                        cell.item((1, 2))),
+            "     %8.5f %8.5f %8.5f" % (cell.item((1, 0)), cell.item(
+                (1, 1)), cell.item((1, 2))),
             file=ofile)
         print(
-            "     %8.5f %8.5f %8.5f" % (cell.item((2, 0)), cell.item((2, 1)),
-                                        cell.item((2, 2))),
+            "     %8.5f %8.5f %8.5f" % (cell.item((2, 0)), cell.item(
+                (2, 1)), cell.item((2, 2))),
             file=ofile)
         print("%d " % (natoms), file=ofile)
         for i in range(0, natoms):
