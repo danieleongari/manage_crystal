@@ -1,62 +1,61 @@
-################################# atom name
-
-atomic_symbol=('X','H','He',
-            'Li','Be','B','C','N','O','F','Ne',
-            'Na','Mg','Al','Si','P','S','Cl','Ar',
-            'K','Ca','Sc','Ti','V','Cr','Mn','Fe','Co','Ni','Cu','Zn','Ga','Ge','As','Se','Br','Kr',
-            'Rb','Sr','Y','Zr','Nb','Mo','Tc','Ru','Rh','Pd','Ag','Cd','In','Sn','Sb','Te','I','Xe',
-            'Cs','Ba','La','Ce','Pr','Nd','Pm','Sm','Eu','Gd','Tb','Dy','Ho','Er','Tm','Yb','Lu','Hf','Ta','W','Re','Os','Ir','Pt','Au','Hg','Tl','Pb','Bi','Po','At','Rn',
-            'Fr','Ra','Ac','Th','Pa','U','Np','Pu','Am','Cm','Bk','Cf','Es','Fm','Md','No','Lr','Rf','Db','Sg','Bh','Hs','Mt','Ds','Rg','Cn','Uut','Fl','Uup','Lv','Uus','Uuo')
-
-# from ASE
-#chemical_symbols = ('X',  'H',  'He', 'Li', 'Be',
-#                    'B',  'C',  'N',  'O',  'F',
-#                    'Ne', 'Na', 'Mg', 'Al', 'Si',
-#                    'P',  'S',  'Cl', 'Ar', 'K',
-#                    'Ca', 'Sc', 'Ti', 'V',  'Cr',
-#                    'Mn', 'Fe', 'Co', 'Ni', 'Cu',
-#                    'Zn', 'Ga', 'Ge', 'As', 'Se',
-#                    'Br', 'Kr', 'Rb', 'Sr', 'Y',
-#                    'Zr', 'Nb', 'Mo', 'Tc', 'Ru',
-#                    'Rh', 'Pd', 'Ag', 'Cd', 'In',
-#                    'Sn', 'Sb', 'Te', 'I',  'Xe',
-#                    'Cs', 'Ba', 'La', 'Ce', 'Pr',
-#                    'Nd', 'Pm', 'Sm', 'Eu', 'Gd',
-#                    'Tb', 'Dy', 'Ho', 'Er', 'Tm',
-#                    'Yb', 'Lu', 'Hf', 'Ta', 'W',
-#                    'Re', 'Os', 'Ir', 'Pt', 'Au',
-#                    'Hg', 'Tl', 'Pb', 'Bi', 'Po',
-#                    'At', 'Rn', 'Fr', 'Ra', 'Ac',
-#                    'Th', 'Pa', 'U',  'Np', 'Pu',
-#                    'Am', 'Cm', 'Bk', 'Cf', 'Es',
-#                    'Fm', 'Md', 'No', 'Lr')
-
+atomic_symbol=(
+    'X',
+    'H','He',
+    'Li','Be',
+        'B','C','N','O','F','Ne',
+    'Na','Mg',
+        'Al','Si','P','S','Cl','Ar',
+    'K','Ca',
+        'Sc','Ti','V','Cr','Mn',
+        'Fe','Co','Ni','Cu','Zn',
+            'Ga','Ge','As','Se','Br','Kr',
+    'Rb','Sr',
+        'Y','Zr','Nb','Mo','Tc',
+        'Ru','Rh','Pd','Ag','Cd',
+            'In','Sn','Sb','Te','I','Xe',
+    'Cs','Ba',
+        'La','Ce','Pr','Nd','Pm','Sm','Eu',
+        'Gd','Tb','Dy','Ho','Er','Tm','Yb',
+            'Lu','Hf','Ta','W','Re',
+            'Os','Ir','Pt','Au','Hg',
+                'Tl','Pb','Bi','Po','At','Rn',
+    'Fr','Ra',
+        'Ac','Th','Pa','U','Np','Pu','Am',
+        'Cm','Bk','Cf','Es','Fm','Md','No',
+            'Lr','Rf','Db','Sg','Bh',
+            'Hs','Mt','Ds','Rg','Cn',
+                'Nh','Fl','Mc','Lv','Ts','Og'
+)
 
 atomic_name = (
-    'DUMMY', 'Hydrogen', 'Helium', 'Lithium', 'Beryllium', 'Boron',
-    'Carbon', 'Nitrogen', 'Oxygen', 'Fluorine', 'Neon', 'Sodium',
-    'Magnesium', 'Aluminium', 'Silicon', 'Phosphorus', 'Sulfur',
-    'Chlorine', 'Argon', 'Potassium', 'Calcium', 'Scandium',
-    'Titanium', 'Vanadium', 'Chromium', 'Manganese', 'Iron',
-    'Cobalt', 'Nickel', 'Copper', 'Zinc', 'Gallium', 'Germanium',
-    'Arsenic', 'Selenium', 'Bromine', 'Krypton', 'Rubidium',
-    'Strontium', 'Yttrium', 'Zirconium', 'Niobium', 'Molybdenum',
-    'Technetium', 'Ruthenium', 'Rhodium', 'Palladium', 'Silver',
-    'Cadmium', 'Indium', 'Tin', 'Antimony', 'Tellurium',
-    'Iodine', 'Xenon', 'Caesium', 'Barium', 'Lanthanum',
-    'Cerium', 'Praseodymium', 'Neodymium', 'Promethium',
-    'Samarium', 'Europium', 'Gadolinium', 'Terbium',
-    'Dysprosium', 'Holmium', 'Erbium', 'Thulium', 'Ytterbium',
-    'Lutetium', 'Hafnium', 'Tantalum', 'Tungsten', 'Rhenium',
-    'Osmium', 'Iridium', 'Platinum', 'Gold', 'Mercury',
-    'Thallium', 'Lead', 'Bismuth', 'Polonium', 'Astatine',
-    'Radon', 'Francium', 'Radium', 'Actinium', 'Thorium',
-    'Protactinium', 'Uranium', 'Neptunium', 'Plutonium',
-    'Americium', 'Curium', 'Berkelium', 'Californium',
-    'Einsteinium', 'Fermium', 'Mendelevium', 'Nobelium',
-    'Lawrencium', 'Unnilquadium', 'Unnilpentium', 'Unnilhexium')
+    'DUMMY',
+    'Hydrogen','Helium',
+    'Lithium','Beryllium',
+        'Boron','Carbon','Nitrogen','Oxygen','Fluorine','Neon',
+    'Sodium','Magnesium',
+        'Aluminium','Silicon','Phosphorus','Sulfur','Chlorine','Argon',
+    'Potassium','Calcium',
+        'Scandium','Titanium','Vanadium','Chromium','Manganese',
+        'Iron','Cobalt','Nickel','Copper','Zinc',
+            'Gallium','Germanium','Arsenic','Selenium','Bromine','Krypton',
+    'Rubidium','Strontium',
+        'Yttrium','Zirconium','Niobium','Molybdenum','Technetium',
+        'Ruthenium','Rhodium','Palladium','Silver','Cadmium',
+            'Indium','Tin','Antimony','Tellurium','Iodine','Xenon',
+    'Caesium','Barium',
+        'Lanthanum','Cerium','Praseodymium','Neodymium','Promethium','Samarium','Europium',
+        'Gadolinium','Terbium','Dysprosium','Holmium','Erbium','Thulium','Ytterbium',
+            'Lutetium','Hafnium','Tantalum','Tungsten','Rhenium',
+            'Osmium','Iridium','Platinum','Gold','Mercury','Thallium',
+                'Lead','Bismuth','Polonium','Astatine','Radon',
+    'Francium','Radium',
+        'Actinium','Thorium','Protactinium','Uranium','Neptunium','Plutonium','Americium',
+        'Curium','Berkelium','Californium','Einsteinium','Fermium','Mendelevium','Nobelium',
+            'Lawrencium','Rutherfordium','Dubnium','Seaborgium','Bohrium',
+            'Hassium','Meitnerium','Darmstadtium','Roentgenium','Copernicium',
+                'Nihonium','Flerovium','Moscovium','Livermorium','Tennessine','Oganesson'
 
-################################# atom vdw from ASE
+# From ASE:
 # Van der Waals radii in [A] taken from
 #http://www.webelements.com/periodicity/van_der_waals_radius/
 #and the references given there.
@@ -188,6 +187,7 @@ atomic_vdw = (
     1000000,  # No
     1000000)  # Lr
 
+# From Zeo++:
 atomic_vdw_zeopp = (
  1,      #Dummy
  1.09,   #H  
@@ -301,6 +301,7 @@ atomic_vdw_zeopp = (
  2,      #Mt 
  2)      #Ds 
 
+# From UFF: L-J's sigma * 0.5
 atomic_vdw_UFF = (
  1,      #Dummy
    1.286,   #H 
@@ -414,7 +415,7 @@ atomic_vdw_UFF = (
  2,      #Mt 
  2)      #Ds 
 
-################################# atom mass from ASE
+# From ASE:          
 atomic_mass = (
    0.00000, # X
    1.00794, # H
@@ -521,7 +522,7 @@ atomic_mass = (
     1000000, # No
     1000000) # Lr
 
-################################# pseudoopotential: dictionary[pseudo_type][atomic_number]
+# pseudoopotential: dictionary[pseudo_type][atomic_number]
 atomic_pseudo = {'pbe': [   
     ' ',  # X
     ' H.pbe-kjpaw_psl.1.0.0.UPF   ! 	 46.Ry	 221.Ry',  # H
@@ -734,7 +735,9 @@ atomic_pseudo = {'pbe': [
     ' ',  # No
     ' ']  # Lr
 }
-################################# average charges fromm DDEC CoRE MOF
+            
+# Average charges (AVG-Q) fromm DDEC CoRE MOF. DDEC charges have been avereged by element. 
+# NB: you need to neutralize the total charge and remeber that the quality of these charges is *VERY* bad!
 atomic_ddecavgcharges = (
    0.000, #dummy
    0.116, # H
@@ -823,5 +826,3 @@ atomic_ddecavgcharges = (
    0.000, # Po
    0.000, # At
    0.000) # Rn
-
-
