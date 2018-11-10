@@ -110,4 +110,11 @@ Tips:
 
 - you may want to use `-silent` to suppress default verbose output: several options "skip -silent" so that you can print just that information on the screen (e.g., `-printatoms -silent` prints on the screen just the atom types on one line). This make easy to use bash loops for lists of structures. 
   
-  
+## Development
+
+To enable automatic code formatting for every commit, do
+
+```
+pip install pre-commit yapf prospector pylint
+pre-commit install
+```
