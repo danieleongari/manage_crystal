@@ -54,7 +54,7 @@ atomic_name = (
             'Lawrencium','Rutherfordium','Dubnium','Seaborgium','Bohrium',
             'Hassium','Meitnerium','Darmstadtium','Roentgenium','Copernicium',
                 'Nihonium','Flerovium','Moscovium','Livermorium','Tennessine','Oganesson'
-
+)
 # From ASE:
 # Van der Waals radii in [A] taken from
 #http://www.webelements.com/periodicity/van_der_waals_radius/
@@ -190,143 +190,143 @@ atomic_vdw = (
 # From Zeo++:
 atomic_vdw_zeopp = (
  1,      #Dummy
- 1.09,   #H  
- 1.4,    #He 
- 1.82,   #Li 
- 2,      #Be 
- 2,      #B  
- 1.7,    #C  
- 1.55,   #N  
- 1.52,   #O  
- 1.47,   #F  
- 1.54,   #Ne 
- 2.27,   #Na 
- 1.73,   #Mg 
- 2,      #Al 
- 2.1,    #Si 
- 1.8,    #P  
- 1.8,    #S  
- 1.75,   #Cl 
- 1.88,   #Ar 
- 2.75,   #K  
- 2,      #Ca 
- 2,      #Sc 
- 2,      #Ti 
- 2,      #V  
- 2,      #Cr 
- 2,      #Mn 
- 2,      #Fe 
- 2,      #Co 
- 1.63,   #Ni 
- 1.4,    #Cu 
- 1.39,   #Zn 
- 1.87,   #Ga 
- 2,      #Ge 
- 1.85,   #As 
- 1.9,    #Se 
- 1.85,   #Br 
- 2.02,   #Kr 
- 2,      #Rb 
- 2,      #Sr 
- 2,      #Y  
- 2,      #Zr 
- 2,      #Nb 
- 2,      #Mo 
- 2,      #Tc 
- 2,      #Ru 
- 2,      #Rh 
- 1.63,   #Pd 
- 1.72,   #Ag 
- 1.58,   #Cd 
- 1.93,   #In 
- 2.17,   #Sn 
- 2,      #Sb 
- 2.06,   #Te 
- 1.98,   #I  
- 2.16,   #Xe 
- 2,      #Cs 
- 2,      #Ba 
- 2,      #La 
- 2,      #Ce 
- 2,      #Pr 
- 2,      #Nd 
- 2,      #Pm 
- 2,      #Sm 
- 2,      #Eu 
- 2,      #Gd 
- 2,      #Tb 
- 2,      #Dy 
- 2,      #Ho 
- 2,      #Er 
- 2,      #Tm 
- 2,      #Yb 
- 2,      #Lu 
- 2,      #Hf 
- 2,      #Ta 
- 2,      #W  
- 2,      #Re 
- 2,      #Os 
- 2,      #Ir 
- 1.72,   #Pt 
- 1.66,   #Au 
- 1.55,   #Hg 
- 1.96,   #Tl 
- 2.02,   #Pb 
- 2,      #Bi 
- 2,      #Po 
- 2,      #At 
- 2,      #Rn 
- 2,      #Fr 
- 2,      #Ra 
- 2,      #Ac 
- 2,      #Th 
- 2,      #Pa 
- 1.86,   #U  
- 2,      #Np 
- 2,      #Pu 
- 2,      #Am 
- 2,      #Cm 
- 2,      #Bk 
- 2,      #Cf 
- 2,      #Es 
- 2,      #Fm 
- 2,      #Md 
- 2,      #No 
- 2,      #Lr 
- 2,      #Rf 
- 2,      #Db 
- 2,      #Sg 
- 2,      #Bh 
- 2,      #Hs 
- 2,      #Mt 
- 2)      #Ds 
+ 1.09,   #H
+ 1.4,    #He
+ 1.82,   #Li
+ 2,      #Be
+ 2,      #B
+ 1.7,    #C
+ 1.55,   #N
+ 1.52,   #O
+ 1.47,   #F
+ 1.54,   #Ne
+ 2.27,   #Na
+ 1.73,   #Mg
+ 2,      #Al
+ 2.1,    #Si
+ 1.8,    #P
+ 1.8,    #S
+ 1.75,   #Cl
+ 1.88,   #Ar
+ 2.75,   #K
+ 2,      #Ca
+ 2,      #Sc
+ 2,      #Ti
+ 2,      #V
+ 2,      #Cr
+ 2,      #Mn
+ 2,      #Fe
+ 2,      #Co
+ 1.63,   #Ni
+ 1.4,    #Cu
+ 1.39,   #Zn
+ 1.87,   #Ga
+ 2,      #Ge
+ 1.85,   #As
+ 1.9,    #Se
+ 1.85,   #Br
+ 2.02,   #Kr
+ 2,      #Rb
+ 2,      #Sr
+ 2,      #Y
+ 2,      #Zr
+ 2,      #Nb
+ 2,      #Mo
+ 2,      #Tc
+ 2,      #Ru
+ 2,      #Rh
+ 1.63,   #Pd
+ 1.72,   #Ag
+ 1.58,   #Cd
+ 1.93,   #In
+ 2.17,   #Sn
+ 2,      #Sb
+ 2.06,   #Te
+ 1.98,   #I
+ 2.16,   #Xe
+ 2,      #Cs
+ 2,      #Ba
+ 2,      #La
+ 2,      #Ce
+ 2,      #Pr
+ 2,      #Nd
+ 2,      #Pm
+ 2,      #Sm
+ 2,      #Eu
+ 2,      #Gd
+ 2,      #Tb
+ 2,      #Dy
+ 2,      #Ho
+ 2,      #Er
+ 2,      #Tm
+ 2,      #Yb
+ 2,      #Lu
+ 2,      #Hf
+ 2,      #Ta
+ 2,      #W
+ 2,      #Re
+ 2,      #Os
+ 2,      #Ir
+ 1.72,   #Pt
+ 1.66,   #Au
+ 1.55,   #Hg
+ 1.96,   #Tl
+ 2.02,   #Pb
+ 2,      #Bi
+ 2,      #Po
+ 2,      #At
+ 2,      #Rn
+ 2,      #Fr
+ 2,      #Ra
+ 2,      #Ac
+ 2,      #Th
+ 2,      #Pa
+ 1.86,   #U
+ 2,      #Np
+ 2,      #Pu
+ 2,      #Am
+ 2,      #Cm
+ 2,      #Bk
+ 2,      #Cf
+ 2,      #Es
+ 2,      #Fm
+ 2,      #Md
+ 2,      #No
+ 2,      #Lr
+ 2,      #Rf
+ 2,      #Db
+ 2,      #Sg
+ 2,      #Bh
+ 2,      #Hs
+ 2,      #Mt
+ 2)      #Ds
 
 # From UFF: L-J's sigma * 0.5
 atomic_vdw_UFF = (
  1,      #Dummy
-   1.286,   #H 
+   1.286,   #H
    1.052,  #He
    1.092,  #Li
    1.223,  #Be
-   1.819,   #B 
-   1.715,   #C 
-   1.630,    #N 
-   1.559,   #O 
-   1.498,   #F 
+   1.819,   #B
+   1.715,   #C
+   1.630,    #N
+   1.559,   #O
+   1.498,   #F
    1.445,  #Ne
    1.329,  #Na
    1.346,  #Mg
    2.004,  #Al
    1.913,  #Si
-   1.847,   #P 
-   1.797,   #S 
+   1.847,   #P
+   1.797,   #S
    1.758,  #Cl
    1.723,  #Ar
-   1.698,   #K 
+   1.698,   #K
    1.514,  #Ca
    1.468,  #Sc
    1.414,  #Ti
-   1.400,   #V 
+   1.400,   #V
    1.347,  #Cr
    1.319,  #Mn
    1.297,  #Fe
@@ -342,7 +342,7 @@ atomic_vdw_UFF = (
    1.845,  #Kr
    1.833,  #Rb
    1.622,  #Sr
-   1.490,   #Y 
+   1.490,   #Y
    1.392,  #Zr
    1.410,  #Nb
    1.360,  #Mo
@@ -356,7 +356,7 @@ atomic_vdw_UFF = (
    1.956,  #Sn
    1.969,  #Sb
    1.991,  #Te
-   2.005,   #I 
+   2.005,   #I
    1.962,  #Xe
    2.012,  #Cs
    1.649,  #Ba
@@ -377,7 +377,7 @@ atomic_vdw_UFF = (
    1.621,  #Lu
    1.399,  #Hf
    1.412,  #Ta
-   1.367,   #W 
+   1.367,   #W
    1.316,  #Re
    1.390,   #Os
    1.265,  #Ir
@@ -395,7 +395,7 @@ atomic_vdw_UFF = (
    1.549,  #Ac
    1.513,  #Th
    1.525,  #Pa
-   1.512,   #U 
+   1.512,   #U
    1.525,  #Np
    1.525,  #Pu
    1.506,  #Am
@@ -407,15 +407,15 @@ atomic_vdw_UFF = (
    1.458,  #Md
    1.447,  #No
    1.441,  #Lr
- 2,      #Rf 
- 2,      #Db 
- 2,      #Sg 
- 2,      #Bh 
- 2,      #Hs 
- 2,      #Mt 
- 2)      #Ds 
+ 2,      #Rf
+ 2,      #Db
+ 2,      #Sg
+ 2,      #Bh
+ 2,      #Hs
+ 2,      #Mt
+ 2)      #Ds
 
-# From ASE:          
+# From ASE:
 atomic_mass = (
    0.00000, # X
    1.00794, # H
@@ -523,7 +523,7 @@ atomic_mass = (
     1000000) # Lr
 
 # pseudoopotential: dictionary[pseudo_type][atomic_number]
-atomic_pseudo = {'pbe': [   
+atomic_pseudo = {'pbe': [
     ' ',  # X
     ' H.pbe-kjpaw_psl.1.0.0.UPF   ! 	 46.Ry	 221.Ry',  # H
     ' ',  # He [1]
@@ -628,7 +628,7 @@ atomic_pseudo = {'pbe': [
     ' ',  # Md
     ' ',  # No
     ' '], # Lr
-  
+
 'pbesol': [
     ' ',  # X
     ' H.pbesol-kjpaw_psl.1.0.0.UPF   ! 	 46.Ry	 221.Ry',  # H
@@ -735,8 +735,8 @@ atomic_pseudo = {'pbe': [
     ' ',  # No
     ' ']  # Lr
 }
-            
-# Average charges (AVG-Q) fromm DDEC CoRE MOF. DDEC charges have been avereged by element. 
+
+# Average charges (AVG-Q) fromm DDEC CoRE MOF. DDEC charges have been avereged by element.
 # NB: you need to neutralize the total charge and remeber that the quality of these charges is *VERY* bad!
 atomic_ddecavgcharges = (
    0.000, #dummy
