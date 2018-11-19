@@ -347,8 +347,7 @@ if not args.silent: print()
 if not os.path.isfile(args.inputfile):
     sys.exit("ERROR: The file %s doesn't exist!" % args.inputfile)
 inputfilename = os.path.splitext(args.inputfile)[0]
-inputformat = os.path.splitext(args.inputfile)[1][
-    1:]  #the last commands, remove the starting point of the extension
+inputformat = os.path.splitext(args.inputfile)[1][1:]  
 file = open(inputfilename + "." + inputformat, 'r')
 """/
 if inputformat=='dcd':
