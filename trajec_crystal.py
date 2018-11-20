@@ -7,7 +7,7 @@ import numpy
 import math
 import subprocess
 import argparse
-from argparse import RawTextHelpFormatter  #needed to go next line in the help text
+from argparse import RawTextHelpFormatter # to go next line in the help text
 import os
 import re  #re.split('(\d+)',"O23") = ['O', '23', '']
 from six.moves import range
@@ -20,16 +20,18 @@ parser = argparse.ArgumentParser(
     formatter_class=RawTextHelpFormatter)
 
 parser.add_argument(
-    "inputfile",
+    "inpfile",
     type=str,
     help="path to the input file to read\n" +
     "IMPLEMENTED: pdb")
 
 parser.add_argument(
-    "output",
+    "-o",
+    "--output",
     type=str,
+    default=None,
     help="Output filename.extension or just the extension\n" +
-    "IMPLEMENTED: xyz")
+    "IMPLEMENTED: xyz, axsf")
 
 parser.add_argument(
     "-sss",
@@ -41,70 +43,92 @@ parser.add_argument(
 
 args = parser.parse_args()
 
-# Open input file and
-if not os.path.isfile(args.inputfile):
-    sys.exit("ERROR: The file %s doesn't exist!" % args.inputfile)
-inputfilename = os.path.splitext(args.inputfile)[0]
-inputformat = os.path.splitext(args.inputfile)[1][1:]
-inpfile = open("{}.{}".format(inputfilename,inputformat), 'r')
+################################################## Manage input/output filenames
+# Open input file
+if not os.path.isfile(args.inpfile):
+    sys.exit("ERROR: The file %s doesn't exist!" % args.inpfile)
+inpfilename = os.path.splitext(args.inpfile)[0]
+inpformat = os.path.splitext(args.inpfile)[1][1:]
+inpfile = "{}.{}".format(inpfilename,inpformat)
+inpfiler = open(inpfile, 'r')
 
 # Parse output filename
+if args.output == None:
+    sys.exit("ERROR: An -o output is mandatory!")
 if len(args.output.split(".")) > 1:  #output defined as name.format
-    outputfilename = os.path.splitext(args.output)[0]
-    outputformat = os.path.splitext(args.output)[1][1:]
+    outfilename = os.path.splitext(args.output)[0]
+    outformat = os.path.splitext(args.output)[1][1:]
 else:  #output defined as format
-    outputfilename = inputfilename
-    outputformat = args.output
-outputfile = "{}.{}".format(outputfilename,outputformat)
+    outfilename = inpfilename
+    outformat = args.output
+outfile = "{}.{}".format(outfilename,outformat)
 
-# Split and convert snapshots from the trajectory
-if inputformat == 'pdb':
+################################ Split and convert snapshots from the trajectory
+if inpformat == 'pdb':
     ss = 0 #snapshot count
     line = None
     # Split snapshots
     while True:
-        line = inpfile.readline()
+        line = inpfiler.readline()
         data = line.split()
         if line == "":
             print("Extracted %d snapshots" %ss)
             break
         elif len(data)>0 and data[0]=="MODEL":
-            outfile = open("{0}-ss{1:05d}.pdb".format(outputfilename,ss), 'w')
+            ssfile = "{0}-ss{1:05d}.pdb".format(outfilename,ss)
+            ssfilew = open(ssfile, 'w')
         elif len(data)>0 and data[0]=="ENDMDL":
-            print("END", end="", file=outfile)
-            outfile.close()
+            print("END", end="", file=ssfilew)
+            ssfilew.close()
             ss+=1
         else:
-            print(line.strip(), end="\n", file=outfile)
-    inpfile.close()
+            print(line.strip(), end="\n", file=ssfilew)
+    inpfiler.close()
     # Convert snapshots
-    print("Converting %s to %s " %(inputformat,outputformat), end="")
+    print("Converting %s to %s " %(inpformat,outformat), end="")
     for iss in range(ss):
         print(".", end="")
         sys.stdout.flush()
         cmd = ["manage_crystal.py",
-               "{0}-ss{1:05d}.pdb".format(outputfilename,iss),
+               "{0}-ss{1:05d}.pdb".format(outfilename,iss),
                "-o",
-               "{0}-ss{1:05d}.{2}".format(outputfilename,iss,outputformat),
+               "{0}-ss{1:05d}.{2}".format(outfilename,iss,outformat),
                "-silent",
               ]
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE)
         output, error = process.communicate()
     print(" all done!")
 
-# Finally combine the temporary files
-if outputformat=="xyz":
-    with open(outputfile, 'w') as outfile:
+############################################ Finally combine the temporary files
+if outformat=="xyz":
+    with open(outfile, 'w') as outfilew:
         for iss in range(ss):
-            fname = "{0}-ss{1:05d}.{2}".format(outputfilename,iss,outputformat)
-            with open(fname) as inpfile:
-                outfile.write(inpfile.read())
+            ssfile = "{0}-ss{1:05d}.{2}".format(outfilename,iss,outformat)
+            with open(ssfile) as ssfiler:
+                outfilew.write(ssfiler.read())
 
-# Delete snapshots
+if outformat=="axsf":
+    with open(outfile, 'w') as outfile:
+        print("ANIMSTEPS %s" %ss, file=outfile)
+        print("CRYSTAL %s" %ss, file=outfile)
+        for iss in range(ss):
+            print("PRIMVEC %s" %(iss+1), file=outfile)
+            fname = "{0}-ss{1:05d}.{2}".format(outfilename,iss,outformat)
+            with open(fname) as inpfiler:
+                for i, line in enumerate(inpfiler): #skip header
+                    if i>2 and i<6:
+                        print(line.strip(), file=outfile)
+            print("PRIMCOORD %s" %(iss+1), file=outfile)
+            with open(fname) as inpfiler:
+                for i, line in enumerate(inpfiler): #skip header
+                    if i>6:
+                        print(line.strip(), file=outfile)
+
+############################################################### Delete snapshots
 if not args.sss:
     print("Deleting snaphsots (use -sss to save them)")
     for iss in range(ss):
-        os.remove("{0}-ss{1:05d}.{2}".format(outputfilename,iss,inputformat))
-        os.remove("{0}-ss{1:05d}.{2}".format(outputfilename,iss,outputformat))
+        os.remove("{0}-ss{1:05d}.{2}".format(outfilename,iss,inpformat))
+        os.remove("{0}-ss{1:05d}.{2}".format(outfilename,iss,outformat))
 else:
     print("Saved snaphsots")
