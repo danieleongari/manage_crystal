@@ -2,16 +2,12 @@
 
 from __future__ import print_function  #python3 like print()
 from __future__ import absolute_import
-import string, sys
-import numpy
-import math
+import os
+import sys
 import subprocess
 import argparse
 from argparse import RawTextHelpFormatter # to go next line in the help text
-import os
-import re  #re.split('(\d+)',"O23") = ['O', '23', '']
-from six.moves import range
-import subprocess
+
 
 parser = argparse.ArgumentParser(
     description=
