@@ -82,7 +82,7 @@ if inputformat == 'pdb':
     for iss in range(ss):
         print(".", end="")
         sys.stdout.flush()
-        cmd = ["../../manage_crystal.py",
+        cmd = ["manage_crystal.py",
                "{0}-ss{1:05d}.pdb".format(outputfilename,iss),
                "-o",
                "{0}-ss{1:05d}.{2}".format(outputfilename,iss,outputformat),
