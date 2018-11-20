@@ -8,7 +8,7 @@ import subprocess
 import argparse
 from argparse import RawTextHelpFormatter # to go next line in the help text
 
-#
+####################################################################### Argparse
 parser = argparse.ArgumentParser(
     description=
     'Program that split a tragectory into different files to be converted with\
