@@ -134,5 +134,5 @@ Description: # manage_crystal
 Platform: UNKNOWN
 Classifier: Programming Language :: Python
 Description-Content-Type: text/markdown
-Provides-Extra: testing
 Provides-Extra: pre-commit
+Provides-Extra: testing

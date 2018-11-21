@@ -16,8 +16,9 @@ if __name__ == '__main__':
         classifiers=["Programming Language :: Python"],
         version="0.1.0",
         install_requires=["numpy"],
-        scripts=["manage_crystal/manage_crystal", 
-                 "manage_crystal/trajec_crystal"],
+        scripts=[
+            "manage_crystal/manage_crystal", "manage_crystal/trajec_crystal"
+        ],
         extras_require={
             "testing": [
                 "mock==2.0.0", "pgtest==1.1.0", "sqlalchemy-diff==0.1.3",

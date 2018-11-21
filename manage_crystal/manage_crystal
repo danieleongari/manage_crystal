@@ -33,7 +33,7 @@ from argparse import RawTextHelpFormatter  #needed to go next line in the help t
 import os
 import re  #re.split('(\d+)',"O23") = ['O', '23', '']
 from six.moves import range
-from manage_crystal import crys
+from manage_crystal import Crys
 
 parser = argparse.ArgumentParser(
     description=
@@ -1398,9 +1398,8 @@ for i in range(0, len(atom_count)):
         weight += atom_count[i] * atomic_mass[i]  #g/mol_uc
 rho = weight / volume / AVOGCONST * 1E+10**3 / 1000  #Kg/m3
 if not args.silent:
-    print(
-        "Density: %.5f (kg/m3), %.5f (g/cm3), %.5f (g/molUC)" %
-        (rho, rho / 1000, weight), )
+    print("Density: %.5f (kg/m3), %.5f (g/cm3), %.5f (g/molUC)" %
+          (rho, rho / 1000, weight), )
 
 #compute conversion to mol/kg
 molkg = 1000 / weight  #mol/g
