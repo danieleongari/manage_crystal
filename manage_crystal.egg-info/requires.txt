@@ -1,0 +1,14 @@
+numpy
+
+[pre-commit]
+pre-commit==1.11.0
+yapf==0.24.0
+prospector==1.1.5
+pylint
+
+[testing]
+mock==2.0.0
+pgtest==1.1.0
+sqlalchemy-diff==0.1.3
+wheel>=0.31
+coverage

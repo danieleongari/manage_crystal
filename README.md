@@ -1,9 +1,13 @@
 # manage_crystal
 A tool to convert crystal files (atoms coordinates + unit cell) into common files and extract some useful info
 
-Usage: 
+## Installation:
+```
+pip install -e .[pre-commit,testing]
+```
+## Usage:
 
-- to get default info about the crystal: 
+- to get default info about the crystal:
 
 ```
 $ manage_crystal.py inputfilename.inputformat [options]`
@@ -24,7 +28,7 @@ $ manage_crystal.py inputfilename.inputformat [options] -o outputformat
 - to get help:
 
 ```
-$ manage_crystal.py --help 
+$ manage_crystal.py --help
 
 usage: manage_crystal.py [-h] [-o OUTPUT] [-silent] [-show]
                          [-showonly SHOWONLY] [-cupw] [-void] [-ovlp]
@@ -45,7 +49,7 @@ Program to read, extract info and convert crystal files (by Daniele Ongari)
 positional arguments:
   inputfile             path to the input file to read
                         IMPLEMENTED: xyz(w/CELL),pdb,cssr,pwi,pwo,cif,xsf,axsf,subsys(CP2K),
-                                     restart(CP2K),inp(CP2K),cube,POSCAR(VASP) 
+                                     restart(CP2K),inp(CP2K),cube,POSCAR(VASP)
                                      [NEXT: gaussian, dcd+atoms,POSCAR(VASP)]
 
 optional arguments:
@@ -105,11 +109,11 @@ optional arguments:
   -tm5                  Tailor-made 5: print .xyz for B.Wells Qeq w/zero FC
   -tm6                  Tailor-made 6: read GULP's cif
 ```
-  
+
 Tips:
 
-- you may want to use `-silent` to suppress default verbose output: several options "skip -silent" so that you can print just that information on the screen (e.g., `-printatoms -silent` prints on the screen just the atom types on one line). This make easy to use bash loops for lists of structures. 
-  
+- you may want to use `-silent` to suppress default verbose output: several options "skip -silent" so that you can print just that information on the screen (e.g., `-printatoms -silent` prints on the screen just the atom types on one line). This make easy to use bash loops for lists of structures.
+
 ## Development
 
 To enable automatic code formatting for every commit, do

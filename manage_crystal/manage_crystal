@@ -33,6 +33,7 @@ from argparse import RawTextHelpFormatter  #needed to go next line in the help t
 import os
 import re  #re.split('(\d+)',"O23") = ['O', '23', '']
 from six.moves import range
+from manage_crystal import crys
 
 parser = argparse.ArgumentParser(
     description=
@@ -347,7 +348,7 @@ if not args.silent: print()
 if not os.path.isfile(args.inputfile):
     sys.exit("ERROR: The file %s doesn't exist!" % args.inputfile)
 inputfilename = os.path.splitext(args.inputfile)[0]
-inputformat = os.path.splitext(args.inputfile)[1][1:]  
+inputformat = os.path.splitext(args.inputfile)[1][1:]
 file = open(inputfilename + "." + inputformat, 'r')
 """/
 if inputformat=='dcd':
