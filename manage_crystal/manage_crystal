@@ -34,6 +34,7 @@ import os
 import re  #re.split('(\d+)',"O23") = ['O', '23', '']
 from six.moves import range
 from manage_crystal import Crys
+from manage_crystal.atomic_data import *  #import all the data stored in the file atom_data.py
 
 parser = argparse.ArgumentParser(
     description=
@@ -203,10 +204,17 @@ parser.add_argument(
     "-transl",
     action="store",
     type=float,
-    nargs='*',
+    nargs=3,
     dest="transl",
     default=None,
     help="x y z translation in Angs")
+
+parser.add_argument(
+    "-rotaxis",
+    choices=[None, "up", "down"],
+    dest="rotaxis",
+    default=None,
+    help="Rotate the axis. 'up': xyz>zxy, 'down': xyz>yzx")
 
 parser.add_argument(
     "-mol",
@@ -318,7 +326,6 @@ parser.add_argument(
 args = parser.parse_args()
 
 ############################################################################# UTILITIES and STANDARD INFOS about the periodic table: atomic_symbol/name/vdw/mass
-from atomic_data import *  #import all the data stored in the file atom_data.py
 
 atom_count = [0] * 119  #anything assigned to 0, H_index=1, He_index=2, ...
 
@@ -1223,6 +1230,28 @@ if args.transl != None:
         z = xyz[i][2] * invcell.item((0, 2)) + xyz[i][1] * invcell.item(
             (1, 2)) + xyz[i][2] * invcell.item((2, 2))
         fract.append([x, y, z])
+
+if args.rotaxis != None:
+
+    if not args.silent: print()
+    if not args.silent:
+        print("*** ROTATING axis, direction: %r" % args.rotaxis)
+    if not args.silent: print("*** Warning: the cell matrix is not rotated")
+    if args.rotaxis == "up":
+        ABC[0], ABC[1], ABC[2] = ABC[2], ABC[0], ABC[1]
+        abc[0], abc[1], abc[2] = abc[2], abc[0], abc[1]
+        for i in range(natoms):
+            xyz[i][0], xyz[i][1], xyz[i][2] = xyz[i][2], xyz[i][0], xyz[i][1]
+            fract[i][0], fract[i][1], fract[i][2] = \
+             fract[i][2], fract[i][0], fract[i][1]
+
+    if args.rotaxis == "down":
+        ABC[0], ABC[1], ABC[2] = ABC[1], ABC[2], ABC[0]
+        abc[0], abc[1], abc[2] = abc[1], abc[2], abc[0]
+        for i in range(natoms):
+            xyz[i][0], xyz[i][1], xyz[i][2] = xyz[i][1], xyz[i][2], xyz[i][0]
+            fract[i][0], fract[i][1], fract[i][2] = \
+             fract[i][1], fract[i][2], fract[i][0]
 
 if args.randomize != None:
 
