@@ -233,7 +233,7 @@ parser.add_argument(
     help="Randomize the geometry by a gaussian\n" +
     "with the specified delta (angs)")
 
-################################################################################################### START stuff for Qeq project-22
+################################################# START stuff for Qeq project-22
 parser.add_argument(
     "-chkmetalcharge",
     action="store_true",
@@ -279,7 +279,7 @@ parser.add_argument(
     default=False,
     help="Normalize the charges to have a null total charge.")
 
-################################################################################################### END stuff for Qeq project-22
+################################################### END stuff for Qeq project-22
 
 parser.add_argument(
     "-tm1",
@@ -325,7 +325,7 @@ parser.add_argument(
 
 args = parser.parse_args()
 
-############################################################################# UTILITIES and STANDARD INFOS about the periodic table: atomic_symbol/name/vdw/mass
+###################################################################### UTILITIES
 
 atom_count = [0] * 119  #anything assigned to 0, H_index=1, He_index=2, ...
 
@@ -348,10 +348,11 @@ def is_number(s):  #checks if a string is a number or not
         pass
 
 
-############################################################################## INPUT
+########################################################################## INPUT
 if not args.silent: print()
 
-#reading input file: name and format (notice that if there is a path it becomes part of the name, to have the output in the same place)
+# reading input file: name and format (notice that if there is a path it becomes
+# part of the name, to have the output in the same place)
 if not os.path.isfile(args.inputfile):
     sys.exit("ERROR: The file %s doesn't exist!" % args.inputfile)
 inputfilename = os.path.splitext(args.inputfile)[0]
@@ -498,63 +499,41 @@ if inputformat == 'xyz':
         natoms = int(line.split()[0])
 
         #read cell in my way of writing it as a comment of xyz
-        line = file.readline()
-
-        if len(line) == 0 or (line.split()[0] != 'CELL:'
-                              and line.split()[0] != 'cell:'
-                              and line.split()[0] != 'jmolscript:'
-                              ):  #set a 50x50x50 cell if CELL is not specified
+        data = file.readline().split()
+        if len(data) >= 7 and data[0] == 'CELL:':
+            ABC = [float(data[1]), float(data[2]), float(data[3])]
+            abc = [
+                math.radians(float(data[4])),
+                math.radians(float(data[5])),
+                math.radians(float(data[6]))
+            ]
+        elif len(data) >= 10 and data[0] == 'cell:':
+            cell = numpy.matrix(
+                [[float(data[1]),
+                  float(data[2]),
+                  float(data[3])],
+                 [float(data[4]),
+                  float(data[5]),
+                  float(data[6])],
+                 [float(data[7]),
+                  float(data[8]),
+                  float(data[9])]])
+        elif len(data) >= 23 and data[0] == 'cell:':
+            cell = numpy.matrix(
+                [[float(data[10]),
+                  float(data[11]),
+                  float(data[12])],
+                 [float(data[15]),
+                  float(data[16]),
+                  float(data[17])],
+                 [float(data[20]),
+                  float(data[21]),
+                  float(data[22])]])
+        else:  #set a 50x50x50 cell if CELL is not specified
             if not args.silent:
-                print(len(line))
                 print("WARNING: no CELL properly specified... using 50 50 50")
             ABC = [50., 50., 50.]
             abc = [math.radians(90.), math.radians(90.), math.radians(90.)]
-
-        else:
-            celltemp = line.split()
-
-            if celltemp[0] == 'CELL:':  #ABC alpha/beta/gamma
-                ABC = [
-                    float(celltemp[1]),
-                    float(celltemp[2]),
-                    float(celltemp[3])
-                ]
-                abc = [
-                    math.radians(float(celltemp[4])),
-                    math.radians(float(celltemp[5])),
-                    math.radians(float(celltemp[6]))
-                ]
-
-            elif celltemp[0] == 'cell:':  #cellmatrix
-                cell = numpy.matrix([[
-                    float(celltemp[1]),
-                    float(celltemp[2]),
-                    float(celltemp[3])
-                ], [
-                    float(celltemp[4]),
-                    float(celltemp[5]),
-                    float(celltemp[6])
-                ], [
-                    float(celltemp[7]),
-                    float(celltemp[8]),
-                    float(celltemp[9])
-                ]])
-            elif celltemp[0] == 'jmolscript:':  #working for ddec output
-                cell = numpy.matrix([[
-                    float(celltemp[10]),
-                    float(celltemp[11]),
-                    float(celltemp[12])
-                ],
-                                     [
-                                         float(celltemp[15]),
-                                         float(celltemp[16]),
-                                         float(celltemp[17])
-                                     ],
-                                     [
-                                         float(celltemp[20]),
-                                         float(celltemp[21]),
-                                         float(celltemp[22])
-                                     ]])
 
         #read atom[index]
         atom = []
@@ -573,7 +552,7 @@ if inputformat == 'xyz':
                     data[4]))  #if there is an extra column is the charge!
         if len(charge) == 0: del charge
 
-    if args.tailormade3:
+    if args.tailormade3:  # B.Wells program xyz
         junk = file.readline()
         celltemp = file.readline().split()
         ABC = [float(celltemp[1]), float(celltemp[2]), float(celltemp[3])]
@@ -768,20 +747,26 @@ if inputformat == 'cif':
             while len(data[0].split("_")) > 1 \
                   and data[0].split("_")[1] == "atom":
                 data_order_dic[data[0]] = order
-                data = file.readline().split()
+                line = file.readline()
+                data = line.split()
                 order += 1
             break  #go in the loop to read coordinates
     # Read atomic element, coordinates and charges
     atom = []
     an = []
-    charge = []
+
     if "_atom_site_fract_x" in data_order_dic:
         fract = []
     elif "_atom_site_Cartn_x" in data_order_dic:
         xyz = []
+    if "_atom_site_charge" in data_order_dic:
+        charge = []
     iatom = 0
     while True:
-        if line == "" or data[0] == "loop_" or data[0] == "_loop":
+        if line == "" \
+           or line =="\n" \
+           or data[0] == "loop_" \
+           or data[0] == "_loop":
             break
         # looks for "type_symbol" before and, if missing for "label"
         if "_atom_site_type_symbol" in data_order_dic:
@@ -812,8 +797,6 @@ if inputformat == 'cif':
             sys.exit("EXIT: in cif missing fract_ and Cartn_ coordinates")
         if "_atom_site_charge" in data_order_dic:
             charge.append(float(data[data_order_dic["_atom_site_charge"]]))
-        else:
-            charge.append(0.0)
         iatom += 1
         line = file.readline()
         data = line.split()
