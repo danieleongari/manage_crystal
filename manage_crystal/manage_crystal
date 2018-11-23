@@ -1,27 +1,4 @@
 #!/usr/bin/env python
-"""
-Python program to read coordinates from a file and handle them. Daniele Ongari 7/11/16
-
-inputfilename          name of the input filename.inpformat
-inputformat	       input format
-
-natoms                 number of atoms
-ntypes                 number of different atom types
-ABC[012]               A B C in angstrom
-abc[012]               alpha,beta,gamma in radians
-cell(3x3)              unit cell matrix in angstrom
-
-  atom[index]          atomic name
-    an[index]          atomic number
-   xyz[index][x,y,z]   cartesian coordinates in angstrom
- fract[index][x,y,z]   fractional coordinates
-charge[index]          partial charge
-
-atom_count[an]         number of atoms for atomic number an
-atomic_symbol[an]      symbol of atom for atomic number an
-
-
-"""
 from __future__ import print_function  #python3 like print()
 from __future__ import absolute_import
 import string, sys
@@ -31,10 +8,11 @@ import subprocess
 import argparse
 from argparse import RawTextHelpFormatter  #needed to go next line in the help text
 import os
-import re  #re.split('(\d+)',"O23") = ['O', '23', '']
+import re  #re.split(r'(\d+)',"O23") = ['O', '23', '']
 from six.moves import range
 from manage_crystal import Crys
 from manage_crystal.atomic_data import *  #import all the data stored in the file atom_data.py
+from manage_crystal.file_parser import parse_cif, parse_pdb
 
 parser = argparse.ArgumentParser(
     description=
@@ -339,7 +317,6 @@ def is_number(s):  #checks if a string is a number or not
         return True
     except ValueError:
         pass
-
     try:
         import unicodedata
         unicodedata.numeric(s)
@@ -349,7 +326,7 @@ def is_number(s):  #checks if a string is a number or not
 
 
 ########################################################################## INPUT
-if not args.silent: print()
+
 
 # reading input file: name and format (notice that if there is a path it becomes
 # part of the name, to have the output in the same place)
@@ -389,43 +366,6 @@ if inputformat=='dcd':
 		#xyz.append([float(data[1]), float(data[2]), float(data[3])])
 		charge.append(0.000)
  """
-
-if inputformat == 'pdb':
-    while True:
-        line = file.readline()
-        if line.split()[0] == 'CRYST1' or line.split()[0] == 'COMPD':
-            break
-    ABC = [float(line[0o6:15]), float(line[15:24]), float(line[24:33])]
-    abc = [
-        math.radians(float(line[33:40])),
-        math.radians(float(line[40:47])),
-        math.radians(float(line[47:54]))
-    ]
-    #read atom[index]
-    atom = []
-    an = []
-    xyz = []
-    i = 0
-    while True:
-        line = file.readline()
-        data = line.split()
-        if len(data) == 0:  #if the file is finished stop
-            break
-        elif data[0] == 'END' or data[0] == 'ENDMDL':  #if the file says "END"
-            break
-        elif data[0] != "ATOM" and data[0] != "HETATM":  #avoid other stuff
-            donothing = True
-        else:
-            atom.append(data[2])
-            an.append(atomic_symbol.index(atom[i]))
-            atom_count[an[i]] += 1
-            xyz.append(
-                [float(line[30:38]),
-                 float(line[38:46]),
-                 float(line[46:54])])
-            i = i + 1
-        natoms = i
-
 if inputformat == 'POSCAR':
     junk_title = file.readline()
     junk_symm = file.readline()
@@ -464,7 +404,7 @@ if inputformat == 'POSCAR':
             coord = file.readline().split()
             xyz.append([float(coord[0]), float(coord[1]), float(coord[2])])
 
-if inputformat == 'cssr':  #file format description: http://www.chem.cmu.edu/courses/09-560/docs/msi/modenv/D_Files.html#944777
+elif inputformat == 'cssr':  #file format description: http://www.chem.cmu.edu/courses/09-560/docs/msi/modenv/D_Files.html#944777
     celltemp = file.readline().split()
     ABC = [float(celltemp[0]), float(celltemp[1]), float(celltemp[2])]
     celltemp = file.readline().split()
@@ -492,7 +432,7 @@ if inputformat == 'cssr':  #file format description: http://www.chem.cmu.edu/cou
         else:
             charge.append(0.0)
 
-if inputformat == 'xyz':
+elif inputformat == 'xyz':
     if not args.tailormade3:
         #read number of atoms
         line = file.readline()
@@ -578,7 +518,7 @@ if inputformat == 'xyz':
             else:
                 charge.append(float(0))
 
-if (inputformat == 'pwo') or (inputformat == 'pwi'):
+elif (inputformat == 'pwo') or (inputformat == 'pwi'):
     # search for the last time the cell/coord are printed and jump to that
     # line (no need to be converged). ONLY if they are not found, it reads the
     # initial input cell
@@ -715,94 +655,7 @@ if (inputformat == 'pwo') or (inputformat == 'pwi'):
                 natoms = i
                 break
 
-if inputformat == 'cif':
-    # REQUIREMENTS:
-    # - only valid for P1 symmetry
-    # - cell data should be specified before the atom data
-    # - if some other "_atom_something" are specified before, it does not work
-    # - after the atom coordinates it breaks with "loop_" or EOF
-    ABC = [0] * 3
-    abc = [0] * 3
-    while True:
-        line = file.readline()
-        data = line.split()
-        if len(data) > 0 and (data[0] == "_cell_length_a"):
-            ABC[0] = float(data[1])
-        if len(data) > 0 and (data[0] == "_cell_length_b"):
-            ABC[1] = float(data[1])
-        if len(data) > 0 and (data[0] == "_cell_length_c"):
-            ABC[2] = float(data[1])
-        if len(data) > 0 and (data[0] == "_cell_angle_alpha"):
-            abc[0] = math.radians(float(data[1]))
-        if len(data) > 0 and (data[0] == "_cell_angle_beta"):
-            abc[1] = math.radians(float(data[1]))
-        if len(data) > 0 and (data[0] == "_cell_angle_gamma"):
-            abc[2] = math.radians(float(data[1]))
-        # if the _atom_site_something section starts, remember the order
-        if len(data) > 0 \
-           and len(data[0].split("_")) > 1 \
-           and data[0].split("_")[1] == "atom":
-            data_order_dic = {}
-            order = 0
-            while len(data[0].split("_")) > 1 \
-                  and data[0].split("_")[1] == "atom":
-                data_order_dic[data[0]] = order
-                line = file.readline()
-                data = line.split()
-                order += 1
-            break  #go in the loop to read coordinates
-    # Read atomic element, coordinates and charges
-    atom = []
-    an = []
-
-    if "_atom_site_fract_x" in data_order_dic:
-        fract = []
-    elif "_atom_site_Cartn_x" in data_order_dic:
-        xyz = []
-    if "_atom_site_charge" in data_order_dic:
-        charge = []
-    iatom = 0
-    while True:
-        if line == "" \
-           or line =="\n" \
-           or data[0] == "loop_" \
-           or data[0] == "_loop":
-            break
-        # looks for "type_symbol" before and, if missing for "label"
-        if "_atom_site_type_symbol" in data_order_dic:
-            atom.append(
-                re.split(r'(\d+)',
-                         data[data_order_dic["_atom_site_type_symbol"]])[0])
-        elif "_atom_site_label" in data_order_dic:
-            atom.append(
-                re.split(r'(\d+)',
-                         data[data_order_dic["_atom_site_label"]])[0])
-        else:
-            sys.exit("EXIT: in cif missing type_symbol and label")
-        an.append(atomic_symbol.index(atom[iatom]))
-        atom_count[an[iatom]] += 1
-        if "_atom_site_fract_x" in data_order_dic:
-            fract.append([
-                float(data[data_order_dic["_atom_site_fract_x"]]),
-                float(data[data_order_dic["_atom_site_fract_y"]]),
-                float(data[data_order_dic["_atom_site_fract_z"]]),
-            ])
-        elif "_atom_site_Cartn_x" in data_order_dic:
-            xyz.append([
-                float(data[data_order_dic["_atom_site_Cartn_x"]]),
-                float(data[data_order_dic["_atom_site_Cartn_y"]]),
-                float(data[data_order_dic["_atom_site_Cartn_z"]]),
-            ])
-        else:
-            sys.exit("EXIT: in cif missing fract_ and Cartn_ coordinates")
-        if "_atom_site_charge" in data_order_dic:
-            charge.append(float(data[data_order_dic["_atom_site_charge"]]))
-        iatom += 1
-        line = file.readline()
-        data = line.split()
-    natoms = iatom
-
-if inputformat == 'xsf' or inputformat == 'axsf':
+elif inputformat == 'xsf' or inputformat == 'axsf':
     while True:
         line = file.readline()
         if line.split()[0] == 'PRIMVEC':
@@ -843,7 +696,7 @@ if inputformat == 'xsf' or inputformat == 'axsf':
         atom_count[an[i]] += 1
         xyz.append([float(data[1]), float(data[2]), float(data[3])])
 
-if inputformat == 'subsys' or inputformat == 'inp' or inputformat == 'restart':  #CP2K files
+elif inputformat == 'subsys' or inputformat == 'inp' or inputformat == 'restart':  #CP2K files
     while True:
         data = file.readline().split()
         if len(data) > 0 and (data[0] == "A"): celltempA = data
@@ -905,7 +758,7 @@ if inputformat == 'subsys' or inputformat == 'inp' or inputformat == 'restart': 
         fract = xyz
         del xyz
 
-if inputformat == 'cube':
+elif inputformat == 'cube':
     junk = file.readline()  #header1
     junk = file.readline()  #header2
 
@@ -950,7 +803,30 @@ if inputformat == 'cube':
             float(data[4]) / ANGS2BOHR
         ])
 
+elif inputformat == 'cif':
+    crys = parse_cif(file)
+elif inputformat == 'pdb':
+    crys = parse_pdb(file)
+else:
+    sys.exit("WARNING: Input file format not implemented. EXIT.")
 file.close()
+
+#### Temporary converter
+if inputformat == "cif" or inputformat == "pdb":
+    crys.after_parse()
+    natoms = crys.natom
+    ABC = crys.length
+    abc = crys.angle_rad
+    if crys.inp_xyz:
+        xyz = crys.atom_xyz
+    elif crys.inp_fract:
+        fract = crys.atom_fract
+    atom = crys.atom_element
+    an = crys.atom_atnum
+    for f in an:
+        atom_count[f] += 1
+    charge = crys.atom_charge
+########################
 
 if not args.resp == None:
     if 'charge' in locals():
@@ -1077,10 +953,10 @@ elif 'xyz' in locals():  #convert in fractionals
             (1, 2)) + xyz[i][2] * invcell.item((2, 2))
         fract.append([x, y, z])
 
-if not 'charge' in locals():
+if not 'charge' in locals() or charge == []:
     if not args.silent: print()
     if not args.silent:
-        print(" ... no atomic charge found: 0 charge for each atom")
+        print(" ... no atomic charge found: assign 0.0 charge for each atom")
     charge = [0] * natoms
 
 if args.chargenull:
@@ -1790,7 +1666,7 @@ if args.output != None:
                       file=ofile)
             print("_loop", file=ofile)
 
-    if outputformat == "pdb":
+    elif outputformat == "pdb":
         print((
             'CRYST1{0:>9.3f}{1:>9.3f}{2:>9.3f}{3:>7.2f}{4:>7.2f}{5:>7.2f} P 1           1'
             .format(ABC[0], ABC[1], ABC[2], math.degrees(abc[0]),
@@ -1803,7 +1679,7 @@ if args.output != None:
                    fract[i][1], fract[i][2], 1.00, 0.00, atom[i], ""),
                 file=ofile)
 
-    if outputformat == "cssr":
+    elif outputformat == "cssr":
         print(
             "                               %.3f  %.3f  %.3f" %
             (ABC[0], ABC[1], ABC[2]),
@@ -1822,7 +1698,7 @@ if args.output != None:
                  charge[i]),
                 file=ofile)
 
-    if outputformat == "xyz":
+    elif outputformat == "xyz":
         if not (args.tailormade4 or args.tailormade5):
             print("%d" % (natoms), file=ofile)
             print(
@@ -1866,7 +1742,7 @@ if args.output != None:
                     (atom[i], fract[i][0], fract[i][1], fract[i][2]),
                     file=ofile)
 
-    if outputformat == "pwi":
+    elif outputformat == "pwi":
         if not args.silent:
             print("QE input .pwi using the pseudo: %s" % (args.pseudopw))
         if not args.silent: print()
@@ -1966,7 +1842,7 @@ if args.output != None:
                                                xyz[i][2]),
                 file=ofile)
 
-    if outputformat == "subsys":
+    elif outputformat == "subsys":
         print(
             "##### Include it to the main cp2k.inp using: @INCLUDE '%s.subsys'"
             % outputfilename,
@@ -2012,7 +1888,7 @@ if args.output != None:
                 print(" ", file=ofile)
         print("  &END SUBSYS", file=ofile)
 
-    if outputformat == "axsf":
+    elif outputformat == "axsf":
         print("ANIMSTEPS 1", file=ofile)
         print("CRYSTAL", file=ofile)
         print("PRIMVEC 1", file=ofile)
@@ -2036,7 +1912,7 @@ if args.output != None:
                                             xyz[i][2]),
                 file=ofile)
 
-    if outputformat == "geo":
+    elif outputformat == "geo":
         print("Made with manage_crystal.py", file=ofile)
         print(
             "     %8.5f %8.5f %8.5f" % (cell.item((0, 0)), cell.item(
@@ -2056,29 +1932,7 @@ if args.output != None:
                 "%d %8.3f %8.3f %8.3f %8.3f" % (an[i], xyz[i][0], xyz[i][1],
                                                 xyz[i][2], charge[i]),
                 file=ofile)
+    else:
+        sys.exit("WARNING: Output file format not implemented. EXIT.")
 
     ofile.close()
-
-############################################################################## Write supplementary outputs
-"""
-if args.printatoms!=None:
-   ofile=open(args.printatoms, 'w+')
-
-   if not args.silent: print("*** Printing atoms to", args.printatoms)
-   if not args.silent: print("*** 1st line: all atoms")
-   if not args.silent: print("*** 2nd line: all atoms except for H, C, O")
-   if not args.silent: print()
-
-   for i in range(0,len(atom_count)):
-	if atom_count[i] != 0:
-           print(atomic_symbol[i],end='_',file=ofile)
-   print("",file=ofile)
-
-   for i in range(0,len(atom_count)):
-	if atom_count[i] != 0 and atomic_symbol[i]!="H" \
-                              and atomic_symbol[i]!="C" \
-                              and atomic_symbol[i]!="O":
-           print(atomic_symbol[i],end='_',file=ofile)
-   print("",file=ofile)
-   ofile.close()
-"""
