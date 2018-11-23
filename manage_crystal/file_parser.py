@@ -1,7 +1,9 @@
+from __future__ import absolute_import
 from manage_crystal import Crys
 
+
 def parse_cif(file):
-    ''' Parse .cif file and return Crys object '''
+    ''' Parse .cif file and return a Crys object '''
     # REQUIREMENTS:
     # - only valid for P1 symmetry
     # - cell data should be specified before the atom data
@@ -52,11 +54,9 @@ def parse_cif(file):
             break
         # looks for "type_symbol" before and, if missing for "label"
         if "_atom_site_type_symbol" in data_order_dic:
-            c.atom_type.append(
-                data[data_order_dic["_atom_site_type_symbol"]])
+            c.atom_type.append(data[data_order_dic["_atom_site_type_symbol"]])
         elif "_atom_site_label" in data_order_dic:
-            c.atom_type.append(
-                data[data_order_dic["_atom_site_label"]])
+            c.atom_type.append(data[data_order_dic["_atom_site_label"]])
         else:
             sys.exit("EXIT: in cif missing type_symbol and label")
         if "_atom_site_fract_x" in data_order_dic:
@@ -80,6 +80,7 @@ def parse_cif(file):
         data = line.split()
     return c
 
+
 def parse_pdb(file):
     ''' Parse .pdb file and return Crys object '''
     c = Crys()
@@ -93,16 +94,18 @@ def parse_pdb(file):
             break
         elif len(data) > 0 and data[0] == 'CRYST1':
             c.inp_lengths_angles = True
-            c.length = [float(line[0o6:15]),
-                        float(line[15:24]),
-                        float(line[24:33])
-                        ]
-            c.angle_deg = [float(line[33:40]),
-                           float(line[40:47]),
-                           float(line[47:54])
-                           ]
+            c.length = [
+                float(line[0o6:15]),
+                float(line[15:24]),
+                float(line[24:33])
+            ]
+            c.angle_deg = [
+                float(line[33:40]),
+                float(line[40:47]),
+                float(line[47:54])
+            ]
         elif len(data) > 0 and (data[0] == "ATOM" or data[0] == "HETATM"):
-            c.atom_type.append(data[2]) #maybe read to data[-1]
+            c.atom_type.append(data[2])  #maybe read to data[-1]
             c.atom_xyz.append(
                 [float(line[30:38]),
                  float(line[38:46]),
