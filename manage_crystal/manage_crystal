@@ -2,7 +2,8 @@
 from __future__ import print_function  #python3 like print()
 from __future__ import absolute_import
 import string, sys
-import numpy
+import numpy as np
+from numpy.linalg import inv
 import math
 import subprocess
 import argparse
@@ -12,7 +13,10 @@ import re  #re.split(r'(\d+)',"O23") = ['O', '23', '']
 from six.moves import range
 from manage_crystal import Crys
 from manage_crystal.atomic_data import *  #import all the data stored in the file atom_data.py
-from manage_crystal.file_parser import parse_cif, parse_pdb
+from manage_crystal.file_parser import parse_axsf, parse_cif, parse_cssr
+from manage_crystal.file_parser import parse_pdb, parse_poscar, parse_pwo
+from manage_crystal.file_parser import parse_xyz, parse_xyz_tm3
+#from pprint import pprint #pprint(vars(your_object))
 
 parser = argparse.ArgumentParser(
     description=
@@ -25,7 +29,7 @@ parser.add_argument(
     help="path to the input file to read\n" +
     "IMPLEMENTED: xyz(w/CELL),pdb,cssr,pwi,pwo,cif,xsf,axsf,subsys(CP2K),\n" +
     "             restart(CP2K),inp(CP2K),cube,POSCAR(VASP) \n" +
-    "             [NEXT: gaussian, dcd+atoms,POSCAR(VASP)]")
+    "             [NEXT: gaussian, dcd+atoms]")
 
 parser.add_argument(
     "-o",
@@ -35,7 +39,7 @@ parser.add_argument(
     dest="output",
     default=None,
     help="Output filename.extension or just the extension\n" +
-    "IMPLEMENTED: cif,pdb,cssr,xyz(w/CELL),pwi,subsys(CP2K),axsf,geo(GULP)")
+    "IMPLEMENTED: cif,pdb,cssr,xyz(w/CELL),pwi,subsys(CP2K),axsf")
 
 parser.add_argument(
     "-silent",
@@ -260,46 +264,18 @@ parser.add_argument(
 ################################################### END stuff for Qeq project-22
 
 parser.add_argument(
-    "-tm1",
-    action="store_true",
-    dest="tailormade1",
-    default=False,
-    help="Tailor-made 1: read  .cif CoRE MOF w/DDEC charges")
-
-parser.add_argument(
-    "-tm2",
-    action="store_true",
-    dest="tailormade2",
-    default=False,
-    help="Tailor-made 2: print .cif for EQeq")
-
-parser.add_argument(
-    "-tm3",
-    action="store_true",
-    dest="tailormade3",
-    default=False,
-    help="Tailor-made 3: read  .xyz for B.Wells Qeq")
-
-parser.add_argument(
-    "-tm4",
-    action="store_true",
-    dest="tailormade4",
-    default=False,
-    help="Tailor-made 4: print .xyz for B.Wells Qeq")
-
-parser.add_argument(
-    "-tm5",
-    action="store_true",
-    dest="tailormade5",
-    default=False,
-    help="Tailor-made 5: print .xyz for B.Wells Qeq w/zero FC")
-
-parser.add_argument(
-    "-tm6",
-    action="store_true",
-    dest="tailormade6",
-    default=False,
-    help="Tailor-made 6: read GULP's cif")
+    "-tm "
+    "--tailormade",
+    type=int,
+    dest="tm",
+    default=0,
+    help="Tailor made settings for parsing and writing:\n" +
+    " 1 - Deprecated (parse DDEC-CoRE-MOF .cif)\n"
+    " 2 - Deprecated (write .cif for EQeq)\n"
+    " 3 - Parse .xyz for B. Wells Qeq program\n"
+    " 4 - Write .xyz for B. Wells Qeq program\n"
+    " 5 - Write .xyz for B. Wells Qeq program, w/ zero formal charge\n"
+    " 6 - Deprecated (parse .cif from EGULP)\n")
 
 args = parser.parse_args()
 
@@ -326,8 +302,6 @@ def is_number(s):  #checks if a string is a number or not
 
 
 ########################################################################## INPUT
-
-
 # reading input file: name and format (notice that if there is a path it becomes
 # part of the name, to have the output in the same place)
 if not os.path.isfile(args.inputfile):
@@ -335,650 +309,86 @@ if not os.path.isfile(args.inputfile):
 inputfilename = os.path.splitext(args.inputfile)[0]
 inputformat = os.path.splitext(args.inputfile)[1][1:]
 file = open(inputfilename + "." + inputformat, 'r')
-"""
-This was using pwtools: I should try to make it reading directly the fortran binary!
-if inputformat=='dcd':
-	from pwtools import dcd
-	cc,co = dcd.read_dcd_data('./'+inputfilename+'.'+inputformat, convang=False) #convang=True usefull to read LAMMPS data, because it converts angles from cosine to degree
-	ABC=[ cc[-1][0], cc[-1][1], cc[-1][2] ]
-	abc=[ math.acos(cc[-1][3]), math.acos(cc[-1][4]), math.acos(cc[-1][5]) ]
-	cell=numpy.matrix([[                 ABC[0],                    0.0,                                                                           0.0],
-			   [ABC[1]*math.cos(abc[2]),ABC[1]*math.sin(abc[2]),                                                                           0.0],
-			   [ABC[2]*math.cos(abc[1]),ABC[2]*math.cos(abc[0]),math.sqrt(ABC[2]**2-(ABC[2]*math.cos(abc[1]))**2-(ABC[2]*math.cos(abc[0]))**2)]])
-	xyz=co[-1]
-	file.close()
-	user_input = raw_input("Give me a file with the atoms: ")
-	file = open(user_input,'r')
-	natoms=int(file.readlines()[0].split()[0])
-	atom=[]
-	an=[]
-	#xyz=[]
-	charge=[]
-	file = open(user_input,'r')
-	for i in range(0,natoms):
-		line = file.readlines()[i+2]
-		data = line.split()
-		atom.append(data[0])
-		#an.append(atomic_symbol.index(atom[i]))
-                #atom_count[an[i]]+=1
-		an.append(1)
-                atom_count[an[i]]+=1
-		#xyz.append([float(data[1]), float(data[2]), float(data[3])])
-		charge.append(0.000)
- """
-if inputformat == 'POSCAR':
-    junk_title = file.readline()
-    junk_symm = file.readline()
-    a_vect = file.readline().split()
-    b_vect = file.readline().split()
-    c_vect = file.readline().split()
-    cell = numpy.matrix(
-        [[float(a_vect[0]),
-          float(a_vect[1]),
-          float(a_vect[2])],
-         [float(b_vect[0]),
-          float(b_vect[1]),
-          float(b_vect[2])],
-         [float(c_vect[0]),
-          float(c_vect[1]),
-          float(c_vect[2])]])
-    poscar_atomtypes = file.readline().split()
-    poscar_atomnumbers = file.readline().split()
-    atom = []
-    an = []
-    for i in range(len(poscar_atomtypes)):
-        for j in range(int(poscar_atomnumbers[i])):
-            atom.append(poscar_atomtypes[i])
-            an.append(atomic_symbol.index(poscar_atomtypes[i]))
-            atom_count[atomic_symbol.index(poscar_atomtypes[i])] += 1
-    natoms = len(atom)
-    coord_type = file.readline().split()[0]
-    if coord_type == 'Direct' or coord_type == 'direct':
-        fract = []
-        for i in range(natoms):
-            coord = file.readline().split()
-            fract.append([float(coord[0]), float(coord[1]), float(coord[2])])
-    elif coord_type == 'Cartesian' or coord_type == 'cartesian':
-        xyz = []
-        for i in range(natoms):
-            coord = file.readline().split()
-            xyz.append([float(coord[0]), float(coord[1]), float(coord[2])])
-
-elif inputformat == 'cssr':  #file format description: http://www.chem.cmu.edu/courses/09-560/docs/msi/modenv/D_Files.html#944777
-    celltemp = file.readline().split()
-    ABC = [float(celltemp[0]), float(celltemp[1]), float(celltemp[2])]
-    celltemp = file.readline().split()
-    abc = [
-        math.radians(float(celltemp[0])),
-        math.radians(float(celltemp[1])),
-        math.radians(float(celltemp[2]))
-    ]
-    data = file.readline().split()
-    natoms = int(data[0])
-    junk = file.readline()
-    atom = []
-    an = []
-    fract = []
-    charge = []
-    for i in range(natoms):
-        data = file.readline().split(
-        )  #Atom serial number, atom name, x, y, z coordinates, bonding connectivities (max 8), charge
-        atom.append(data[1])
-        an.append(atomic_symbol.index(atom[i]))
-        atom_count[an[i]] += 1
-        fract.append([float(data[2]), float(data[3]), float(data[4])])
-        if len(data) == 14:
-            charge.append(float(data[13]))
-        else:
-            charge.append(0.0)
-
-elif inputformat == 'xyz':
-    if not args.tailormade3:
-        #read number of atoms
-        line = file.readline()
-        natoms = int(line.split()[0])
-
-        #read cell in my way of writing it as a comment of xyz
-        data = file.readline().split()
-        if len(data) >= 7 and data[0] == 'CELL:':
-            ABC = [float(data[1]), float(data[2]), float(data[3])]
-            abc = [
-                math.radians(float(data[4])),
-                math.radians(float(data[5])),
-                math.radians(float(data[6]))
-            ]
-        elif len(data) >= 10 and data[0] == 'cell:':
-            cell = numpy.matrix(
-                [[float(data[1]),
-                  float(data[2]),
-                  float(data[3])],
-                 [float(data[4]),
-                  float(data[5]),
-                  float(data[6])],
-                 [float(data[7]),
-                  float(data[8]),
-                  float(data[9])]])
-        elif len(data) >= 23 and data[0] == 'cell:':
-            cell = numpy.matrix(
-                [[float(data[10]),
-                  float(data[11]),
-                  float(data[12])],
-                 [float(data[15]),
-                  float(data[16]),
-                  float(data[17])],
-                 [float(data[20]),
-                  float(data[21]),
-                  float(data[22])]])
-        else:  #set a 50x50x50 cell if CELL is not specified
-            if not args.silent:
-                print("WARNING: no CELL properly specified... using 50 50 50")
-            ABC = [50., 50., 50.]
-            abc = [math.radians(90.), math.radians(90.), math.radians(90.)]
-
-        #read atom[index]
-        atom = []
-        an = []
-        xyz = []
-        charge = []
-        for i in range(0, natoms):
-            line = file.readline()
-            data = line.split()
-            atom.append(data[0])
-            an.append(atomic_symbol.index(atom[i]))
-            atom_count[an[i]] += 1
-            xyz.append([float(data[1]), float(data[2]), float(data[3])])
-            if len(data) == 5:
-                charge.append(float(
-                    data[4]))  #if there is an extra column is the charge!
-        if len(charge) == 0: del charge
-
-    if args.tailormade3:  # B.Wells program xyz
-        junk = file.readline()
-        celltemp = file.readline().split()
-        ABC = [float(celltemp[1]), float(celltemp[2]), float(celltemp[3])]
-        abc = [
-            math.radians(float(celltemp[4])),
-            math.radians(float(celltemp[5])),
-            math.radians(float(celltemp[6]))
-        ]
-        natoms = int(file.readline().split()[0])
-        atom = []
-        an = []
-        fract = []
-        charge = []
-        for i in range(0, natoms):
-            line = file.readline()
-            data = line.split()
-            atom.append(data[0])
-            an.append(atomic_symbol.index(atom[i]))
-            atom_count[an[i]] += 1
-            fract.append([float(data[1]), float(data[2]), float(data[3])])
-            if len(data) > 4:
-                charge.append(float(data[5]))
-            else:
-                charge.append(float(0))
-
-elif (inputformat == 'pwo') or (inputformat == 'pwi'):
-    # search for the last time the cell/coord are printed and jump to that
-    # line (no need to be converged). ONLY if they are not found, it reads the
-    # initial input cell
-    with file as myFile:
-        for num, line in enumerate(myFile, 1):
-            if 'CELL_PARAMETERS' in line:
-                cell_line = num
-    file.close()
-
-    file = open(args.inputfile, 'r')
-    if 'cell_line' in locals():  #read cell in vc-relax calculation
-        for i in range(0, cell_line):
-            skip = file.readline()  #title line
-
-        celltempA = file.readline().split()
-        celltempB = file.readline().split()
-        celltempC = file.readline().split()
-        cell = numpy.matrix(
-            [[float(celltempA[0]),
-              float(celltempA[1]),
-              float(celltempA[2])],
-             [float(celltempB[0]),
-              float(celltempB[1]),
-              float(celltempB[2])],
-             [float(celltempC[0]),
-              float(celltempC[1]),
-              float(celltempC[2])]])
-
-    else:  #read cell in scf or relax calculation
-        while True:
-            data = file.readline().split()
-            if len(data) > 0 and (data[0] == "celldm(1)="):
-                celldm1 = float(data[1]) / ANGS2BOHR
-                skip = file.readline().split()
-                skip = file.readline().split()
-                skip = file.readline().split()
-                celltempA = file.readline().split()
-                celltempB = file.readline().split()
-                celltempC = file.readline().split()
-                cell = numpy.matrix([[
-                    float(celltempA[3]),
-                    float(celltempA[4]),
-                    float(celltempA[5])
-                ],
-                                     [
-                                         float(celltempB[3]),
-                                         float(celltempB[4]),
-                                         float(celltempB[5])
-                                     ],
-                                     [
-                                         float(celltempC[3]),
-                                         float(celltempC[4]),
-                                         float(celltempC[5])
-                                     ]])
-                cell *= celldm1
-                break
-
-    file.close()
-
-    #atomic
-
-    file = open(args.inputfile, 'r')
-    with file as myFile:
-        for num, line in enumerate(myFile, 1):
-            if 'ATOMIC_POSITIONS' in line:
-                atomic_line = num
-                if line.split()[1] == 'angstrom' or line.split(
-                )[1] == '(angstrom)':
-                    readfractional = False
-                elif line.split()[1] == 'crystal' or line.split(
-                )[1] == '(crystal)':
-                    readfractional = True
-    file.close()
-
-    file = open(args.inputfile, 'r')
-    if 'atomic_line' in locals(
-    ):  #read atomic in vc-relax and relax calculation
-        atom = []
-        an = []
-
-        if readfractional: fract = []
-        else: xyz = []
-
-        for i in range(0, atomic_line):
-            skip = file.readline()
-        i = 0
-        while True:
-            data = file.readline().split()
-            if len(data) < 4:  #if the file is finished stop
-                break
-            else:
-                atom.append(
-                    re.split('(\d+)', data[0])
-                    [0])  #takes only the atomtype from a label like "Cu34"
-                an.append(atomic_symbol.index(atom[i]))
-                atom_count[an[i]] += 1
-                if readfractional:
-                    fract.append(
-                        [float(data[1]),
-                         float(data[2]),
-                         float(data[3])])
-                else:
-                    xyz.append(
-                        [float(data[1]),
-                         float(data[2]),
-                         float(data[3])])
-                i = i + 1
-        natoms = i
-
-    else:  #read atomic in scf calculation
-        atom = []
-        an = []
-        xyz = []
-        while True:
-            data = file.readline().split()
-            if len(data) > 0 and (data[0] == "celldm(1)="):
-                celldm1 = float(data[1]) / ANGS2BOHR
-            if len(data) > 3 and (data[3] == "positions"):
-                i = 0
-                while True:
-                    data = file.readline().split()
-                    if len(data) < 10:  #if the file is finished stop
-                        break
-                    else:
-                        atom.append(data[1])
-                        an.append(atomic_symbol.index(atom[i]))
-                        atom_count[an[i]] += 1
-                        xyz.append([
-                            float(data[6]) * celldm1,
-                            float(data[7]) * celldm1,
-                            float(data[8]) * celldm1
-                        ])
-                        i = i + 1
-                natoms = i
-                break
-
-elif inputformat == 'xsf' or inputformat == 'axsf':
-    while True:
-        line = file.readline()
-        if line.split()[0] == 'PRIMVEC':
-            break
-    celltempA = file.readline().split()
-    celltempB = file.readline().split()
-    celltempC = file.readline().split()
-    cell = numpy.matrix(
-        [[float(celltempA[0]),
-          float(celltempA[1]),
-          float(celltempA[2])],
-         [float(celltempB[0]),
-          float(celltempB[1]),
-          float(celltempB[2])],
-         [float(celltempC[0]),
-          float(celltempC[1]),
-          float(celltempC[2])]])
-    while True:
-        line = file.readline()
-        if line.split()[0] == 'PRIMCOORD':
-            break
-    line = file.readline()
-    natoms = int(line.split()[0])
-
-    atom = []
-    an = []
-    xyz = []
-    for i in range(0, natoms):
-        data = file.readline().split()
-        if is_number(
-                data[0]
-        ):  #In .xsf is it specified the atom type number while in my .axsf the atom's name.
-            an.append(int(data[0]))
-            atom.append(atomic_symbol[an[i]])
-        else:
-            atom.append(data[0])
-            an.append(atomic_symbol.index(atom[i]))
-        atom_count[an[i]] += 1
-        xyz.append([float(data[1]), float(data[2]), float(data[3])])
-
-elif inputformat == 'subsys' or inputformat == 'inp' or inputformat == 'restart':  #CP2K files
-    while True:
-        data = file.readline().split()
-        if len(data) > 0 and (data[0] == "A"): celltempA = data
-        if len(data) > 0 and (data[0] == "B"): celltempB = data
-        if len(data) > 0 and (data[0] == "C"): celltempC = data
-        if len(data) > 0 and (data[0] == "&COORD"): break
-
-    if (celltempA[1] == '[angstrom]' or celltempA[1] == '[ANGSTROM]'):
-        cell = numpy.matrix(
-            [[float(celltempA[2]),
-              float(celltempA[3]),
-              float(celltempA[4])],
-             [float(celltempB[2]),
-              float(celltempB[3]),
-              float(celltempB[4])],
-             [float(celltempC[2]),
-              float(celltempC[3]),
-              float(celltempC[4])]])
-    else:  #no units specified (default=angstrom)
-        cell = numpy.matrix(
-            [[float(celltempA[1]),
-              float(celltempA[2]),
-              float(celltempA[3])],
-             [float(celltempB[1]),
-              float(celltempB[2]),
-              float(celltempB[3])],
-             [float(celltempC[1]),
-              float(celltempC[2]),
-              float(celltempC[3])]])
-    atom = []
-    an = []
-    xyz = []
-    scaled_coord = False  #default (*SCALED*)
-    i = 0
-    while True:
-        data = file.readline().split()
-        if len(data) == 0: donothing = True
-        elif data[0] == "SCALED" and (data[1] == 'T' or data[1] == 'TRUE'
-                                      or data[1] == '.TRUE.'):
-            scaled_coord = True  #Can be before or after the coordinates (*SCALED*)
-        elif data[0] == "SCALED" and (data[1] == 'F' or data[1] == 'FALSE'
-                                      or data[1] == '.FALSE.'):
-            donothing = True  #default (*SCALED*)
-        elif data[0] == "&END":
-            natoms = i
-            break
-        else:
-            atom.append(re.split(
-                '(\d+)',
-                data[0])[0])  #takes only the atomtype from a label like "Cu34"
-            an.append(atomic_symbol.index(atom[i]))
-            atom_count[an[i]] += 1
-            xyz.append([float(data[1]),
-                        float(data[2]),
-                        float(data[3])
-                        ])  #They will be scaled later if necessary (*SCALED*)
-            i += 1
-    if scaled_coord:  #Using scaled coordinates (*SCALED*)
-        fract = xyz
-        del xyz
-
-elif inputformat == 'cube':
-    junk = file.readline()  #header1
-    junk = file.readline()  #header2
-
-    line = file.readline()
-
-    natoms = int(line.split()[0])
-    x_orig = float(line.split()[1])
-    y_orig = float(line.split()[2])
-    z_orig = float(line.split()[3])
-
-    celltempA = file.readline().split()
-    celltempB = file.readline().split()
-    celltempC = file.readline().split()
-
-    cell = numpy.matrix(
-        [[
-            float(celltempA[0]) * float(celltempA[1]) / ANGS2BOHR,
-            float(celltempA[0]) * float(celltempA[2]) / ANGS2BOHR,
-            float(celltempA[0]) * float(celltempA[3]) / ANGS2BOHR
-        ],
-         [
-             float(celltempB[0]) * float(celltempB[1]) / ANGS2BOHR,
-             float(celltempB[0]) * float(celltempB[2]) / ANGS2BOHR,
-             float(celltempB[0]) * float(celltempB[3]) / ANGS2BOHR
-         ],
-         [
-             float(celltempC[0]) * float(celltempC[1]) / ANGS2BOHR,
-             float(celltempC[0]) * float(celltempC[2]) / ANGS2BOHR,
-             float(celltempC[0]) * float(celltempC[3]) / ANGS2BOHR
-         ]])
-    atom = []
-    an = []
-    xyz = []
-    for i in range(0, natoms):
-        data = file.readline().split()
-        an.append(int(data[0]))
-        atom.append(atomic_symbol[an[i]])
-        atom_count[an[i]] += 1
-        xyz.append([
-            float(data[2]) / ANGS2BOHR,
-            float(data[3]) / ANGS2BOHR,
-            float(data[4]) / ANGS2BOHR
-        ])
-
-elif inputformat == 'cif':
+if inputformat in ["axsf", "xsf"]:
+    crys = parse_axsf(file)
+elif inputformat == "cif":
     crys = parse_cif(file)
-elif inputformat == 'pdb':
+elif inputformat in ["subsys", "inp", "restart"]:
+    crys = parse_cp2k(file)
+elif inputformat == "cssr":
+    crys = parse_cssr(file)
+elif inputformat == "cube":
+    crys = parse_cube(file)
+elif inputformat == "pdb":
     crys = parse_pdb(file)
+elif inputformat == "POSCAR":
+    crys = parse_poscar(file)
+elif inputformat in ["pwo", "pwi"]:
+    crys = parse_pwo(file)
+elif inputformat == "xyz" and args.tm == 0:
+    crys = parse_xyz(file)
+elif inputformat == "xyz" and args.tm == 3:  # B. Wells Qeq program
+    crys = parse_xyz_tm3(file)
 else:
     sys.exit("WARNING: Input file format not implemented. EXIT.")
 file.close()
 
-#### Temporary converter
-if inputformat == "cif" or inputformat == "pdb":
-    crys.after_parse()
-    natoms = crys.natom
-    ABC = crys.length
-    abc = crys.angle_rad
-    if crys.inp_xyz:
-        xyz = crys.atom_xyz
-    elif crys.inp_fract:
-        fract = crys.atom_fract
-    atom = crys.atom_element
-    an = crys.atom_atnum
-    for f in an:
-        atom_count[f] += 1
-    charge = crys.atom_charge
-########################
+crys.after_parse()
+######################################################################## Charges
 
 if not args.resp == None:
-    if 'charge' in locals():
+    if not all(x == 0 for x in crys.atom_charge):
         if not args.silent:
             print(" ... THERE WERE ALREADY CHARGES BUT I'M OVERWRITING THEM!")
-    charge = [0] * natoms
-    with open(args.resp) as openfileobject:
+    with open(args.resp, "r") as file:
         i = 0
-        for line in openfileobject:
+        for line in file:
             data = line.split()
-            if not len(data) < 4 and data[0] == 'RESP' and data[2] == atom[
-                    i]:  #Removed condition {and int(data[1])==(i+1)} so that i can assemble the RESP file without changing the indexes !USE WITH CARE
-                charge[i] = float(data[3])
-                i = i + 1
-            if i == natoms: break
+            if len(data) > 3 and data[0] == 'RESP' \
+             and data[2] == crys.atom_type[i]:
+                crys.atom_charge[i] = float(data[3])
+                i += 1
+            if i == crys.natom:
+                break
 
 if not args.readcharge == None:
-    if 'charge' in locals():
+    if not all(x == 0 for x in crys.atom_charge):
         if not args.silent:
             print(" ... THERE WERE ALREADY CHARGES BUT I'M OVERWRITING THEM!")
-    charge = [0] * natoms
-    with open(args.readcharge) as openfileobject:
+    with open(args.readcharge) as file:
         i = 0
-        for line in openfileobject:
-            data = line.split()
-            charge[i] = float(data[0])
-            i = i + 1
+        for line in file:
+            crys.atom_charge[i] = float(line.split()[0])
+            i += 1
 
 if not args.readrepeatcharge == None:
-    if 'charge' in locals():
+    if not all(x == 0 for x in crys.atom_charge):
         if not args.silent:
             print(" ... THERE WERE ALREADY CHARGES BUT I'M OVERWRITING THEM!")
-    charge = [0] * natoms
-    with open(args.readrepeatcharge) as openfileobject:
+    with open(args.readrepeatcharge) as file:
         if not args.silent:
             print("*** CHARGES from QE>REPEAT.out: multiplying by -0.5")
-        countline = 0
-        for line in openfileobject:
+        i = 0
+        for line in file:
             data = line.split()
-            if (countline - 17) >= 0 and (
-                    countline - 17
-            ) < natoms:  #Notice: there are 17 info lines in the header of REPEAT.out
-                charge[countline - 17] = float(data[6]) * (-0.5)
-            countline = countline + 1
-
-    if not args.silent: print()
-    if not args.silent:
-        print(" ... %d atomic charges taken from %s" % (i, args.resp))
-    if not i == natoms:
-        print(
-            "WARNING: the number of charges and atoms are different! Chech the order of your atoms!"
-        )
-
-############################################################################# DO SOMETHING
-#check if xyz are really cartesian (angstrom) and if fract are really fractional coordinates.
-
-if 'cell' in locals():  #make uc ABC+abc if it was read in cell
-    if not args.silent: print()
-    if not args.silent: print(" ... converting cell (matrix) to CELL (ABCabc)")
-    #cell= numpy.tril(cell)
-    ABC = [0] * 3
-    abc = [0] * 3
-    ABC[0] = math.sqrt(
-        cell.item((0, 0)) * cell.item((0, 0)) + cell.item((0, 1)) * cell.item(
-            (0, 1)) + cell.item((0, 2)) * cell.item((0, 2)))
-    ABC[1] = math.sqrt(
-        cell.item((1, 0)) * cell.item((1, 0)) + cell.item((1, 1)) * cell.item(
-            (1, 1)) + cell.item((1, 2)) * cell.item((1, 2)))
-    ABC[2] = math.sqrt(
-        cell.item((2, 0)) * cell.item((2, 0)) + cell.item((2, 1)) * cell.item(
-            (2, 1)) + cell.item((2, 2)) * cell.item((2, 2)))
-    abc[0] = math.acos((cell.item((1, 0)) * cell.item((2, 0)) + cell.item(
-        (1, 1)) * cell.item((2, 1)) + cell.item((1, 2)) * cell.item(
-            (2, 2))) / ABC[1] / ABC[2])  #alpha=B^C
-    abc[1] = math.acos((cell.item((0, 0)) * cell.item((2, 0)) + cell.item(
-        (0, 1)) * cell.item((2, 1)) + cell.item((0, 2)) * cell.item(
-            (2, 2))) / ABC[0] / ABC[2])  #beta=A^C
-    abc[2] = math.acos((cell.item((0, 0)) * cell.item((1, 0)) + cell.item(
-        (0, 1)) * cell.item((1, 1)) + cell.item((0, 2)) * cell.item(
-            (1, 2))) / ABC[0] / ABC[1])  #gamma=A^B
-
-elif 'ABC' in locals(
-):  #make uc matrix if it was read in ABC+abc. Copied from Raspa>framework.c>UnitCellBox
-    if not args.silent: print()
-    if not args.silent:
-        print(" ... converting CELL (ABCabc) to cell (matrix) ")
-    tempd = (math.cos(abc[0]) -
-             math.cos(abc[2]) * math.cos(abc[1])) / math.sin(abc[2])
-    cell = numpy.matrix(
-        [[ABC[0], 0.0, 0.0],
-         [ABC[1] * math.cos(abc[2]), ABC[1] * math.sin(abc[2]), 0.0],
-         [
-             ABC[2] * math.cos(abc[1]), ABC[2] * tempd,
-             ABC[2] * math.sqrt(1 - (math.cos(abc[1]))**2 - (tempd)**2)
-         ]])
-
-from numpy.linalg import inv
-invcell = inv(cell)
-
-if 'fract' in locals():  #convert in cartesian
-    if not args.silent: print()
-    if not args.silent:
-        print(" ... converting fractional coordinates in cartesian")
-    xyz = []
-    for i in range(0, natoms):
-        x = fract[i][0] * cell.item((0, 0)) + fract[i][1] * cell.item(
-            (1, 0)) + fract[i][2] * cell.item((2, 0))
-        y = fract[i][0] * cell.item((0, 1)) + fract[i][1] * cell.item(
-            (1, 1)) + fract[i][2] * cell.item((2, 1))
-        z = fract[i][0] * cell.item((0, 2)) + fract[i][1] * cell.item(
-            (1, 2)) + fract[i][2] * cell.item((2, 2))
-        xyz.append([x, y, z])
-elif 'xyz' in locals():  #convert in fractionals
-    if not args.silent: print()
-    if not args.silent:
-        print(" ... converting cartesian coordinates to fractional")
-    fract = []
-    for i in range(0, natoms):
-        x = xyz[i][0] * invcell.item((0, 0)) + xyz[i][1] * invcell.item(
-            (1, 0)) + xyz[i][2] * invcell.item((2, 0))
-        y = xyz[i][0] * invcell.item((0, 1)) + xyz[i][1] * invcell.item(
-            (1, 1)) + xyz[i][2] * invcell.item((2, 1))
-        z = xyz[i][0] * invcell.item((0, 2)) + xyz[i][1] * invcell.item(
-            (1, 2)) + xyz[i][2] * invcell.item((2, 2))
-        fract.append([x, y, z])
-
-if not 'charge' in locals() or charge == []:
-    if not args.silent: print()
-    if not args.silent:
-        print(" ... no atomic charge found: assign 0.0 charge for each atom")
-    charge = [0] * natoms
+            if (i - 17) >= 0 and (i - 17) < natoms:  # Header of REPEAT.out
+                crys.atom_charge[i - 17] = float(data[6]) * (-0.5)
+            i += 1
 
 if args.chargenull:
     if not args.silent: print("*** chargenull: DELETING ALL THE CHARGES! ***")
-    charge = [0] * natoms
-
-if args.avgcharges:
-    if not args.silent:
-        print("*** avgcharges: Taking charges from atomic_ddecavgcharges ***")
-    for i in range(0, natoms):
-        charge[i] = atomic_ddecavgcharges[an[i]]
+    crys.atom_charge = [0] * crys.natom
 
 if args.normalizecharges:
     if not args.silent: print("")
     if not args.silent: print("*** NORMALIZING CHARGES ***")
     pos_charge = 0
     neg_charge = 0
-    for i in range(0, natoms):
-        if charge[i] > 0:
-            pos_charge += charge[i]
+    for i in range(crys.atom_natoms):
+        if crys.atom_charge[i] > 0:
+            pos_charge += crys.atom_charge[i]
         else:
-            neg_charge += charge[i]
+            neg_charge += crys.atom_charge[i]
 
     tot_charge = pos_charge + neg_charge
     tot_abs = pos_charge - neg_charge
@@ -989,14 +399,44 @@ if args.normalizecharges:
     if not args.silent: print("negative charges: %f" % neg_charge)
     if not args.silent: print("total absolute ch.: %f" % tot_abs)
 
-    for i in range(0, natoms):
-        if charge[i] > 0:
-            charge[i] = charge[
-                i] - tot_charge * pos_fract * charge[i] / pos_charge
+    for i in range(crys.atom_natoms):
+        if crys.atom_charge[i] > 0:
+            crys.atom_charge[i] = crys.atom_charge[
+                i] - tot_charge * pos_fract * crys.atom_charge[i] / pos_charge
         else:
-            charge[i] = charge[i] - tot_charge * (
-                1 - pos_fract) * charge[i] / neg_charge
+            crys.atom_charge[i] = crys.atom_charge[i] - tot_charge * (
+                1 - pos_fract) * crys.atom_charge[i] / neg_charge
 
+########################################################### Coordinates and cell
+
+if crys.inp_matrix:
+    if not args.silent: print("\n Cell parsed as matrix.")
+elif crys.inp_lengths_angles:
+    if not args.silent: print("\n Cell parsed as lengths and angles.")
+crys.compute_both_cell()
+
+if crys.inp_fract:
+    if not args.silent: print(" \n Atomic coordinates parsed cartersian.")
+elif crys.inp_xyz:
+    if not args.silent: print(" \n Atomic coordinates parsed fractional.")
+crys.compute_both_coord()
+
+############################################################ Temporary converter
+natoms = crys.natom
+if crys.inp_lengths_angles:
+    ABC = crys.length
+    abc = crys.angle_rad
+elif crys.inp_matrix:
+    cell = np.matrix(crys.matrix)
+if crys.inp_xyz:
+    xyz = crys.atom_xyz
+elif crys.inp_fract:
+    fract = crys.atom_fract
+atom = crys.atom_element
+an = crys.atom_atnum
+for f in an:
+    atom_count[f] += 1
+charge = crys.atom_charge
 ############################################################################ APPLY TRANSLATION / RANDOMIZE
 if args.transl != None:
 
@@ -1055,9 +495,9 @@ if args.randomize != None:
 
     xyz_random = []
     for i in range(0, natoms):
-        x = xyz[i][0] + numpy.random.normal(0, args.randomize, 1)
-        y = xyz[i][1] + numpy.random.normal(0, args.randomize, 1)
-        z = xyz[i][2] + numpy.random.normal(0, args.randomize, 1)
+        x = xyz[i][0] + np.random.normal(0, args.randomize, 1)
+        y = xyz[i][1] + np.random.normal(0, args.randomize, 1)
+        z = xyz[i][2] + np.random.normal(0, args.randomize, 1)
         xyz_random.append([x, y, z])
     xyz = xyz_random  #overwrite old xyz
 
@@ -1219,8 +659,9 @@ for i in range(0, len(atom_count)):
         weight += atom_count[i] * atomic_mass[i]  #g/mol_uc
 rho = weight / volume / AVOGCONST * 1E+10**3 / 1000  #Kg/m3
 if not args.silent:
-    print("Density: %.5f (kg/m3), %.5f (g/cm3), %.5f (g/molUC)" %
-          (rho, rho / 1000, weight), )
+    print(
+        "Density: %.5f (kg/m3), %.5f (g/cm3), %.5f (g/molUC)" %
+        (rho, rho / 1000, weight), )
 
 #compute conversion to mol/kg
 molkg = 1000 / weight  #mol/g
@@ -1603,68 +1044,37 @@ if args.output != None:
     ofile = open(outputfile, 'w+')
 
     if outputformat == "cif":
-        if not args.tailormade2:
-            print("data_crystal", file=ofile)
-            print(" ", file=ofile)
-            print("_cell_length_a    %.5f" % ABC[0], file=ofile)
-            print("_cell_length_b    %.5f" % ABC[1], file=ofile)
-            print("_cell_length_c    %.5f" % ABC[2], file=ofile)
-            print("_cell_angle_alpha %.5f" % math.degrees(abc[0]), file=ofile)
-            print("_cell_angle_beta  %.5f" % math.degrees(abc[1]), file=ofile)
-            print("_cell_angle_gamma %.5f" % math.degrees(abc[2]), file=ofile)
-            print(" ", file=ofile)
-            print("_symmetry_space_group_name_Hall 'P 1'", file=ofile)
-            print("_symmetry_space_group_name_H-M  'P 1'", file=ofile)
-            print(" ", file=ofile)
-            print("loop_", file=ofile)
-            print("_symmetry_equiv_pos_as_xyz", file=ofile)
-            print(" 'x,y,z' ", file=ofile)
-            print(" ", file=ofile)
-            print("loop_", file=ofile)
-            print("_atom_site_label", file=ofile)
-            print("_atom_site_type_symbol", file=ofile)
-            print("_atom_site_fract_x", file=ofile)
-            print("_atom_site_fract_y", file=ofile)
-            print("_atom_site_fract_z", file=ofile)
-            print("_atom_site_charge", file=ofile)
-            for i in range(0, natoms):
-                label = atom[
-                    i]  #removed: label=atom[i]+"_"+str(i+1) because the number makes Raspa extremely verbose
-                print(
-                    ('{0:10} {1:5} {2:>9.5f} {3:>9.5f} {4:>9.5f} {5:>14.10f}'.
-                     format(label, atom[i], fract[i][0], fract[i][1],
-                            fract[i][2], charge[i])),
-                    file=ofile)
-        #Better to keep a lot of decimals to avoid small net charged
-
-        if args.tailormade2:
-
-            print("****PRINTING .CIF TAILOR-MADE2 FOR EQeq***", file=ofile)
-
-            print("data_crystal", file=ofile)
-            print("loop_", file=ofile)
-            print("_symmetry_equiv_pos_as_xyz", file=ofile)
-            print(" 'x,y,z' ", file=ofile)
-            print("loop_", file=ofile)
-            print("_cell_length_a    %.5f" % ABC[0], file=ofile)
-            print("_cell_length_b    %.5f" % ABC[1], file=ofile)
-            print("_cell_length_c    %.5f" % ABC[2], file=ofile)
-            print("_cell_angle_alpha %.5f" % math.degrees(abc[0]), file=ofile)
-            print("_cell_angle_beta  %.5f" % math.degrees(abc[1]), file=ofile)
-            print("_cell_angle_gamma %.5f" % math.degrees(abc[2]), file=ofile)
-            print("_symmetry_space_group_name_Hall 'P 1'", file=ofile)
-            print("_symmetry_space_group_name_H-M  'P 1'", file=ofile)
-            print("_atom_site_label", file=ofile)
-            print("_atom_site_type_symbol", file=ofile)
-            print("_atom_site_fract_x", file=ofile)
-            print("_atom_site_fract_y", file=ofile)
-            print("_atom_site_fract_z", file=ofile)
-            for i in range(0, natoms):
-                label = atom[i]  #removed: label=atom[i]+"_"+str(i+1)
-                print(('{0:10} {1:5} {2:>9.5f} {3:>9.5f} {4:>9.5f}'.format(
-                    label, atom[i], fract[i][0], fract[i][1], fract[i][2])),
-                      file=ofile)
-            print("_loop", file=ofile)
+        print("data_crystal", file=ofile)
+        print(" ", file=ofile)
+        print("_cell_length_a    %.5f" % ABC[0], file=ofile)
+        print("_cell_length_b    %.5f" % ABC[1], file=ofile)
+        print("_cell_length_c    %.5f" % ABC[2], file=ofile)
+        print("_cell_angle_alpha %.5f" % math.degrees(abc[0]), file=ofile)
+        print("_cell_angle_beta  %.5f" % math.degrees(abc[1]), file=ofile)
+        print("_cell_angle_gamma %.5f" % math.degrees(abc[2]), file=ofile)
+        print(" ", file=ofile)
+        print("_symmetry_space_group_name_Hall 'P 1'", file=ofile)
+        print("_symmetry_space_group_name_H-M  'P 1'", file=ofile)
+        print(" ", file=ofile)
+        print("loop_", file=ofile)
+        print("_symmetry_equiv_pos_as_xyz", file=ofile)
+        print(" 'x,y,z' ", file=ofile)
+        print(" ", file=ofile)
+        print("loop_", file=ofile)
+        print("_atom_site_label", file=ofile)
+        print("_atom_site_type_symbol", file=ofile)
+        print("_atom_site_fract_x", file=ofile)
+        print("_atom_site_fract_y", file=ofile)
+        print("_atom_site_fract_z", file=ofile)
+        print("_atom_site_charge", file=ofile)
+        for i in range(0, natoms):
+            label = atom[
+                i]  #removed: label=atom[i]+"_"+str(i+1) because the number makes Raspa extremely verbose
+            print(('{0:10} {1:5} {2:>9.5f} {3:>9.5f} {4:>9.5f} {5:>14.10f}'.
+                   format(label, atom[i], fract[i][0], fract[i][1],
+                          fract[i][2], charge[i])),
+                  file=ofile)
+    #Better to keep a lot of decimals to avoid small net charged
 
     elif outputformat == "pdb":
         print((
@@ -1698,49 +1108,48 @@ if args.output != None:
                  charge[i]),
                 file=ofile)
 
-    elif outputformat == "xyz":
-        if not (args.tailormade4 or args.tailormade5):
-            print("%d" % (natoms), file=ofile)
+    elif outputformat == "xyz" and args.tm == 0:
+        print("%d" % (natoms), file=ofile)
+        print(
+            "CELL:  %.5f  %.5f  %.5f  %.3f  %.3f  %.3f  "
+            % (ABC[0], ABC[1], ABC[2], math.degrees(abc[0]),
+               math.degrees(abc[1]), math.degrees(abc[2])),
+            file=ofile)
+        for i in range(0, natoms):
             print(
-                "CELL:  %.5f  %.5f  %.5f  %.3f  %.3f  %.3f  " %
-                (ABC[0], ABC[1], ABC[2], math.degrees(abc[0]),
-                 math.degrees(abc[1]), math.degrees(abc[2])),
+                "%3s %9.5f %9.5f %9.5f " % (atom[i], xyz[i][0], xyz[i][1],
+                                            xyz[i][2]),
                 file=ofile)
-            for i in range(0, natoms):
-                print(
-                    "%3s %9.5f %9.5f %9.5f " % (atom[i], xyz[i][0], xyz[i][1],
-                                                xyz[i][2]),
-                    file=ofile)
-        if args.tailormade4:
+    elif outputformat == "xyz" and args.tm == 4:
+        print(
+            "****PRINTING .xyz TAILOR-MADE4 FOR Qeq program by B.Wells***",
+            file=ofile)
+        print(
+            "      FRAC       %.5f  %.5f  %.5f  %.3f  %.3f  %.3f  "
+            % (ABC[0], ABC[1], ABC[2], math.degrees(abc[0]),
+               math.degrees(abc[1]), math.degrees(abc[2])),
+            file=ofile)
+        print("%d" % (natoms), file=ofile)
+        for i in range(0, natoms):
             print(
-                "****PRINTING .xyz TAILOR-MADE4 FOR Qeq program by B.Wells***",
+                "%3s %9.5f %9.5f %9.5f " % (atom[i], fract[i][0], fract[i][1],
+                                            fract[i][2]),
                 file=ofile)
+    elif outputformat == "xyz" and args.tm == 5:
+        print(
+            "****PRINTING .xyz TAILOR-MADE5 FOR Qeq program by B.Wells (with FC=0)***",
+            file=ofile)
+        print(
+            "      FRAC       %.5f  %.5f  %.5f  %.3f  %.3f  %.3f  "
+            % (ABC[0], ABC[1], ABC[2], math.degrees(abc[0]),
+               math.degrees(abc[1]), math.degrees(abc[2])),
+            file=ofile)
+        print("%d" % (natoms), file=ofile)
+        for i in range(0, natoms):
             print(
-                "      FRAC       %.5f  %.5f  %.5f  %.3f  %.3f  %.3f  " %
-                (ABC[0], ABC[1], ABC[2], math.degrees(abc[0]),
-                 math.degrees(abc[1]), math.degrees(abc[2])),
+                "%3s %9.5f %9.5f %9.5f   xx   0.000   0.000" %
+                (atom[i], fract[i][0], fract[i][1], fract[i][2]),
                 file=ofile)
-            print("%d" % (natoms), file=ofile)
-            for i in range(0, natoms):
-                print(
-                    "%3s %9.5f %9.5f %9.5f " % (atom[i], fract[i][0],
-                                                fract[i][1], fract[i][2]),
-                    file=ofile)
-        if args.tailormade5:
-            print(
-                "****PRINTING .xyz TAILOR-MADE5 FOR Qeq program by B.Wells (with FC=0)***",
-                file=ofile)
-            print(
-                "      FRAC       %.5f  %.5f  %.5f  %.3f  %.3f  %.3f  " %
-                (ABC[0], ABC[1], ABC[2], math.degrees(abc[0]),
-                 math.degrees(abc[1]), math.degrees(abc[2])),
-                file=ofile)
-            print("%d" % (natoms), file=ofile)
-            for i in range(0, natoms):
-                print(
-                    "%3s %9.5f %9.5f %9.5f   xx   0.000   0.000" %
-                    (atom[i], fract[i][0], fract[i][1], fract[i][2]),
-                    file=ofile)
 
     elif outputformat == "pwi":
         if not args.silent:
@@ -1881,10 +1290,6 @@ if args.output != None:
                 print("      BASIS_SET %s" % (args.bscp2k), file=ofile)
                 print("      POTENTIAL GTH-PBE", file=ofile)
                 print("    &END KIND", file=ofile)
-                print("    &KIND %s_GHOST" % (atomic_symbol[i]), file=ofile)
-                print("      BASIS_SET %s" % (args.bscp2k), file=ofile)
-                print("      GHOST", file=ofile)
-                print("    &END KIND", file=ofile)
                 print(" ", file=ofile)
         print("  &END SUBSYS", file=ofile)
 
@@ -1910,27 +1315,6 @@ if args.output != None:
             print(
                 "%3s %8.3f %8.3f %8.3f " % (atom[i], xyz[i][0], xyz[i][1],
                                             xyz[i][2]),
-                file=ofile)
-
-    elif outputformat == "geo":
-        print("Made with manage_crystal.py", file=ofile)
-        print(
-            "     %8.5f %8.5f %8.5f" % (cell.item((0, 0)), cell.item(
-                (0, 1)), cell.item((0, 2))),
-            file=ofile)
-        print(
-            "     %8.5f %8.5f %8.5f" % (cell.item((1, 0)), cell.item(
-                (1, 1)), cell.item((1, 2))),
-            file=ofile)
-        print(
-            "     %8.5f %8.5f %8.5f" % (cell.item((2, 0)), cell.item(
-                (2, 1)), cell.item((2, 2))),
-            file=ofile)
-        print("%d " % (natoms), file=ofile)
-        for i in range(0, natoms):
-            print(
-                "%d %8.3f %8.3f %8.3f %8.3f" % (an[i], xyz[i][0], xyz[i][1],
-                                                xyz[i][2], charge[i]),
                 file=ofile)
     else:
         sys.exit("WARNING: Output file format not implemented. EXIT.")
