@@ -6,6 +6,8 @@ from manage_crystal import Crys
 import numpy as np
 from six.moves import range
 
+ANGS2BOHR = 1.88973
+
 
 def parse_axsf(file):
     ''' Parse .axsf and .xsf files and return a Crys object '''

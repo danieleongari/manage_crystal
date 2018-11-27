@@ -33,9 +33,9 @@ def write_cif(ofile, c):
     # BC: don't modify, if possible, to be coherent with git deposited files
     print("data_crystal", file=ofile)
     print(" ", file=ofile)
-    print("_cell_length_a    %.5f" % c.lenght[0], file=ofile)
-    print("_cell_length_b    %.5f" % c.lenght[1], file=ofile)
-    print("_cell_length_c    %.5f" % c.lenght[2], file=ofile)
+    print("_cell_length_a    %.5f" % c.length[0], file=ofile)
+    print("_cell_length_b    %.5f" % c.length[1], file=ofile)
+    print("_cell_length_c    %.5f" % c.length[2], file=ofile)
     print("_cell_angle_alpha %.5f" % c.angle_deg[0], file=ofile)
     print("_cell_angle_beta  %.5f" % c.angle_deg[1], file=ofile)
     print("_cell_angle_gamma %.5f" % c.angle_deg[2], file=ofile)
@@ -70,7 +70,7 @@ def write_cssr(ofile, c):
     ''' Write the Crys in .cssr file format'''
     print(
         "                               %.3f  %.3f  %.3f" %
-        (c.lenght[0], c.lenght[1], c.lenght[2]),
+        (c.length[0], c.length[1], c.length[2]),
         file=ofile)
     print(
         "                %.3f   %.3f   %.3f   SPGR =  1 P 1         OPT = 1" %
@@ -91,7 +91,7 @@ def write_pdb(file, c):
     ''' Write the Crys in .pdb file format'''
     print(
         "CRYST1{0:>9.3f}{1:>9.3f}{2:>9.3f}{3:>7.2f}{4:>7.2f}{5:>7.2f} P 1           1"
-        .format(c.lenght[0], c.lenght[1], c.lenght[2], c.angle_deg[0],
+        .format(c.length[0], c.length[1], c.length[2], c.angle_deg[0],
                 c.angle_deg[1], c.angle_deg[2]),
         file=ofile)
     for i in range(c.natom):
@@ -224,7 +224,7 @@ def write_xyz(file, c):
     print("%d" % (c.natoms), file=ofile)
     print(
         "CELL:  %.5f  %.5f  %.5f  %.3f  %.3f  %.3f  " %
-        (c.lenght[0], c.lenght[1], c.lenght[2], c.angle_deg[0], c.angle_deg[1],
+        (c.length[0], c.length[1], c.length[2], c.angle_deg[0], c.angle_deg[1],
          c.angle_deg[2]),
         file=ofile)
     for i in range(c.natom):
@@ -242,7 +242,7 @@ def write_xyz(file, c):
         file=ofile)
     print(
         "      FRAC       %.5f  %.5f  %.5f  %.3f  %.3f  %.3f  " %
-        (c.lenght[0], c.lenght[1], c.lenght[2], c.angle_deg[0], c.angle_deg[1],
+        (c.length[0], c.length[1], c.length[2], c.angle_deg[0], c.angle_deg[1],
          c.angle_deg[2]),
         file=ofile)
     print("%d" % (c.natom), file=ofile)

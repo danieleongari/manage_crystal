@@ -12,7 +12,7 @@ import os
 import re  #re.split(r'(\d+)',"O23") = ['O', '23', '']
 from six.moves import range
 from manage_crystal import Crys
-from manage_crystal.atomic_data import *  #import all the data stored in the file atom_data.py
+from manage_crystal.atomic_data import atomic_symbol
 from manage_crystal.file_parser import parse_axsf, parse_cif, parse_cp2k
 from manage_crystal.file_parser import parse_cssr, parse_cube
 from manage_crystal.file_parser import parse_pdb, parse_poscar, parse_pwo
@@ -90,7 +90,7 @@ parser.add_argument(
     default="DZVP-MOLOPT-SR-GTH",
     help="Gaussian Basis Set for CP2K")
 
-arser.add_argument(
+parser.add_argument(
     "-potcp2k",
     "--potential-cp2k",
     action="store",
@@ -136,13 +136,6 @@ parser.add_argument(
     dest="printatoms",
     default=False,
     help="Print all atoms types\n" + "[skip -silent]")
-
-parser.add_argument(
-    "-printatoms_noHCO",
-    action="store_true",
-    dest="printatoms_noHCO",
-    default=False,
-    help="Print all atoms types exc. H,C,O\n" + "[skip -silent]")
 
 # Find/compute stuff section
 parser.add_argument(
@@ -250,11 +243,6 @@ parser.add_argument(
 args = parser.parse_args()
 
 ###################################################################### UTILITIES
-
-atom_count = [0] * 119  #anything assigned to 0, H_index=1, He_index=2, ...
-
-ANGS2BOHR = 1.88973
-AVOGCONST = 6.022E+23
 
 
 def is_number(s):  #checks if a string is a number or not
@@ -433,22 +421,6 @@ if not args.cutoff == None:  #copied from raspa/framework.c/CellProperties(line:
         print("CUTOFF_TEST | Expansion_unnecesary: 1 1 1 for %s" %
               (args.inputfile))
 
-############################################################ Temporary converter
-natoms = crys.natom
-if crys.inp_lengths_angles:
-    ABC = crys.length
-    abc = crys.angle_rad
-elif crys.inp_matrix:
-    cell = np.matrix(crys.matrix)
-if crys.inp_xyz:
-    xyz = crys.atom_xyz
-elif crys.inp_fract:
-    fract = crys.atom_fract
-atom = crys.atom_element
-an = crys.atom_atnum
-for f in an:
-    atom_count[f] += 1
-charge = crys.atom_charge
 ################################################################# CELL EXPANSION
 if args.multipl_x > 1:
     crys.expand_k_dir(0, args.multipl_x)
@@ -458,44 +430,31 @@ if args.multipl_z > 1:
     crys.expand_k_dir(2, args.multipl_z)
 
 ################################################################### COMPUTE INFO
-# count atoms
-ntypes = 0
-for i in range(0, len(atom_count)):
-    if atom_count[i] != 0:
-        ntypes += 1
+print()
+for element in atomic_symbol:
+    if element in crys.element_count:
         if not args.silent:
-            print('\n{0:>5} {1:3} atoms'.format(atom_count[i],
-                                                atomic_symbol[i]))
+            print("{0:>5} {1:3} atoms".format(crys.element_count[element],
+                                              element))
 
 if not args.silent: print(" ---- --- ----- ")
-if not args.silent: print('{0:>5} {1:3} atoms'.format(natoms, 'tot'))
+if not args.silent: print('{0:>5} {1:3} atoms'.format(crys.natom, 'tot'))
 
-#compute volume (http://www.fxsolver.com/browse/formulas/Triclinic+crystal+system+(Unit+cell's+volume))
-volume = ABC[0] * ABC[1] * ABC[2] * math.sqrt(
-    1 - (math.cos(abc[0]))**2 - (math.cos(abc[1]))**2 - (math.cos(abc[2]))**2 +
-    2 * math.cos(abc[0]) * math.cos(abc[1]) * math.cos(abc[2]))
-if not args.silent: print("\nVolume: %.3f (Angtrom^3/u.c.)" % volume)
-
-#compute density
-weight = 0
-for i in range(0, len(atom_count)):
-    if atom_count[i] != 0:
-        weight += atom_count[i] * atomic_mass[i]  #g/mol_uc
-rho = weight / volume / AVOGCONST * 1E+10**3 / 1000  #Kg/m3
 if not args.silent:
-    print(
-        "Density: %.5f (kg/m3), %.5f (g/cm3), %.5f (g/molUC)" %
-        (rho, rho / 1000, weight), )
-
-#compute conversion to mol/kg
-molkg = 1000 / weight  #mol/g
+    print("\nVolume: %.3f (Angtrom^3/u.c.)" % crys.compute_volume_from_la())
 if not args.silent:
-    print("Conversion: 1 molec./u.c. = %.5f (mol/kg)" % (molkg))
+    print("Density: %.5f (kg/m3), %.5f (g/cm3), %.5f (g/molUC)" %
+          (crys.compute_weight_density()[1],
+           crys.compute_weight_density()[1] / 1000,
+           crys.compute_weight_density()[0]))
 
-#check the NET_CHARGE
-if sum(charge) == 0 and max(charge) < 0.001:
+if not args.silent:
+    print("Conversion: 1 molec./u.c. = %.5f (mol/kg)" %
+          (1000 / crys.compute_weight_density()[0]))
+
+if all(x == 0 for x in crys.atom_charge):
     if not args.silent: print("\nNET_CHARGE: all the charges are zero.")
-elif abs(sum(charge)) < +0.001:
+elif abs(sum(crys.atom_charge)) < +0.001:
     if not args.silent: print("\nNET_CHARGE: negligible (|sum|<0.001).")
 else:
     if not args.silent:
@@ -513,18 +472,18 @@ if args.chkmetalcharge:
     found_met_neg = False
     found_met_nonzero = False
     found_met_notnumber = False
-    for i in range(0, natoms):
-        if (atom[i] in metal_list):
+    for i, element in enumerate(crys.atom_element):
+        if (element in metal_list):
             found_met = True
-            if math.isnan(charge[i]):
-                print("CHK_METAL_CHARGE: not_number >>> %s=%s" % (atom[i],
-                                                                  charge[i]))
+            if math.isnan(crys.atom_charge[i]):
+                print("CHK_METAL_CHARGE: not_number >>> %s=%s" %
+                      (element, crys.atom_charge[i]))
                 found_met_notnumber = True
-            elif charge[i] < 0:
+            elif crys.atom_charge[i] < 0:
                 print("CHK_METAL_CHARGE: found_negative >>> %s=%.3f" %
-                      (atom[i], charge[i]))
+                      (element, crys.atom_charge[i]))
                 found_met_neg = True
-            elif charge[i] > 0:
+            elif crys.atom_charge[i] > 0:
                 found_met_nonzero = True
         if found_met_notnumber or found_met_neg: break
     if not found_met: print("CHK_METAL_CHARGE: no_metals")
@@ -533,24 +492,12 @@ if args.chkmetalcharge:
     if found_met and not found_met_neg and not found_met_notnumber and found_met_nonzero:
         print("CHK_METAL_CHARGE: ok_positive")
 
-#number of electrons
-nelectrons = 0
-for i in range(0, len(atom_count)):
-    if atom_count[i] != 0:
-        nelectrons += atom_count[i] * i  #nuber_of_atoms_with_AN*AN
-if not args.silent: print("Tot. electrons: %d" % nelectrons)
+if not args.silent: print("Tot. electrons: %d" % crys.compute_nelectron())
 
 #print atoms on one line for info
 if args.printatoms:
-    for i in range(0, len(atom_count)):
-        if atom_count[i] != 0:
-            print(atomic_symbol[i], end='_')
-    print()
-if args.printatoms_noHCO:
-    for i in range(0, len(atom_count)):
-        if atom_count[i] != 0 and atomic_symbol[i]!="H" \
-                                     and atomic_symbol[i]!="C" \
-                                     and atomic_symbol[i]!="O":
+    for element in atomic_symbol:
+        if element in crys.count_element:
             print(atomic_symbol[i], end='_')
     print()
 ################################################################################################# OUTPUT OPERATIONS
@@ -566,19 +513,14 @@ else:
         outputformat = args.output
         outputfile = outputfilename + "." + outputformat
 
+if not args.silent: print("\n***********************************************")
+if not args.silent: print("  Convert %s to %s" % (args.inputfile, outputfile))
 if not args.silent:
-    print("\n***************************************************")
-if not args.silent:
-    print("  Converting %s to %s" % (inputfilename + "." + inputformat,
-                                     outputfile))
-if not args.silent:
-    print("***************************************************")
-if not args.silent: print()
+    print("*************************************************\n")
 
 #show and showonly
 if args.show:
-    print(
-        "cell ---------------------------------------------------------------")
+    print("cell ----------------------------------------------------")
 if args.show or args.showonly == "cell":
     print("     %10.5f %10.5f %10.5f" % (cell.item((0, 0)), cell.item(
         (0, 1)), cell.item((0, 2))))
@@ -589,30 +531,25 @@ if args.show or args.showonly == "cell":
     print("     %10.5f %10.5f %10.5f" % (cell.item((2, 0)), cell.item(
         (2, 1)), cell.item((2, 2))))
 if args.show:
-    print(
-        "CELL (ABC, abc) ----------------------------------------------------")
+    print("CELL (ABC, abc) -----------------------------------------")
 if args.show or args.showonly == "CELL":
     print(" %10.5f  %10.5f  %10.5f  %10.5f  %10.5f  %10.5f  " %
           (ABC[0], ABC[1], ABC[2], math.degrees(abc[0]), math.degrees(abc[1]),
            math.degrees(abc[2])))
 if args.show:
-    print(
-        "xyz ----------------------------------------------------------------")
+    print("xyz -----------------------------------------------------")
 if args.show or args.showonly == "xyz":
     for i in range(0, natoms):
         print("%3s %10.5f %10.5f %10.5f " % (atom[i], xyz[i][0], xyz[i][1],
                                              xyz[i][2]))
 if args.show:
-    print(
-        "fract --------------------------------------------------------------")
+    print("fract ---------------------------------------------------")
 if args.show or args.showonly == "fract":
     for i in range(0, natoms):
         print("%3s %10.5f %10.5f %10.5f " % (atom[i], fract[i][0], fract[i][1],
                                              fract[i][2]))
 if args.show:
-    print(
-        "charges --------------------------------------------------------------"
-    )
+    print("charges -------------------------------------------------")
 if args.show or args.showonly == "charge":
     for i in range(0, natoms):
         print("%3s %10.5f " % (atom[i], charge[i]))
@@ -702,45 +639,24 @@ if args.cupw:
 
     sys.exit()
 
-#This function checks if two atoms overlap because of a bad PBC wrap
 if args.ovlp:
-    jlist = []
-    for i in range(cryst.natom):
-        for j in range(i + 1, cryst.natom):
-            dist = cryst.dist_ij(i, j)
+    overlaps = 0
+    for i in range(crys.natom):
+        for j in range(i + 1, crys.natom):
+            dist = crys.dist_ij(i, j)
             if (dist < 0.2):
                 print("Overlap found between:")
-                print("%3s %9.5f %9.5f %9.5f " % (atom[i], xyz[i][0],
-                                                  xyz[i][1], xyz[i][2]))
-                print("%3s %9.5f %9.5f %9.5f " % (atom[j], xyz[j][0],
-                                                  xyz[j][1], xyz[j][2]))
-                if atom[i] == atom[
-                        j]:  #the two atoms are the same and they are overlapping
-                    jlist.append(j)
-                else:  #something weird is happening, two different atoms are overlapping
-                    print(
-                        "!!!!!! CHECK THE CRYSTAL, DIFFERENT ATOMS OVERLAPPING !!!!!!"
-                    )
-                    sys.exit(
-                        "!!!!!! CHECK THE CRYSTAL, DIFFERENT ATOMS OVERLAPPING !!!!!!"
-                    )
+                print("%3s %9.5f %9.5f %9.5f " %
+                      (crys.atom_element[i], crys.atom_xyz[i][0],
+                       crys.atom_xyz[i][1], crys.atom_xyz[i][2]))
+                print("%3s %9.5f %9.5f %9.5f " %
+                      (crys.atom_element[j], crys.atom_xyz[j][0],
+                       crys.atom_xyz[j][1], crys.atom_xyz[i][2]))
+                overlaps += 1
+    print("OVERLAPS FOUND: %d" % overlaps)
+    sys.exit()
 
-    if len(jlist) > 0:  #correct overlaps
-        natoms = natoms - len(jlist)
-        atom = [i for j, i in enumerate(atom) if j not in jlist]
-        an = [i for j, i in enumerate(an) if j not in jlist]
-        xyz = [i for j, i in enumerate(xyz) if j not in jlist]
-        fract = [i for j, i in enumerate(fract) if j not in jlist]
-        charge = [i for j, i in enumerate(charge) if j not in jlist]
-        print("OVERLAPS FOUND: %d" % len(jlist))
-        #continue and overwrite the file
-        outputfile = args.inputfile
-        outputformat = args.inputfile.split(".")[-1]
-    else:
-        print("OVERLAPS FOUND: %d" % len(jlist))
-        sys.exit()
-
-############################################################################## Write converted files
+########################################################## Write converted files
 if args.output != None:
     ofile = open(outputfile, 'w+')
     if outputformat == "axsf":

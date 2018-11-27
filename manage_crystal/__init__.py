@@ -4,9 +4,13 @@ import numpy as np
 import re  #re.split(r'(\d+)',"Cu23") = ['Cu', '23', '']
 import math
 from collections import Counter  #makes a dictionary
-from manage_crystal.atomic_data import atomic_symbol
+from manage_crystal.atomic_data import atomic_symbol, atomic_mass
 from numpy.linalg import inv
 from six.moves import range
+
+AVOGCONST = 6.022E+23
+M3TOANG3 = 1e10**3
+GTOKG = 1 / 1000
 
 
 class Crys:
@@ -80,11 +84,11 @@ class Crys:
             (self.matrix[0][0] * self.matrix[1][0] + self.matrix[0][1] *
              self.matrix[1][1] + self.matrix[0][2] * self.matrix[1][2]) /
             self.length[0] / self.length[1])  #gamma=A^B
-        self.angle_deg = [math.degrees(i) for i in self.angle_rad]
+        self.angle_deg = [math.degrees(x) for x in self.angle_rad]
 
     def compute_matrix_from_la(self):
         #Copied from Raspa>framework.c>UnitCellBox
-        self.angle_deg = [math.radians(i) for i in self.angle_rad]
+        self.angle_rad = [math.radians(x) for x in self.angle_deg]
         self.matrix[0][0] = self.length[0]
         self.matrix[0][1] = 0.0
         self.matrix[0][2] = 0.0
@@ -229,3 +233,34 @@ class Crys:
             self.matrix[k][kk] *= n
         self.compute_fract_from_xyz()
         self.compute_atom_count()
+
+    def compute_volume_from_la(self):
+        """ Compute cell Volume from lengths and angles """
+        # www.fxsolver.com/browse/formulas/Triclinic+crystal+system+(Unit+cell's+volume)
+        self.angle_rad = [math.radians(x) for x in self.angle_deg]
+        vol = self.length[0] * self.length[1] * self.length[2] * \
+              math.sqrt(1 - math.cos(self.angle_rad[0])**2 - \
+                            math.cos(self.angle_rad[1])**2 - \
+                            math.cos(self.angle_rad[2])**2 + \
+                            2 * math.cos(self.angle_rad[0]) * \
+                                math.cos(self.angle_rad[1]) * \
+                                math.cos(self.angle_rad[2])
+                       )
+        return vol
+
+    def compute_weight_density(self):
+        """ Compute crystal density """
+        weight = 0  #g/mol_uc
+        for element in self.element_count:
+            weight += self.element_count[element] * atomic_mass[element]
+        vol = self.compute_volume_from_la()
+        rho_kgm3 = weight / vol / AVOGCONST * M3TOANG3 * GTOKG
+        return weight, rho_kgm3
+
+    def compute_nelectron(self):
+        """ Compute the number of electrons """
+        nelectron = 0
+        for element in self.element_count:
+            nelectron += self.element_count[element] * atomic_symbol.index(
+                element)
+        return nelectron

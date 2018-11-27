@@ -32,32 +32,8 @@ atomic_name = (
     'Rutherfordium', 'Dubnium', 'Seaborgium', 'Bohrium', 'Hassium',
     'Meitnerium', 'Darmstadtium', 'Roentgenium', 'Copernicium', 'Nihonium',
     'Flerovium', 'Moscovium', 'Livermorium', 'Tennessine', 'Oganesson')
-# From ASE:
-# Van der Waals radii in [A] taken from
-#http://www.webelements.com/periodicity/van_der_waals_radius/
-#and the references given there.
-#Additional source 5 from http://de.wikipedia.org/wiki/Van-der-Waals-Radius
-#
-#1. A. Bondi, J. Phys. Chem., 1964, 68, 441.
-#
-#2. L. Pauling, The Nature of the Chemical Bond,
-#   Cornell University Press, USA, 1945.
-#
-#3. J.E. Huheey, E.A. Keiter, and R.L. Keiter in Inorganic Chemistry
-#   Principles of Structure and Reactivity, 4th edition, HarperCollins,
-#   New York, USA, 1993.W.W. Porterfield in Inorganic chemistry,
-#   a unified approach, Addison Wesley Publishing Co.,
-#   Reading Massachusetts, USA, 1984.
-#
-#4. A.M. James and M.P. Lord in Macmillan's Chemical and Physical Data,
-#   Macmillan, London, UK, 1992.
-#
-#5. Manjeera Mantina, Adam C. Chamberlin, Rosendo Valero,
-#   Christopher J. Cramer, Donald G. Truhlar Consistent van der Waals Radii
-#   for the whole main group in J.phys. Chem A. 2009, 113, 5806-5812,
-#   doi:10.1021/jp8111556
 
-atomic_vdw = (
+atomic_vdw_ase = (
     1000000,  # Dummy
     1.20,  # H
     1.40,  # He [1]
@@ -392,111 +368,111 @@ atomic_vdw_UFF = (
     2)  #Ds
 
 # From ASE:
-atomic_mass = (
-    0.00000,  # X
-    1.00794,  # H
-    4.00260,  # He
-    6.94100,  # Li
-    9.01218,  # Be
-    10.81100,  # B
-    12.01100,  # C
-    14.00670,  # N
-    15.99940,  # O
-    18.99840,  # F
-    20.17970,  # Ne
-    22.98977,  # Na
-    24.30500,  # Mg
-    26.98154,  # Al
-    28.08550,  # Si
-    30.97376,  # P
-    32.06600,  # S
-    35.45270,  # Cl
-    39.94800,  # Ar
-    39.09830,  # K
-    40.07800,  # Ca
-    44.95590,  # Sc
-    47.88000,  # Ti
-    50.94150,  # V
-    51.99600,  # Cr
-    54.93800,  # Mn
-    55.84700,  # Fe
-    58.93320,  # Co
-    58.69340,  # Ni
-    63.54600,  # Cu
-    65.39000,  # Zn
-    69.72300,  # Ga
-    72.61000,  # Ge
-    74.92160,  # As
-    78.96000,  # Se
-    79.90400,  # Br
-    83.80000,  # Kr
-    85.46780,  # Rb
-    87.62000,  # Sr
-    88.90590,  # Y
-    91.22400,  # Zr
-    92.90640,  # Nb
-    95.94000,  # Mo
-    1000000,  # Tc
-    101.07000,  # Ru
-    102.90550,  # Rh
-    106.42000,  # Pd
-    107.86800,  # Ag
-    112.41000,  # Cd
-    114.82000,  # In
-    118.71000,  # Sn
-    121.75700,  # Sb
-    127.60000,  # Te
-    126.90450,  # I
-    131.29000,  # Xe
-    132.90540,  # Cs
-    137.33000,  # Ba
-    138.90550,  # La
-    140.12000,  # Ce
-    140.90770,  # Pr
-    144.24000,  # Nd
-    1000000,  # Pm
-    150.36000,  # Sm
-    151.96500,  # Eu
-    157.25000,  # Gd
-    158.92530,  # Tb
-    162.50000,  # Dy
-    164.93030,  # Ho
-    167.26000,  # Er
-    168.93420,  # Tm
-    173.04000,  # Yb
-    174.96700,  # Lu
-    178.49000,  # Hf
-    180.94790,  # Ta
-    183.85000,  # W
-    186.20700,  # Re
-    190.20000,  # Os
-    192.22000,  # Ir
-    195.08000,  # Pt
-    196.96650,  # Au
-    200.59000,  # Hg
-    204.38300,  # Tl
-    207.20000,  # Pb
-    208.98040,  # Bi
-    1000000,  # Po
-    1000000,  # At
-    1000000,  # Rn
-    1000000,  # Fr
-    226.02540,  # Ra
-    1000000,  # Ac
-    232.03810,  # Th
-    231.03590,  # Pa
-    238.02900,  # U
-    237.04820,  # Np
-    1000000,  # Pu
-    1000000,  # Am
-    1000000,  # Cm
-    1000000,  # Bk
-    1000000,  # Cf
-    1000000,  # Es
-    1000000,  # Fm
-    1000000,  # Md
-    1000000,  # No
-    1000000)  # Lr
+atomic_mass = {
+    "H": 1.00794,
+    "He": 4.00260,
+    "Li": 6.94100,
+    "Be": 9.01218,
+    "B": 10.81100,
+    "C": 12.01100,
+    "N": 14.00670,
+    "O": 15.99940,
+    "F": 18.99840,
+    "Ne": 20.17970,
+    "Na": 22.98977,
+    "Mg": 24.30500,
+    "Al": 26.98154,
+    "Si": 28.08550,
+    "P": 30.97376,
+    "S": 32.06600,
+    "Cl": 35.45270,
+    "Ar": 39.94800,
+    "K": 39.09830,
+    "Ca": 40.07800,
+    "Sc": 44.95590,
+    "Ti": 47.88000,
+    "V": 50.94150,
+    "Cr": 51.99600,
+    "Mn": 54.93800,
+    "Fe": 55.84700,
+    "Co": 58.93320,
+    "Ni": 58.69340,
+    "Cu": 63.54600,
+    "Zn": 65.39000,
+    "Ga": 69.72300,
+    "Ge": 72.61000,
+    "As": 74.92160,
+    "Se": 78.96000,
+    "Br": 79.90400,
+    "Kr": 83.80000,
+    "Rb": 85.46780,
+    "Sr": 87.62000,
+    "Y": 88.90590,
+    "Zr": 91.22400,
+    "Nb": 92.90640,
+    "Mo": 95.94000,
+    "Tc": 1000000,
+    "Ru": 101.07000,
+    "Rh": 102.90550,
+    "Pd": 106.42000,
+    "Ag": 107.86800,
+    "Cd": 112.41000,
+    "In": 114.82000,
+    "Sn": 118.71000,
+    "Sb": 121.75700,
+    "Te": 127.60000,
+    "I": 126.90450,
+    "Xe": 131.29000,
+    "Cs": 132.90540,
+    "Ba": 137.33000,
+    "La": 138.90550,
+    "Ce": 140.12000,
+    "Pr": 140.90770,
+    "Nd": 144.24000,
+    "Pm": 1000000,
+    "Sm": 150.36000,
+    "Eu": 151.96500,
+    "Gd": 157.25000,
+    "Tb": 158.92530,
+    "Dy": 162.50000,
+    "Ho": 164.93030,
+    "Er": 167.26000,
+    "Tm": 168.93420,
+    "Yb": 173.04000,
+    "Lu": 174.96700,
+    "Hf": 178.49000,
+    "Ta": 180.94790,
+    "W ": 183.85000,
+    "Re": 186.20700,
+    "Os": 190.20000,
+    "Ir": 192.22000,
+    "Pt": 195.08000,
+    "Au": 196.96650,
+    "Hg": 200.59000,
+    "Tl": 204.38300,
+    "Pb": 207.20000,
+    "Bi": 208.98040,
+    "Po": 1000000,
+    "At": 1000000,
+    "Rn": 1000000,
+    "Fr": 1000000,
+    "Ra": 226.02540,
+    "Ac": 1000000,
+    "Th": 232.03810,
+    "Pa": 231.03590,
+    "U ": 238.02900,
+    "Np": 237.04820,
+    "Pu": 1000000,
+    "Am": 1000000,
+    "Cm": 1000000,
+    "Bk": 1000000,
+    "Cf": 1000000,
+    "Es": 1000000,
+    "Fm": 1000000,
+    "Md": 1000000,
+    "No": 1000000,
+    "Lr": 1000000
+}
 
 # pseudoopotential: dictionary[pseudo_type][atomic_number]
 atomic_pseudo = {
