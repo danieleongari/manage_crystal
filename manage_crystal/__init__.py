@@ -26,11 +26,11 @@ class Crys:
         self.inp_lengths_angles = False
         self.inp_matrix = False
         self.length = [0.0] * 3
-        self.angle_deg = [0.0] * 3
-        self.angle_rad = [0.0] * 3
+        self.angle_deg = [0.0] * 3  # Main
+        self.angle_rad = [0.0] * 3  # Use ONLY when necessary to simplify math
         self.matrix = [[0.0] * 3 for i in range(3)]
 
-    def after_parse(self):
+    def check_parse(self):
         # Input data check (coordinates and cell)
         if len(self.atom_xyz) > 0: self.inp_xyz = True
         if len(self.atom_fract) > 0: self.inp_fract = True
@@ -46,15 +46,15 @@ class Crys:
                       and cell matrix. EXIT.")
         elif not self.compute_la_from_matrix and not self.inp_matrix:
             print("WARNING: no input cell.")
-        # Computing stuff
+
+    def compute_atom_count(self):
         self.natom = len(self.atom_type)
         self.atom_element = [re.split(r'(\d+)', x)[0] for x in self.atom_type]
         self.element_count = Counter(self.atom_type)
+        self.element = sorted(self.element_count)
+        self.nelement = len(self.element)
         self.atom_atnum = [atomic_symbol.index(x) for x in self.atom_element]
-        if all(x == 0 for x in self.angle_rad):
-            self.angle_rad = [math.radians(i) for i in self.angle_deg]
-        else:
-            self.angle_deg = [math.degrees(i) for i in self.angle_rad]
+        self.element_atnum = [atomic_symbol.index(x) for x in self.element]
         if len(self.atom_charge) == 0:
             self.atom_charge = [0] * self.natom
 
@@ -84,6 +84,7 @@ class Crys:
 
     def compute_matrix_from_la(self):
         #Copied from Raspa>framework.c>UnitCellBox
+        self.angle_deg = [math.radians(i) for i in self.angle_rad]
         self.matrix[0][0] = self.length[0]
         self.matrix[0][1] = 0.0
         self.matrix[0][2] = 0.0
@@ -104,7 +105,7 @@ class Crys:
         elif self.inp_matrix: self.compute_la_from_matrix()
         self.invmatrix = inv(self.matrix)
 
-    def compute_fract(self):
+    def compute_fract_from_xyz(self):
         # Given a cell, compute the fractional coordinates of the atoms
         self.atom_fract = [[0.0] * 3 for i in range(self.natom)]
         for i in range(self.natom):
@@ -113,7 +114,7 @@ class Crys:
                                         self.atom_xyz[i][1] * self.invmatrix[1][j] + \
                                         self.atom_xyz[i][2] * self.invmatrix[2][j]
 
-    def compute_xyz(self):
+    def compute_xyz_from_fract(self):
         # Given a cell, compute the fractional coordinates of the atoms
         self.atom_xyz = [[0.0] * 3 for i in range(self.natom)]
         for i in range(self.natom):
@@ -123,5 +124,108 @@ class Crys:
                                       self.atom_fract[i][2] * self.matrix[2][j]
 
     def compute_both_coord(self):
-        if self.inp_xyz: self.compute_fract()
-        elif self.inp_fract: self.compute_xyz()
+        if self.inp_xyz: self.compute_fract_from_xyz()
+        elif self.inp_fract: self.compute_xyz_from_fract()
+
+    def transl_coord(self, transl):
+        """ Translate the coordinates of the crystal by a defined amount """
+        for i in range(self.natom):
+            self.atom_xyz[i][0] += transl[0]
+            self.atom_xyz[i][1] += transl[1]
+            self.atom_xyz[i][2] += transl[2]
+        self.compute_fract_from_xyz()
+
+    def randomize_coord(self, delta):
+        """ Randomize the atomic coordinates, by a normal distribution """
+        for i in range(self.natom):
+            self.atom_xyz[i][0] += np.random.normal(0, delta, 1)
+            self.atom_xyz[i][1] += np.random.normal(0, delta, 1)
+            self.atom_xyz[i][2] += np.random.normal(0, delta, 1)
+        self.compute_fract_from_xyz()
+
+    def rotate_axis(self, up):
+        if up:
+            self.length[0], self.length[1], self.length[2] = \
+             self.length[2], self.length[0], self.length[1]
+            self.angle_deg[0], self.angle_deg[1], self.angle_deg[2] = \
+             self.angle_deg[2], self.angle_deg[0], self.angle_deg[1]
+            for i in range(self.natom):
+                self.atom_xyz[i][0], self.atom_xyz[i][1], \
+                 self.atom_xyz[i][2] = self.atom_xyz[i][2], \
+                  self.atom_xyz[i][0], self.atom_xyz[i][1]
+                self.atom_fract[i][0], self.atom_fract[i][1], \
+                 self.atom_fract[i][2] = self.atom_fract[i][2], \
+                  self.atom_fract[i][0], self.atom_fract[i][1]
+        else:
+            self.length[0], self.length[1], self.length[2] = \
+             self.length[1], self.length[2], self.length[0]
+            self.angle_deg[0], self.angle_deg[1], self.angle_deg[2] = \
+             self.angle_deg[1], self.angle_deg[2], self.angle_deg[0]
+            for i in range(self.natom):
+                self.atom_xyz[i][0], self.atom_xyz[i][1], \
+                 self.atom_xyz[i][2] = self.atom_xyz[i][1], \
+                  self.atom_xyz[i][2], self.atom_xyz[i][0]
+                self.atom_fract[i][0], self.atom_fract[i][1], \
+                 self.atom_fract[i][2] = self.atom_fract[i][1], \
+                  self.atom_fract[i][2], self.atom_fract[i][0]
+
+    def compute_perp_width(self):
+        """ Compute perpendicular widths in the cell """
+        ax = crys.matrix[0][0]
+        ay = crys.matrix[0][1]
+        az = crys.matrix[0][2]
+        bx = crys.matrix[1][0]
+        by = crys.matrix[1][1]
+        bz = crys.matrix[1][2]
+        cx = crys.matrix[2][0]
+        cy = crys.matrix[2][1]
+        cz = crys.matrix[2][2]
+        # calculate vector products of cell vectors
+        axb1 = ay * bz - az * by
+        axb2 = az * bx - ax * bz
+        axb3 = ax * by - ay * bx
+        bxc1 = by * cz - bz * cy
+        bxc2 = bz * cx - bx * cz
+        bxc3 = bx * cy - by * cx
+        cxa1 = cy * az - ay * cz
+        cxa2 = ax * cz - az * cx
+        cxa3 = ay * cx - ax * cy
+        # calculate volume of cell
+        V = math.fabs(ax * bxc1 + ay * bxc2 + az * bxc3)
+        # calculate cell perpendicular widths
+        self.perp_width = [0.0] * 3
+        self.perp_width[0] = V / math.sqrt(bxc1**2 + bxc2**2 + bxc3**2)
+        self.perp_width[1] = V / math.sqrt(cxa1**2 + cxa2**2 + cxa3**2)
+        self.perp_width[2] = V / math.sqrt(axb1**2 + axb2**2 + axb3**2)
+
+    def dist_ij(self, i, j):
+        """ Compute the distance (Å) between the atoms i and j """
+        dist_fract = [(self.atom_fract[i][k] - self.atom_fract[j][k])
+                      for k in range(3)]
+        dist_fract_pbc = [ (dist_fract[k] - int(round(dist_fract[k]))) \
+                        for k in range(3) ]
+        dist_cart_pbc = [ ( self.matrix[0][k] * dist_fract_pbc[0] + \
+                            self.matrix[1][k] * dist_fract_pbc[1] + \
+                            self.matrix[2][k] * dist_fract_pbc[2] ) \
+                            for k in range(3) ]
+        dist = math.sqrt(dist_cart_pbc[0]**2 + \
+                         dist_cart_pbc[1]**2 + \
+                         dist_cart_pbc[2]**2)
+        return dist
+
+    def expand_k_dir(self, k, n):
+        """ Expand and replicate the cell n times in k direction """
+        for i in range(1, n):
+            for j in range(self.natom):
+                self.atom_type.append(self.atom_type[j])
+                self.atom_charge.append(self.atom_charge[j])
+                self.atom_xyz.append([
+                    self.atom_xyz[j][0] + i * self.matrix[k][0],
+                    self.atom_xyz[j][1] + i * self.matrix[k][1],
+                    self.atom_xyz[j][2] + i * self.matrix[k][2]
+                ])
+        self.length[k] *= n
+        for kk in range(3):
+            self.matrix[k][kk] *= n
+        self.compute_fract_from_xyz()
+        self.compute_atom_count()

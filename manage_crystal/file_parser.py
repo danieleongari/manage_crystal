@@ -1,3 +1,6 @@
+# Parsers for the different file formats.
+# Functions are sorted in alphabetic order.
+
 from __future__ import absolute_import
 from manage_crystal import Crys
 import numpy as np
