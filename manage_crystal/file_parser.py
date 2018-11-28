@@ -112,6 +112,7 @@ def parse_cif(file):
 
 def parse_cp2k(file):
     ''' Parse any CP2K input file and return a Crys object '''
+    c = Crys()
     while True:
         data = file.readline().split()
         cell_dict = {"A": 0, "B": 1, "C": 2}
@@ -123,8 +124,7 @@ def parse_cp2k(file):
             else:
                 sys.exit("WARNING: in parsing CP2K, weird units. EXIT")
             for i in range(3):
-                c.inp_matrix[cell_dict[data[0]]][i] = data[1 + i + shift]
-
+                c.matrix[cell_dict[data[0]]][i] = float(data[1 + i + shift])
         if len(data) > 0 and (data[0] == "&COORD"):
             break
     scaled_coord = False  #Default

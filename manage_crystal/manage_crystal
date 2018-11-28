@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 from __future__ import print_function
 from __future__ import absolute_import
 import string, sys
@@ -443,15 +444,15 @@ if not args.silent: print('{0:>5} {1:3} atoms'.format(crys.natom, 'tot'))
 
 if not args.silent:
     print("\nVolume: %.3f (Angtrom^3/u.c.)" % crys.compute_volume_from_la())
-if not args.silent:
-    print("Density: %.5f (kg/m3), %.5f (g/cm3), %.5f (g/molUC)" %
-          (crys.compute_weight_density()[1],
-           crys.compute_weight_density()[1] / 1000,
-           crys.compute_weight_density()[0]))
+
+weight, rho_kgm3 = crys.compute_weight_density()
 
 if not args.silent:
-    print("Conversion: 1 molec./u.c. = %.5f (mol/kg)" %
-          (1000 / crys.compute_weight_density()[0]))
+    print("Density: %.5f (kg/m3), %.5f (g/cm3), %.5f (g/molUC)" %
+          (rho_kgm3, rho_kgm3 / 1000, weight))
+
+if not args.silent:
+    print("Conversion: 1 molec./u.c. = %.5f (mol/kg)" % (1000 / weight))
 
 if all(x == 0 for x in crys.atom_charge):
     if not args.silent: print("\nNET_CHARGE: all the charges are zero.")

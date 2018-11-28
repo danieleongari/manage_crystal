@@ -1,3 +1,5 @@
+# coding=utf-8
+
 from __future__ import absolute_import
 from __future__ import print_function
 import numpy as np
@@ -10,7 +12,7 @@ from six.moves import range
 
 AVOGCONST = 6.022E+23
 M3TOANG3 = 1e10**3
-GTOKG = 1 / 1000
+GTOKG = 0.001
 
 
 class Crys:
@@ -44,7 +46,7 @@ class Crys:
         elif not self.inp_xyz and not self.inp_fract:
             sys.exit("WARNING: no input coordinates. EXIT.")
         if all(x != 0 for x in self.length): self.inp_lengths_angles = True
-        if not (x == 0 for x in self.matrix[0]): self.matrix = True
+        if any(x != 0 for x in self.matrix[0]): self.inp_matrix = True
         if self.inp_lengths_angles and self.inp_matrix:
             sys.exit("WARNING: the input contains both lengths & angles \
                       and cell matrix. EXIT.")
