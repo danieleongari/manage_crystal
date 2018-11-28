@@ -376,10 +376,15 @@ elif crys.inp_lengths_angles:
 crys.compute_both_cell()
 
 if crys.inp_fract:
-    if not args.silent: print(" \n Atomic coordinates parsed cartersian.")
+    if not args.silent: print(" \n Atomic coordinates parsed as cartersian.")
 elif crys.inp_xyz:
-    if not args.silent: print(" \n Atomic coordinates parsed fractional.")
+    if not args.silent: print(" \n Atomic coordinates parsed as fractional.")
 crys.compute_both_coord()
+
+if not crys.matrix_alligned:
+    if not args.silent:
+        print(" \n Matrix not alligned to cartesian axis: fixed.")
+    crys.fix_cell_notalligned()
 
 ############################################################################ APPLY TRANSLATION / RANDOMIZE
 if args.transl != None:
