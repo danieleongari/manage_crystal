@@ -386,7 +386,7 @@ if not crys.matrix_alligned:
         print(" \n Matrix not alligned to cartesian axis: fixed.")
     crys.fix_cell_notalligned()
 
-############################################################################ APPLY TRANSLATION / RANDOMIZE
+################################################## APPLY TRANSLATION / RANDOMIZE
 if args.transl != None:
     if not args.silent:
         print("\n*** TRANSLATING coordinates by %f %f %f Angs" %
@@ -443,22 +443,16 @@ for an in range(1, 118):
         if not args.silent:
             print("{0:>5} {1:3} atoms".format(crys.element_count[element],
                                               element))
-
 if not args.silent: print(" ---- --- ----- ")
 if not args.silent: print('{0:>5} {1:3} atoms'.format(crys.natom, 'tot'))
-
 if not args.silent:
     print("\nVolume: %.3f (Angtrom^3/u.c.)" % crys.compute_volume_from_la())
-
 weight, rho_kgm3 = crys.compute_weight_density()
-
 if not args.silent:
     print("Density: %.5f (kg/m3), %.5f (g/cm3), %.5f (g/molUC)" %
           (rho_kgm3, rho_kgm3 / 1000, weight))
-
 if not args.silent:
     print("Conversion: 1 molec./u.c. = %.5f (mol/kg)" % (1000 / weight))
-
 if all(x == 0 for x in crys.atom_charge):
     if not args.silent: print("\nNET_CHARGE: all the charges are zero.")
 elif abs(sum(crys.atom_charge)) < +0.001:
@@ -466,7 +460,6 @@ elif abs(sum(crys.atom_charge)) < +0.001:
 else:
     if not args.silent:
         print("\nNET_CHARGE: nonzero (%.3f). ***WARNING***" % sum(charge))
-
 #check negative charge on metals [skip -silent]
 if args.chkmetalcharge:
     metal_list = [
@@ -498,36 +491,31 @@ if args.chkmetalcharge:
         print("CHK_METAL_CHARGE: all_zero")
     if found_met and not found_met_neg and not found_met_notnumber and found_met_nonzero:
         print("CHK_METAL_CHARGE: ok_positive")
-
 if not args.silent: print("Tot. electrons: %d" % crys.compute_nelectron())
-
-#print atoms on one line for info
 if args.printatoms:
     for an in range(1, 118):
         element = ptab_atnum_inv[an]
         if element in crys.count_element: print(element, end='_')
     print()
-################################################################################################# OUTPUT OPERATIONS
-if args.output == None:  #CHECK IF AN OUTPUT IS DEFINED
-    outputfile = 'NOTHING'
-else:
-    if len(args.output.split(".")) > 1:  #output defined as name.format
-        outputfilename = os.path.splitext(args.output)[0]
-        outputformat = os.path.splitext(args.output)[1][1:]
-        outputfile = outputfilename + "." + outputformat
-    else:  #output defined as format
-        outputfilename = inputfilename
-        outputformat = args.output
-        outputfile = outputfilename + "." + outputformat
+if args.ovlp:
+    overlaps = 0
+    for i in range(crys.natom):
+        for j in range(i + 1, crys.natom):
+            dist = crys.dist_ij(i, j)
+            if (dist < 0.2):
+                print("Overlap found between:")
+                print("%3s %9.5f %9.5f %9.5f " %
+                      (crys.atom_element[i], crys.atom_xyz[i][0],
+                       crys.atom_xyz[i][1], crys.atom_xyz[i][2]))
+                print("%3s %9.5f %9.5f %9.5f " %
+                      (crys.atom_element[j], crys.atom_xyz[j][0],
+                       crys.atom_xyz[j][1], crys.atom_xyz[i][2]))
+                overlaps += 1
+    print("OVERLAPS FOUND: %d" % overlaps)
+    sys.exit()
 
-if not args.silent: print("\n***********************************************")
-if not args.silent: print("  Convert %s to %s" % (args.inputfile, outputfile))
-if not args.silent:
-    print("*************************************************\n")
-
-#show and showonly
-if args.show:
-    print("cell ----------------------------------------------------")
+################################################################ SHOW & SHOWONLY
+if args.show: print("cell --------------------------------------------------")
 if args.show or args.showonly == "cell":
     print("     %10.5f %10.5f %10.5f" % (cell.item((0, 0)), cell.item(
         (0, 1)), cell.item((0, 2))))
@@ -537,8 +525,7 @@ if args.show or args.showonly == "cell":
 if args.show or args.showonly == "cell":
     print("     %10.5f %10.5f %10.5f" % (cell.item((2, 0)), cell.item(
         (2, 1)), cell.item((2, 2))))
-if args.show:
-    print("CELL (ABC, abc) -----------------------------------------")
+if args.show: print("CELL (ABC, abc) ---------------------------------------")
 if args.show or args.showonly == "CELL":
     print(" %10.5f  %10.5f  %10.5f  %10.5f  %10.5f  %10.5f  " %
           (ABC[0], ABC[1], ABC[2], math.degrees(abc[0]), math.degrees(abc[1]),
@@ -562,108 +549,21 @@ if args.show or args.showonly == "charge":
         print("%3s %10.5f " % (atom[i], charge[i]))
 if args.show or args.showonly != None: sys.exit()
 
-#This function checks if there are copper paddlewheels (= a copper atom with a close Cu and 4 close O)
-if args.cupw:
-    ncupw_act = 0
-    ncupw_sol = 0
-    ncupw_wrd = 0
-    for i in range(0, natoms):
-        closeCu = 0
-        closeO = 0
-        closeX = 0
+################################################################### WRITE OUTPUT
+if args.output == None:
+    outputfile = 'NOTHING'
+else:
+    if len(args.output.split(".")) > 1:  #output defined as name.format
+        outputfilename = os.path.splitext(args.output)[0]
+        outputformat = os.path.splitext(args.output)[1][1:]
+        outputfile = outputfilename + "." + outputformat
+    else:  #output defined as format
+        outputfilename = inputfilename
+        outputformat = args.output
+        outputfile = outputfilename + "." + outputformat
+if not args.silent:
+    print("\n Convert %s to %s\n" % (args.inputfile, outputfile))
 
-        if (an[i] == 29):
-            for j in range(0, natoms):
-                if (j != i):
-                    d = [0] * 3
-                    s = [0] * 3
-                    t = [0] * 3
-
-                    #d[0]=xyz[i][0]-xyz[j][0]
-                    #d[1]=xyz[i][1]-xyz[j][1]
-                    #d[2]=xyz[i][2]-xyz[j][2]
-                    #s[0]=invcell.item((0,0))*d[0]+invcell.item((1,0))*d[1]+invcell.item((2,0))*d[2]
-                    #s[1]=invcell.item((0,1))*d[0]+invcell.item((1,1))*d[1]+invcell.item((2,1))*d[2]
-                    #s[2]=invcell.item((0,2))*d[0]+invcell.item((1,2))*d[1]+invcell.item((2,2))*d[2]
-
-                    s[0] = fract[i][0] - fract[j][0]
-                    s[1] = fract[i][1] - fract[j][1]
-                    s[2] = fract[i][2] - fract[j][2]
-
-                    t[0] = s[0] - int(round(s[0]))
-                    t[1] = s[1] - int(round(s[1]))
-                    t[2] = s[2] - int(round(s[2]))
-
-                    d[0] = cell.item((0, 0)) * t[0] + cell.item(
-                        (1, 0)) * t[1] + cell.item((2, 0)) * t[2]
-                    d[1] = cell.item((0, 1)) * t[0] + cell.item(
-                        (1, 1)) * t[1] + cell.item((2, 1)) * t[2]
-                    d[2] = cell.item((0, 2)) * t[0] + cell.item(
-                        (1, 2)) * t[1] + cell.item((2, 2)) * t[2]
-
-                    mindist = math.sqrt(d[0]**2 + d[1]**2 + d[2]**2)
-
-                    if (an[j] == 29) and (1.8 < mindist < 2.8):
-                        closeCu += 1
-                        #print("%d %d %f     %d %d" %(i,j,mindist,closeO,closeX)
-                    if (an[j] == 8) and (1.5 < mindist < 2.5): closeO += 1
-                    if (an[j] != 29) and (an[j] != 8) and (1.8 < mindist <
-                                                           2.5):
-                        closeX += 1
-                        #print("%d %d %s  %f------%f %f %f " %(i,j,an[j],mindist,s[0],s[1],s[2]); print(fract[i]; print(fract[j]
-
-            if (closeCu == 1) and (closeO == 4):
-                ncupw_act += 1
-                #elif (closeCu==1) and (closeO==4) and (closeX>0):  ncupw_sol+=1
-            elif (closeCu == 1) and (closeO == 5):
-                ncupw_sol += 1
-            elif (closeCu < 0):
-                ncupw_wrd += 1
-
-    print("Cu-paddlewheel activated found:    %d" % ncupw_act)
-    print(
-        "Cu-paddlewheel solvated  found:    %d   (only Oxygen atoms considered)"
-        % ncupw_sol)
-    print("Cu-paddlewheel WEIRD     found:    %d" % ncupw_wrd)
-    print()
-
-    #print that I found it
-    if True:
-        ofile = open("000_cupw_found.txt", 'a')
-        if (ncupw_act > 0) or (ncupw_act > 0) or (ncupw_wrd < 0):
-            print(args.inputfile, file=ofile)
-            print(
-                "Cu-paddlewheel activated found:    %d" % ncupw_act,
-                file=ofile)
-            print(
-                "Cu-paddlewheel solvated  found:    %d   (only Oxygen atoms considered)"
-                % ncupw_sol,
-                file=ofile)
-            print(
-                "Cu-paddlewheel WEIRD     found:    %d" % ncupw_wrd,
-                file=ofile)
-            print(" ", file=ofile)
-
-    sys.exit()
-
-if args.ovlp:
-    overlaps = 0
-    for i in range(crys.natom):
-        for j in range(i + 1, crys.natom):
-            dist = crys.dist_ij(i, j)
-            if (dist < 0.2):
-                print("Overlap found between:")
-                print("%3s %9.5f %9.5f %9.5f " %
-                      (crys.atom_element[i], crys.atom_xyz[i][0],
-                       crys.atom_xyz[i][1], crys.atom_xyz[i][2]))
-                print("%3s %9.5f %9.5f %9.5f " %
-                      (crys.atom_element[j], crys.atom_xyz[j][0],
-                       crys.atom_xyz[j][1], crys.atom_xyz[i][2]))
-                overlaps += 1
-    print("OVERLAPS FOUND: %d" % overlaps)
-    sys.exit()
-
-########################################################## Write converted files
 if args.output != None:
     ofile = open(outputfile, 'w+')
     if outputformat == "axsf":
