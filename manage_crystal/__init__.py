@@ -4,7 +4,7 @@ import numpy as np
 import re  #re.split(r'(\d+)',"Cu23") = ['Cu', '23', '']
 import math
 from collections import Counter  #makes a dictionary
-from manage_crystal.atomic_data import atomic_symbol, atomic_mass
+from manage_crystal.periodic_table import ptab_atnum, ptab_mass
 from numpy.linalg import inv
 from six.moves import range
 
@@ -57,8 +57,6 @@ class Crys:
         self.element_count = Counter(self.atom_type)
         self.element = sorted(self.element_count)
         self.nelement = len(self.element)
-        self.atom_atnum = [atomic_symbol.index(x) for x in self.atom_element]
-        self.element_atnum = [atomic_symbol.index(x) for x in self.element]
         if len(self.atom_charge) == 0:
             self.atom_charge = [0] * self.natom
 
@@ -252,7 +250,7 @@ class Crys:
         """ Compute crystal density """
         weight = 0  #g/mol_uc
         for element in self.element_count:
-            weight += self.element_count[element] * atomic_mass[element]
+            weight += self.element_count[element] * ptab_mass[element]
         vol = self.compute_volume_from_la()
         rho_kgm3 = weight / vol / AVOGCONST * M3TOANG3 * GTOKG
         return weight, rho_kgm3
@@ -261,6 +259,5 @@ class Crys:
         """ Compute the number of electrons """
         nelectron = 0
         for element in self.element_count:
-            nelectron += self.element_count[element] * atomic_symbol.index(
-                element)
+            nelectron += self.element_count[element] * ptab_atnum[element]
         return nelectron

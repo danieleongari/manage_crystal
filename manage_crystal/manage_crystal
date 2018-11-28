@@ -12,7 +12,7 @@ import os
 import re  #re.split(r'(\d+)',"O23") = ['O', '23', '']
 from six.moves import range
 from manage_crystal import Crys
-from manage_crystal.atomic_data import atomic_symbol
+from manage_crystal.periodic_table import ptab_atnum_inv
 from manage_crystal.file_parser import parse_axsf, parse_cif, parse_cp2k
 from manage_crystal.file_parser import parse_cssr, parse_cube
 from manage_crystal.file_parser import parse_pdb, parse_poscar, parse_pwo
@@ -431,7 +431,8 @@ if args.multipl_z > 1:
 
 ################################################################### COMPUTE INFO
 print()
-for element in atomic_symbol:
+for an in range(1, 118):
+    element = ptab_atnum_inv[an]
     if element in crys.element_count:
         if not args.silent:
             print("{0:>5} {1:3} atoms".format(crys.element_count[element],
@@ -496,9 +497,9 @@ if not args.silent: print("Tot. electrons: %d" % crys.compute_nelectron())
 
 #print atoms on one line for info
 if args.printatoms:
-    for element in atomic_symbol:
-        if element in crys.count_element:
-            print(atomic_symbol[i], end='_')
+    for an in range(1, 118):
+        element = ptab_atnum_inv[an]
+        if element in crys.count_element: print(element, end='_')
     print()
 ################################################################################################# OUTPUT OPERATIONS
 if args.output == None:  #CHECK IF AN OUTPUT IS DEFINED

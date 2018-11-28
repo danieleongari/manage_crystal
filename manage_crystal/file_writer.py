@@ -3,6 +3,7 @@
 
 from __future__ import print_function
 from __future__ import absolute_import
+from manage_crystal.periodic_table import ptab_mass, ptab_qepseudo
 from manage_crystal import Crys
 from six.moves import range
 
@@ -163,8 +164,8 @@ def write_pwi(ofile, c, pseudopw):
     print("ATOMIC_SPECIES ", file=ofile)
     for i, element in enumerate(c.element):
         print(
-            "%3s %8.3f  %s" % (element, atomic_mass[c.element_atnum[i]],
-                               atomic_pseudo[pseudopw][c.element_atnum[i]]),
+            "%3s %8.3f  %s" % (element, ptab_mass[c.element_atnum[i]],
+                               ptab_qepseudo[pseudopw][c.element_atnum[i]]),
             file=ofile)
     print("", file=ofile)
     print("K_POINTS gamma ", file=ofile)

@@ -3,6 +3,7 @@
 
 from __future__ import absolute_import
 from manage_crystal import Crys
+from manage_crystal.periodic_table import ptab_atnum_inv
 import numpy as np
 from six.moves import range
 
@@ -27,7 +28,8 @@ def parse_axsf(file):
         data = file.readline().split()
         # The atom type can be given as element or atomic number
         if is_number(data[0]):
-            c.atom_type.append(atomic_symbol[data[0]])
+            # convert from atomic number to element
+            c.atom_type.append(ptab_atnum_inv[data[0]])
         else:
             c.atom_type.append(data[0])
         c.atom_xyz.append([float(data[1]), float(data[2]), float(data[3])])
@@ -183,7 +185,8 @@ def parse_cube(file):
             c.matrix[i][j] = float(data[0]) * float(data[j]) / ANGS2BOHR
     for i in range(c.natoms):
         data = file.readline().split()
-        c.atom_type.append(atomic_symbol[int(data[0])])
+        # convert from atomic number to element
+        c.atom_type.append(ptab_atnum_inv[int(data[0])])
         c.atom_xyz.append([
             float(data[2]) / ANGS2BOHR,
             float(data[3]) / ANGS2BOHR,
@@ -289,7 +292,7 @@ def parse_pwo(file):
     with file as myFile:
         for num, line in enumerate(myFile, 1):
             if 'ATOMIC_POSITIONS' in line:
-                atomic_line = num
+                atomicpositions_line = num
                 if line.split()[1] == 'angstrom' \
                  or line.split()[1] == '(angstrom)':
                     readfractional = False
@@ -297,8 +300,8 @@ def parse_pwo(file):
                  or line.split()[1] == '(crystal)':
                     readfractional = True
     file.seek(0)
-    if 'atomic_line' in locals():  #read atomic in vc-relax and relax calc.
-        for i in range(0, atomic_line):
+    if 'atomicpositions_line' in locals():  #read atomic in vc-relax and relax.
+        for i in range(0, atomicpositions_line):
             skip = file.readline()
         i = 0
         while True:
