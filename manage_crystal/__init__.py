@@ -126,14 +126,10 @@ class Crys:
             ((math.cos(self.angle_rad[0]) - math.cos(self.angle_rad[2]) *
               math.cos(self.angle_rad[1])) / math.sin(self.angle_rad[2]))**2)
 
-    def compute_both_cell(self):
-        if self.inp_lengths_angles: self.compute_matrix_from_la()
-        elif self.inp_matrix: self.compute_la_from_matrix()
-        self.invmatrix = inv(self.matrix)
-
     def compute_fract_from_xyz(self):
         # Given a cell, compute the fractional coordinates of the atoms
         self.atom_fract = [[0.0] * 3 for i in range(self.natom)]
+        self.invmatrix = inv(self.matrix)
         for i in range(self.natom):
             for j in range(3):
                 self.atom_fract[i][j] = self.atom_xyz[i][0] * self.invmatrix[0][j] + \
@@ -148,10 +144,6 @@ class Crys:
                 self.atom_xyz[i][j] = self.atom_fract[i][0] * self.matrix[0][j] + \
                                       self.atom_fract[i][1] * self.matrix[1][j] + \
                                       self.atom_fract[i][2] * self.matrix[2][j]
-
-    def compute_both_coord(self):
-        if self.inp_xyz: self.compute_fract_from_xyz()
-        elif self.inp_fract: self.compute_xyz_from_fract()
 
     def fix_cell_notalligned(self):
         """ Fix the problem of not alligned cell and cartesian coordinates """
@@ -203,15 +195,15 @@ class Crys:
 
     def compute_perp_width(self):
         """ Compute perpendicular widths in the cell """
-        ax = crys.matrix[0][0]
-        ay = crys.matrix[0][1]
-        az = crys.matrix[0][2]
-        bx = crys.matrix[1][0]
-        by = crys.matrix[1][1]
-        bz = crys.matrix[1][2]
-        cx = crys.matrix[2][0]
-        cy = crys.matrix[2][1]
-        cz = crys.matrix[2][2]
+        ax = self.matrix[0][0]
+        ay = self.matrix[0][1]
+        az = self.matrix[0][2]
+        bx = self.matrix[1][0]
+        by = self.matrix[1][1]
+        bz = self.matrix[1][2]
+        cx = self.matrix[2][0]
+        cy = self.matrix[2][1]
+        cz = self.matrix[2][2]
         # calculate vector products of cell vectors
         axb1 = ay * bz - az * by
         axb2 = az * bx - ax * bz
@@ -257,10 +249,9 @@ class Crys:
                     self.atom_xyz[j][2] + i * self.matrix[k][2]
                 ])
         self.length[k] *= n
-        for kk in range(3):
-            self.matrix[k][kk] *= n
-        self.compute_fract_from_xyz()
+        self.compute_matrix_from_la()
         self.compute_atom_count()
+        self.compute_fract_from_xyz()
 
     def compute_volume_from_la(self):
         """ Compute cell Volume from lengths and angles """

@@ -20,6 +20,7 @@ from manage_crystal.file_parser import parse_pdb, parse_poscar, parse_pwo
 from manage_crystal.file_parser import parse_xyz, parse_xyz_tm3
 from manage_crystal.file_writer import write_axsf, write_cif, write_cssr
 from manage_crystal.file_writer import write_pdb, write_pwi, write_subsys
+from manage_crystal.file_writer import write_xyz, write_xyz_tm4
 #from pprint import pprint #pprint(vars(your_object))
 
 parser = argparse.ArgumentParser(
@@ -368,18 +369,19 @@ if args.normalizecharges:
                 1 - pos_fract) * crys.atom_charge[i] / neg_charge
 
 ########################################################### Coordinates and cell
-
 if crys.inp_matrix:
     if not args.silent: print("\n Cell parsed as matrix.")
+    crys.compute_la_from_matrix()
 elif crys.inp_lengths_angles:
     if not args.silent: print("\n Cell parsed as lengths and angles.")
-crys.compute_both_cell()
+    crys.compute_matrix_from_la()
 
-if crys.inp_fract:
+if crys.inp_xyz:
     if not args.silent: print(" \n Atomic coordinates parsed as cartersian.")
-elif crys.inp_xyz:
+    crys.compute_fract_from_xyz()
+elif crys.inp_fract:
     if not args.silent: print(" \n Atomic coordinates parsed as fractional.")
-crys.compute_both_coord()
+    crys.compute_xyz_from_fract()
 
 if not crys.matrix_alligned:
     if not args.silent:
@@ -405,35 +407,38 @@ if args.rotaxis != None:
     if not args.silent: print("*** Warning: the cell matrix is not rotated")
     crys.rotate_axis(up=(args.rotaxis == "up"))
 
-#################################################################### CUTOFF TEST
-if not args.cutoff == None:  #copied from raspa/framework.c/CellProperties(line:6184)
-    if args.multipl_x > 1 or args.multipl_y > 1 or args.multipl_z > 1:
-        sys.exit("Why did you ask for both -cutoff and -x -y -z ????")
-    crys.compute_perp_width()
+################################################### CUTOFF TEST & CELL EXPANSION
+multipl_length = [0] * 3
+multipl_length[0] = args.multipl_x
+multipl_length[1] = args.multipl_y
+multipl_length[2] = args.multipl_z
 
+if not args.cutoff == None:  #copied from raspa/framework.c/CellProperties(line:6184)
+    if any(x > 1 for x in multipl_length):
+        sys.exit("WARNING: Why did you ask for both -cutoff" +
+                 "and -x -y -z ? EXIT.")
+
+    crys.compute_perp_width()
     print("\nCUTOFF_TEST | Cutoff: %.1f" % (args.cutoff))
     print("CUTOFF_TEST | Cell perpendicular widths: %.3f %.3f %.3f" %
-          (perp_x, perp_y, perp_z))
+          (crys.perp_width[0], crys.perp_width[1], crys.perp_width[2]))
 
     # compute how big the cell must be
-    args.multipl_x = int(math.ceil(2 * args.cutoff / crys.perp_width[0]))
-    args.multipl_y = int(math.ceil(2 * args.cutoff / crys.perp_width[1]))
-    args.multipl_z = int(math.ceil(2 * args.cutoff / crys.perp_width[2]))
+    for k in range(3):
+        multipl_length[k] = int(
+            math.ceil(2 * args.cutoff / crys.perp_width[k]))
 
-    if args.multipl_x > 1 or args.multipl_y > 1 or args.multipl_z > 1:
+    if any(x > 1 for x in multipl_length):
         print("CUTOFF_TEST | Expansion_done: %d %d %d for %s" %
-              (args.multipl_x, args.multipl_y, args.multipl_z, args.inputfile))
+              (multipl_length[0], multipl_length[1], multipl_length[2],
+               args.inputfile))
     else:
         print("CUTOFF_TEST | Expansion_unnecesary: 1 1 1 for %s" %
               (args.inputfile))
 
-################################################################# CELL EXPANSION
-if args.multipl_x > 1:
-    crys.expand_k_dir(0, args.multipl_x)
-if args.multipl_y > 1:
-    crys.expand_k_dir(1, args.multipl_y)
-if args.multipl_z > 1:
-    crys.expand_k_dir(2, args.multipl_z)
+for k in range(3):
+    if multipl_length[k] > 1:
+        crys.expand_k_dir(k, multipl_length[k])
 
 ################################################################### COMPUTE INFO
 print()

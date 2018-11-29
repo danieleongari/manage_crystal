@@ -23,8 +23,8 @@ def parse_axsf(file):
     while True:
         if file.readline().split()[0] == 'PRIMCOORD':
             break
-    c.natoms = int(file.readline().split()[0])
-    for i in range(c.natoms):
+    c.natom = int(file.readline().split()[0])
+    for i in range(c.natom):
         data = file.readline().split()
         # The atom type can be given as element or atomic number
         if is_number(data[0]):
@@ -161,9 +161,9 @@ def parse_cssr(file):
     c.length = [float(data[0]), float(data[1]), float(data[2])]
     data = file.readline().split()
     c.angle_deg = [float(data[0]), float(data[1]), float(data[2])]
-    c.natoms = int(file.readline().split()[0])
+    c.natom = int(file.readline().split()[0])
     junk = file.readline()
-    for i in range(c.natoms):
+    for i in range(c.natom):
         data = file.readline().split()
         c.atom_type.append(data[1])
         c.atom_fract.append([float(data[2]), float(data[3]), float(data[4])])
@@ -178,12 +178,12 @@ def parse_cube(file):
     junk = file.readline()  #header1
     junk = file.readline()  #header2
     data = file.readline().split()
-    c.natoms = int(data[0])
+    c.natom = int(data[0])
     for i in range(3):
         data = file.readline().split()
         for j in range(3):
             c.matrix[i][j] = float(data[0]) * float(data[j]) / ANGS2BOHR
-    for i in range(c.natoms):
+    for i in range(c.natom):
         data = file.readline().split()
         # convert from atomic number to element
         c.atom_type.append(ptab_atnum_inv[int(data[0])])
@@ -242,14 +242,14 @@ def parse_poscar(file):
     c.natom = len(c.atom_type)
     coord_type = file.readline().split()[0]
     if coord_type.lower() == 'direct':
-        for i in range(c.natoms):
+        for i in range(c.natom):
             data = file.readline().split()
             c.atom_fract.append(
                 [float(data[0]),
                  float(data[1]),
                  float(data[2])])
     elif coord_type.lower() == 'cartesian':
-        for i in range(c.natoms):
+        for i in range(c.natom):
             data = file.readline().split()
             c.atom_xyz.append([float(data[0]), float(data[1]), float(data[2])])
     return c
@@ -343,7 +343,7 @@ def parse_pwo(file):
 def parse_xyz(file):
     ''' Parse .xyz file and return Crys object '''
     c = Crys()
-    c.natoms = int(file.readline().split()[0])
+    c.natom = int(file.readline().split()[0])
     data = file.readline().split()
     if len(data) >= 7 and data[0] == 'CELL:':
         c.length = [float(data[1]), float(data[2]), float(data[3])]
@@ -356,7 +356,7 @@ def parse_xyz(file):
         c.matrix[0] = [float(data[10]), float(data[11]), float(data[12])]
         c.matrix[0] = [float(data[15]), float(data[16]), float(data[17])]
         c.matrix[0] = [float(data[20]), float(data[21]), float(data[22])]
-    for i in range(c.natoms):
+    for i in range(c.natom):
         data = file.readline().split()
         c.atom_type.append(data[0])
         c.atom_xyz.append([float(data[1]), float(data[2]), float(data[3])])
@@ -372,8 +372,8 @@ def parse_xyz_tm3(file):
     data = file.readline().split()
     c.length = [float(data[1]), float(data[2]), float(data[3])]
     ac.angle_deg = [float(data[4]), float(data[5]), float(data[6])]
-    c.natoms = int(file.readline().split()[0])
-    for i in range(c.natoms):
+    c.natom = int(file.readline().split()[0])
+    for i in range(c.natom):
         data = file.readline().split()
         c.atom_type.append(data[0])
         c.atom_fract.append([float(data[1]), float(data[2]), float(data[3])])

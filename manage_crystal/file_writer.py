@@ -88,7 +88,7 @@ def write_cssr(ofile, c):
     return
 
 
-def write_pdb(file, c):
+def write_pdb(ofile, c):
     ''' Write the Crys in .pdb file format'''
     print(
         "CRYST1{0:>9.3f}{1:>9.3f}{2:>9.3f}{3:>7.2f}{4:>7.2f}{5:>7.2f} P 1           1"
@@ -179,7 +179,7 @@ def write_pwi(ofile, c, pseudopw):
             file=ofile)
     print("", file=ofile)
     print("ATOMIC_POSITIONS angstrom ", file=ofile)
-    for i in range(c.natoms):
+    for i in range(c.natom):
         print(
             "%3s %12.8f %12.8f %12.8f " % (c.atom_element[i], c.atom_xyz[i][0],
                                            c.atom_xyz[i][1], c.atom_xyz[i][2]),
@@ -220,9 +220,9 @@ def write_subsys(ofile, c, outputfilename, bscp2k, potcp2k):
     return
 
 
-def write_xyz(file, c):
+def write_xyz(ofile, c):
     ''' Write the Crys in .xyz file format'''
-    print("%d" % (c.natoms), file=ofile)
+    print("%d" % (c.natom), file=ofile)
     print(
         "CELL:  %.5f  %.5f  %.5f  %.3f  %.3f  %.3f  " %
         (c.length[0], c.length[1], c.length[2], c.angle_deg[0], c.angle_deg[1],
@@ -236,7 +236,7 @@ def write_xyz(file, c):
     return
 
 
-def write_xyz(file, c):
+def write_xyz_tm4(ofile, c):
     ''' Write the Crys in .xyz tilor-made 4 file format for Well's program'''
     print(
         "****PRINTING .xyz TAILOR-MADE4 FOR Qeq program by B.Wells***",
