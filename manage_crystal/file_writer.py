@@ -205,7 +205,7 @@ def write_subsys(ofile, c, outputfilename, bscp2k, potcp2k):
     print("    &COORD", file=ofile)
     for i in range(c.natom):
         print(
-            "%3s %9.5f %9.5f %9.5f " % (c.atom_element[i], c.aom_xyz[i][0],
+            "%3s %9.5f %9.5f %9.5f " % (c.atom_element[i], c.atom_xyz[i][0],
                                         c.atom_xyz[i][1], c.atom_xyz[i][2]),
             file=ofile)
     print("    &END COORD", file=ofile)
