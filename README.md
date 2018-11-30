@@ -7,7 +7,7 @@ git clone https://github.com/danieleongari/manage_crystal.git
 cd manage_crystal
 pip install .
 ```
-In the latter, append `--user` for a local installation.
+In the latter, append `--user` for a local installation and check that `$HOME/.local/bin` is in your `$PATH`.
 
 ## Usage:
 
