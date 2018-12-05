@@ -23,13 +23,12 @@ class Crys:
         # Initialize the molecule,
         self.natom = 0  # number of atoms
         self.atom_type = []  # atomic type: e.g., Cu1
-        self.atom_element = []
         self.inp_xyz = False
         self.inp_fract = False
         self.atom_xyz = []  # cartesian coordinates
         self.atom_fract = []
         self.atom_charge = []
-        self.tot_charge = []
+        self.tot_charge = None
         self.inp_lengths_angles = False
         self.inp_matrix = False
         self.length = [0.0] * 3
@@ -57,8 +56,8 @@ class Crys:
         if len(self.atom_fract) > 0:
             self.inp_fract = True
         if self.inp_xyz and self.inp_fract:
-            sys.exit("WARNING: the input contains both Cartesian and \
-                      fractional coordinates. EXIT.")
+            sys.exit("WARNING: the input contains both Cartesian and " +
+                     "fractional coordinates. EXIT.")
         elif not self.inp_xyz and not self.inp_fract:
             sys.exit("WARNING: no input coordinates. EXIT.")
         # Check input cell
@@ -71,8 +70,8 @@ class Crys:
             self.inp_matrix = True
             self.check_matrix_allign()
         if self.inp_lengths_angles and self.inp_matrix:
-            sys.exit("WARNING: the input contains both lengths & angles \
-                      and cell matrix. EXIT.")
+            sys.exit("WARNING: the input contains both lengths & angles " +
+                     "and cell matrix. EXIT.")
         elif not self.compute_la_from_matrix and not self.inp_matrix:
             print("WARNING: no input cell.")
 
@@ -301,3 +300,15 @@ class Crys:
             self.compute_xyz_from_fract()
         if not self.matrix_alligned:
             self.fix_cell_notalligned()
+
+    def clear_cell_and_coord(self):
+        self.inp_xyz = False
+        self.inp_fract = False
+        self.atom_xyz = []
+        self.atom_fract = []
+        self.inp_lengths_angles = False
+        self.inp_matrix = False
+        self.length = [0.0] * 3
+        self.angle_deg = [0.0] * 3
+        self.angle_rad = [0.0] * 3
+        self.matrix = [[0.0] * 3 for i in range(3)]

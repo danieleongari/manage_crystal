@@ -254,21 +254,26 @@ def parse_dcd_snapshot(file, c):
                            ('junk6', 'i4', 1), ('junk7', 'i4', 1),
                            ('coord_z', 'f4', c.natom), ('junk8', 'i4', 1)])
     data = np.fromfile(file, data_dtype, 1)
-    # Parsing the cell (be carefull to the order!)
-    print((data['len_ang'][0][0]))
-    c.length[0] = data['len_ang'][0][0]
-    c.length[1] = data['len_ang'][0][2]
-    c.length[2] = data['len_ang'][0][5]
-    c.angle_deg[0] = data['len_ang'][0][4]
-    c.angle_deg[1] = data['len_ang'][0][3]
-    c.angle_deg[2] = data['len_ang'][0][1]
-    # Reset the coordinates and store the new ones
-    c.xyz = [[0, 0, 0] for i in range(c.natom)]
-    for iatom in range(c.natom):
-        c.atom_xyz[iatom][0] = data['coord_x'][0][iatom]
-        c.atom_xyz[iatom][1] = data['coord_y'][0][iatom]
-        c.atom_xyz[iatom][2] = data['coord_z'][0][iatom]
-    return
+    if len(data) == 0:
+        EOF = True
+    else:
+        EOF = False
+        # Clear data to avoid conflicts
+        c.clear_cell_and_coord()
+        # Parsing the cell (be carefull to the order!)
+        c.length[0] = data['len_ang'][0][0]
+        c.length[1] = data['len_ang'][0][2]
+        c.length[2] = data['len_ang'][0][5]
+        c.angle_deg[0] = data['len_ang'][0][4]
+        c.angle_deg[1] = data['len_ang'][0][3]
+        c.angle_deg[2] = data['len_ang'][0][1]
+        # Reset the coordinates and store the new ones
+        c.atom_xyz = [[0.0] * 3 for i in range(c.natom)]
+        for iatom in range(c.natom):
+            c.atom_xyz[iatom][0] = data['coord_x'][0][iatom]
+            c.atom_xyz[iatom][1] = data['coord_y'][0][iatom]
+            c.atom_xyz[iatom][2] = data['coord_z'][0][iatom]
+    return EOF
 
 
 def parse_pdb(file):

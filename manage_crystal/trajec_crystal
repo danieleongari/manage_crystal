@@ -15,24 +15,32 @@ from six.moves import range
 
 ####################################################################### Argparse
 parser = argparse.ArgumentParser(
-    description=
-    'Program that split a tragectory into different files to be converted with\
-    manage_crystal and then glues them back(by Daniele Ongari)',
+    description='Tool to split, append and convert trajectories. (by D.Ongari)',
     formatter_class=RawTextHelpFormatter)
 
 parser.add_argument(
-    "inpfile",
     type=str,
-    help="path to the input file to read\n" + "IMPLEMENTED: pdb")
+    dest="inputfile",
+    help="path to the input file to read\n" + "IMPLEMENTED: pdb, ddec")
 
 parser.add_argument(
     "-o",
     "--output",
     type=str,
-    default=None,
     dest="output",
+    default=None,
     help="Output filename.extension or just the extension\n" +
     "IMPLEMENTED: xyz, axsf, dcd")
+
+parser.add_argument(
+    "-a",
+    "--append",
+    type=str,
+    nargs=3,
+    dest="append",
+    default=None,
+    help="Trajectories (of the same format) to append to the input one.\n" +
+    "More than one file can be specified and appended.")
 
 parser.add_argument(
     "-sss",
@@ -46,31 +54,31 @@ parser.add_argument(
     "-dt",
     "-dcdtypes",
     type=str,
-    default=None,
     dest="dcdtypesfile",
+    default=None,
     help="Specify another file containing the atomic types for dcd")
 
 args = parser.parse_args()
 
 ################################################## Manage input/output filenames
 # Open input file
-if not os.path.isfile(args.inpfile):
-    sys.exit("ERROR: The file %s doesn't exist!" % args.inpfile)
-inpfilename = os.path.splitext(args.inpfile)[0]
-inpformat = os.path.splitext(args.inpfile)[1][1:]
+if not os.path.isfile(args.inputfile):
+    sys.exit("ERROR: The file %s doesn't exist!" % args.inputfile)
+inpfilename = os.path.splitext(args.inputfile)[0]
+inpformat = os.path.splitext(args.inputfile)[1][1:]
 inpfile = "{}.{}".format(inpfilename, inpformat)
 file = open(inpfile, 'r')
 
 # Parse output filename
-if args.output == None:
+if args.output != None:
     sys.exit("ERROR: An -o output is mandatory!")
-if len(args.output.split(".")) > 1:  #output defined as name.format
-    outfilename = os.path.splitext(args.output)[0]
-    outformat = os.path.splitext(args.output)[1][1:]
-else:  #output defined as format
-    outfilename = inpfilename
-    outformat = args.output
-outfile = "{}.{}".format(outfilename, outformat)
+    if len(args.output.split(".")) > 1:  #output defined as name.format
+        outfilename = os.path.splitext(args.output)[0]
+        outformat = os.path.splitext(args.output)[1][1:]
+    else:  #output defined as format
+        outfilename = inpfilename
+        outformat = args.output
+    outfile = "{}.{}".format(outfilename, outformat)
 
 ################################ Split and convert snapshots from the trajectory
 if inpformat == 'pdb':
@@ -109,21 +117,26 @@ if inpformat == 'dcd':
     if args.dcdtypesfile == None:
         sys.exit("WARNING: to read .dcd trajectories, you need to specify " +
                  "another file that contains the atomic types. Use -dt. EXIT.")
-    if not os.path.isfile(args.inpfile):
-        sys.exit("ERROR: The file %s doesn't exist!" % args.inpfile)
+    if not os.path.isfile(args.inputfile):
+        sys.exit("ERROR: The file %s doesn't exist!" % args.inputfile)
     # Read the atom types and number
     crys = parse_from_filepath(args.dcdtypesfile, 0)
     crys.compute_atom_count()
     # Read the dcd trajectory
     inpfileread = open(inpfile, 'rb')
     junkheader = parse_dcd_header(inpfileread)
-    EOF = True
     ss = 0
-    while EOF:
-        parse_dcd_snapshot(inpfileread, crys)
-        crys.afterparse_basic()
-        write_to_filepath(crys, ssout, 0, None, None, None)
-        ss += 1
+    EOF = False
+    while True:
+        EOF = parse_dcd_snapshot(inpfileread, crys)
+        if EOF:
+            break
+        else:
+            crys.afterparse_basic()
+            ssout = "{0}-ss{1:05d}.{2}".format(outfilename, ss, outformat)
+            write_to_filepath(crys, ssout, 0, None, None, None)
+            ss += 1
+    print("Extracted %d snapshots" % ss)
 
 ############################################ Finally combine the temporary files
 
@@ -157,7 +170,9 @@ if outformat == "axsf":
 if not args.sss:
     print("Deleting snaphsots (use -sss to save them)")
     for iss in range(ss):
-        os.remove("{0}-ss{1:05d}.{2}".format(outfilename, iss, inpformat))
-        os.remove("{0}-ss{1:05d}.{2}".format(outfilename, iss, outformat))
+        ssinp = "{0}-ss{1:05d}.{2}".format(outfilename, iss, inpformat)
+        ssout = "{0}-ss{1:05d}.{2}".format(outfilename, iss, outformat)
+        if os.path.exists(ssinp): os.remove(ssinp)
+        if os.path.exists(ssout): os.remove(ssout)
 else:
     print("Saved snaphsots")
