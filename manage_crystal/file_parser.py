@@ -2,12 +2,48 @@
 # Functions are sorted in alphabetic order.
 
 from __future__ import absolute_import
+from __future__ import print_function
 from manage_crystal import Crys
 from manage_crystal.periodic_table import ptab_atnum_inv
 import numpy as np
+import os
+import sys
 from six.moves import range
 
 ANGS2BOHR = 1.88973
+
+
+def parse_from_filepath(filepath, tm):
+    """ Utility that takes the filepath, recognise the file format type
+    and return a Crys """
+    if not os.path.isfile(filepath):
+        sys.exit("ERROR: The file %s doesn't exist!" % filepath)
+    inputformat = os.path.splitext(filepath)[1][1:]
+    file = open(filepath, 'r')
+    if inputformat in ["axsf", "xsf"]:
+        crys = parse_axsf(file)
+    elif inputformat == "cif":
+        crys = parse_cif(file)
+    elif inputformat in ["subsys", "inp", "restart"]:
+        crys = parse_cp2k(file)
+    elif inputformat == "cssr":
+        crys = parse_cssr(file)
+    elif inputformat == "cube":
+        crys = parse_cube(file)
+    elif inputformat == "pdb":
+        crys = parse_pdb(file)
+    elif inputformat == "POSCAR":
+        crys = parse_poscar(file)
+    elif inputformat in ["pwo", "pwi"]:
+        crys = parse_pwo(file)
+    elif inputformat == "xyz" and tm == 0:
+        crys = parse_xyz(file)
+    elif inputformat == "xyz" and tm == 3:  # B. Wells Qeq program
+        crys = parse_xyz_tm3(file)
+    else:
+        sys.exit("WARNING: Input file format not implemented. EXIT.")
+    file.close()
+    return crys
 
 
 def parse_axsf(file):
@@ -193,6 +229,46 @@ def parse_cube(file):
             float(data[4]) / ANGS2BOHR
         ])
     return c
+
+
+def parse_dcd_header(file):
+    ''' Parse the dcd header '''
+    data_dtype = np.dtype([('h01', 'i4', 1), ('h02', 'S4', 1), ('h03', 'i4',
+                                                                9),
+                           ('h04', 'f4', 1), ('h05', 'i4', 10), ('h06', 'i4',
+                                                                 1),
+                           ('h07', 'i4', 1), ('h08', 'i4', 1),
+                           ('h09', 'S80', 1), ('h10', 'S80', 1),
+                           ('h11', 'i4', 1), ('h12', 'i4', 1),
+                           ('natoms', 'i4', 1), ('h13', 'i4', 1)])
+    data = np.fromfile(file, data_dtype, 1)
+    return data
+
+
+def parse_dcd_snapshot(file, c):
+    ''' Parse the dcd snapshot, updatyng the Crys cell and coordinates '''
+    data_dtype = np.dtype([('junk1', 'i4', 1), ('len_ang', 'f8', 6),
+                           ('junk2', 'i4', 1), ('junk3', 'i4', 1),
+                           ('coord_x', 'f4', c.natom), ('junk4', 'i4', 1),
+                           ('junk5', 'i4', 1), ('coord_y', 'f4', c.natom),
+                           ('junk6', 'i4', 1), ('junk7', 'i4', 1),
+                           ('coord_z', 'f4', c.natom), ('junk8', 'i4', 1)])
+    data = np.fromfile(file, data_dtype, 1)
+    # Parsing the cell (be carefull to the order!)
+    print((data['len_ang'][0][0]))
+    c.length[0] = data['len_ang'][0][0]
+    c.length[1] = data['len_ang'][0][2]
+    c.length[2] = data['len_ang'][0][5]
+    c.angle_deg[0] = data['len_ang'][0][4]
+    c.angle_deg[1] = data['len_ang'][0][3]
+    c.angle_deg[2] = data['len_ang'][0][1]
+    # Reset the coordinates and store the new ones
+    c.xyz = [[0, 0, 0] for i in range(c.natom)]
+    for iatom in range(c.natom):
+        c.atom_xyz[iatom][0] = data['coord_x'][0][iatom]
+        c.atom_xyz[iatom][1] = data['coord_y'][0][iatom]
+        c.atom_xyz[iatom][2] = data['coord_z'][0][iatom]
+    return
 
 
 def parse_pdb(file):

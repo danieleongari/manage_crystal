@@ -6,7 +6,12 @@ import os
 import sys
 import subprocess
 import argparse
-from argparse import RawTextHelpFormatter # to go next line in the help text
+import numpy as np
+from argparse import RawTextHelpFormatter  # to go next line in the help text
+from manage_crystal.file_parser import parse_from_filepath, parse_dcd_snapshot
+from manage_crystal.file_parser import parse_dcd_header
+from manage_crystal.file_writer import write_to_filepath
+from six.moves import range
 
 ####################################################################### Argparse
 parser = argparse.ArgumentParser(
@@ -18,16 +23,16 @@ parser = argparse.ArgumentParser(
 parser.add_argument(
     "inpfile",
     type=str,
-    help="path to the input file to read\n" +
-    "IMPLEMENTED: pdb")
+    help="path to the input file to read\n" + "IMPLEMENTED: pdb")
 
 parser.add_argument(
     "-o",
     "--output",
     type=str,
     default=None,
+    dest="output",
     help="Output filename.extension or just the extension\n" +
-    "IMPLEMENTED: xyz, axsf")
+    "IMPLEMENTED: xyz, axsf, dcd")
 
 parser.add_argument(
     "-sss",
@@ -35,7 +40,15 @@ parser.add_argument(
     action="store_true",
     dest="sss",
     default=False,
-    help="Don't clear the single snapshots, in the input and output format")
+    help="Save also the single snapshots of the trajectory")
+
+parser.add_argument(
+    "-dt",
+    "-dcdtypes",
+    type=str,
+    default=None,
+    dest="dcdtypesfile",
+    help="Specify another file containing the atomic types for dcd")
 
 args = parser.parse_args()
 
@@ -45,8 +58,8 @@ if not os.path.isfile(args.inpfile):
     sys.exit("ERROR: The file %s doesn't exist!" % args.inpfile)
 inpfilename = os.path.splitext(args.inpfile)[0]
 inpformat = os.path.splitext(args.inpfile)[1][1:]
-inpfile = "{}.{}".format(inpfilename,inpformat)
-inpfiler = open(inpfile, 'r')
+inpfile = "{}.{}".format(inpfilename, inpformat)
+file = open(inpfile, 'r')
 
 # Parse output filename
 if args.output == None:
@@ -57,74 +70,94 @@ if len(args.output.split(".")) > 1:  #output defined as name.format
 else:  #output defined as format
     outfilename = inpfilename
     outformat = args.output
-outfile = "{}.{}".format(outfilename,outformat)
+outfile = "{}.{}".format(outfilename, outformat)
 
 ################################ Split and convert snapshots from the trajectory
 if inpformat == 'pdb':
-    ss = 0 #snapshot count
+    ss = 0  #snapshot count
     line = None
     # Split snapshots
     while True:
-        line = inpfiler.readline()
+        line = file.readline()
         data = line.split()
         if line == "":
-            print("Extracted %d snapshots" %ss)
+            print("Extracted %d snapshots" % ss)
             break
-        elif len(data)>0 and data[0]=="MODEL":
-            ssfile = "{0}-ss{1:05d}.pdb".format(outfilename,ss)
+        elif len(data) > 0 and data[0] == "MODEL":
+            ssfile = "{0}-ss{1:05d}.pdb".format(outfilename, ss)
             ssfilew = open(ssfile, 'w')
-        elif len(data)>0 and data[0]=="ENDMDL":
+        elif len(data) > 0 and data[0] == "ENDMDL":
             print("END", end="", file=ssfilew)
             ssfilew.close()
-            ss+=1
+            ss += 1
         else:
             print(line.strip(), end="\n", file=ssfilew)
-    inpfiler.close()
+    file.close()
     # Convert snapshots
-    print("Converting %s to %s " %(inpformat,outformat), end="")
+    print("Converting %s to %s " % (inpformat, outformat), end="")
     for iss in range(ss):
         print(".", end="")
         sys.stdout.flush()
-        cmd = ["manage_crystal.py",
-               "{0}-ss{1:05d}.pdb".format(outfilename,iss),
-               "-o",
-               "{0}-ss{1:05d}.{2}".format(outfilename,iss,outformat),
-               "-silent",
-              ]
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-        output, error = process.communicate()
+        ssinp = "{0}-ss{1:05d}.pdb".format(outfilename, iss)
+        ssout = "{0}-ss{1:05d}.{2}".format(outfilename, iss, outformat)
+        crys = parse_from_filepath(ssinp, 0)
+        crys.afterparse_basic()
+        write_to_filepath(crys, ssout, 0, None, None, None)
     print(" all done!")
 
+if inpformat == 'dcd':
+    if args.dcdtypesfile == None:
+        sys.exit("WARNING: to read .dcd trajectories, you need to specify " +
+                 "another file that contains the atomic types. Use -dt. EXIT.")
+    if not os.path.isfile(args.inpfile):
+        sys.exit("ERROR: The file %s doesn't exist!" % args.inpfile)
+    # Read the atom types and number
+    crys = parse_from_filepath(args.dcdtypesfile, 0)
+    crys.compute_atom_count()
+    # Read the dcd trajectory
+    inpfileread = open(inpfile, 'rb')
+    junkheader = parse_dcd_header(inpfileread)
+    EOF = True
+    ss = 0
+    while EOF:
+        parse_dcd_snapshot(inpfileread, crys)
+        crys.afterparse_basic()
+        write_to_filepath(crys, ssout, 0, None, None, None)
+        ss += 1
+
 ############################################ Finally combine the temporary files
-if outformat=="xyz":
+
+# For xyz files simply append ss
+if outformat == "xyz":
     with open(outfile, 'w') as outfilew:
         for iss in range(ss):
-            ssfile = "{0}-ss{1:05d}.{2}".format(outfilename,iss,outformat)
-            with open(ssfile) as ssfiler:
+            ssfileout = "{0}-ss{1:05d}.{2}".format(outfilename, iss, outformat)
+            with open(ssfileout) as ssfiler:
                 outfilew.write(ssfiler.read())
 
-if outformat=="axsf":
+# For axsf files write the header and append the cutted ss
+if outformat == "axsf":
     with open(outfile, 'w') as outfile:
-        print("ANIMSTEPS %s" %ss, file=outfile)
-        print("CRYSTAL %s" %ss, file=outfile)
+        print("ANIMSTEPS %s" % ss, file=outfile)
+        print("CRYSTAL %s" % ss, file=outfile)
         for iss in range(ss):
-            print("PRIMVEC %s" %(iss+1), file=outfile)
-            fname = "{0}-ss{1:05d}.{2}".format(outfilename,iss,outformat)
-            with open(fname) as inpfiler:
-                for i, line in enumerate(inpfiler): #skip header
-                    if i>2 and i<6:
+            print("PRIMVEC %s" % (iss + 1), file=outfile)
+            fname = "{0}-ss{1:05d}.{2}".format(outfilename, iss, outformat)
+            with open(fname) as file:
+                for i, line in enumerate(file):  #skip header
+                    if i > 2 and i < 6:
                         print(line.strip(), file=outfile)
-            print("PRIMCOORD %s" %(iss+1), file=outfile)
-            with open(fname) as inpfiler:
-                for i, line in enumerate(inpfiler): #skip header
-                    if i>6:
+            print("PRIMCOORD %s" % (iss + 1), file=outfile)
+            with open(fname) as file:
+                for i, line in enumerate(file):  #skip header
+                    if i > 6:
                         print(line.strip(), file=outfile)
 
 ############################################################### Delete snapshots
 if not args.sss:
     print("Deleting snaphsots (use -sss to save them)")
     for iss in range(ss):
-        os.remove("{0}-ss{1:05d}.{2}".format(outfilename,iss,inpformat))
-        os.remove("{0}-ss{1:05d}.{2}".format(outfilename,iss,outformat))
+        os.remove("{0}-ss{1:05d}.{2}".format(outfilename, iss, inpformat))
+        os.remove("{0}-ss{1:05d}.{2}".format(outfilename, iss, outformat))
 else:
     print("Saved snaphsots")

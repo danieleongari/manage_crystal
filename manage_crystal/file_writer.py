@@ -5,7 +5,34 @@ from __future__ import print_function
 from __future__ import absolute_import
 from manage_crystal.periodic_table import ptab_mass, ptab_qepseudo
 from manage_crystal import Crys
+import os
+import sys
 from six.moves import range
+
+
+def write_to_filepath(crys, filepath, tm, pseudopw, bscp2k, potcp2k):
+    outputformat = os.path.splitext(filepath)[1][1:]
+    ofile = open(filepath, 'w+')
+    if outputformat == "axsf":
+        write_axsf(ofile, crys)
+    elif outputformat == "cif":
+        write_cif(ofile, crys)
+    elif outputformat == "cssr":
+        write_cssr(ofile, crys)
+    elif outputformat == "pdb":
+        write_pdb(ofile, crys)
+    elif outputformat == "pwi":
+        write_pwi(ofile, crys, pseudopw)
+    elif outputformat == "subsys":
+        write_subsys(ofile, crys, bscp2k, potcp2k)
+    elif outputformat == "xyz" and tm == 0:
+        write_xyz(ofile, crys)
+    elif outputformat == "xyz" and tm == 4:
+        write_xyz_tm4(ofile, crys)
+    else:
+        sys.exit("WARNING: Output file format not implemented. EXIT.")
+    ofile.close()
+    return
 
 
 def write_axsf(ofile, c):
@@ -116,7 +143,7 @@ def write_pwi(ofile, c, pseudopw):
     print("    prefix      = 'pwscf' ", file=ofile)
     print(
         "    pseudo_dir  = '/home/ongari/aiida-database/data/qe/%s' " %
-        (args.pseudopw),
+        pseudopw,
         file=ofile)
     print("      !nstep        = 50", file=ofile)
     print("      !etot_conv_thr= 1.0D-4", file=ofile)
@@ -164,8 +191,8 @@ def write_pwi(ofile, c, pseudopw):
     print("ATOMIC_SPECIES ", file=ofile)
     for i, element in enumerate(c.element):
         print(
-            "%3s %8.3f  %s" % (element, ptab_mass[c.element_atnum[i]],
-                               ptab_qepseudo[pseudopw][c.element_atnum[i]]),
+            "%3s %8.3f  %s" % (element, ptab_mass[element],
+                               ptab_qepseudo[pseudopw][element]),
             file=ofile)
     print("", file=ofile)
     print("K_POINTS gamma ", file=ofile)
@@ -187,12 +214,12 @@ def write_pwi(ofile, c, pseudopw):
     return
 
 
-def write_subsys(ofile, c, outputfilename, bscp2k, potcp2k):
+def write_subsys(ofile, c, bscp2k, potcp2k):
     ''' Write the Crys in .subsys file format for CP2K'''
     print(
-        "##### Include it to the main cp2k.inp using: @INCLUDE '%s.subsys'" %
-        outputfilename,
+        "# Include to the main cp2k.inp using: @INCLUDE 'filename.subsys'",
         file=ofile)
+    print("", file=ofile)
     print("  &SUBSYS", file=ofile)
     print("    &CELL", file=ofile)
     for k, label in enumerate(["A", "B", "C"]):

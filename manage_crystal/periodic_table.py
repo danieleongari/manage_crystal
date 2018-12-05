@@ -488,216 +488,480 @@ ptab_mass = {
 
 # pseudoopotential: dictionary[pseudo_type][ptab_number]
 ptab_qepseudo = {
-    'pbe': [
-        ' ',  # X
-        ' H.pbe-kjpaw_psl.1.0.0.UPF   ! 	 46.Ry	 221.Ry',  # H
-        ' ',  # He [1]
-        ' ',  # Li [1]
-        ' ',  # Be [5]
-        ' B.pbe-n-kjpaw_psl.1.0.0.UPF ! 	 43.Ry	 325.Ry',  # B [5]
+    'pbe': {
+        'H':
+        ' H.pbe-kjpaw_psl.1.0.0.UPF   ! 	 46.Ry	 221.Ry',
+        'He':
+        ' ',
+        'Li':
+        ' ',
+        'Be':
+        ' ',
+        'B':
+        ' B.pbe-n-kjpaw_psl.1.0.0.UPF ! 	 43.Ry	 325.Ry',
+        'C':
         ' C.pbe-n-kjpaw_psl.1.0.0.UPF ! 	 40.Ry	 326.Ry',  # C [1]
+        'N':
         ' N.pbe-n-kjpaw_psl.1.0.0.UPF ! 	 44.Ry	 320.Ry',  # N [1]
+        'O':
         ' O.pbe-n-kjpaw_psl.1.0.0.UPF ! 	 47.Ry	 323.Ry',  # O [1]
-        ' ',  # F [1]
-        ' ',  # Ne [1]
+        'F':
+        ' ',
+        'Ne':
+        ' ',
+        'Na':
         ' Na.pbe-spn-kjpaw_psl.1.0.0.UPF ! 	 66.Ry	 323.Ry',  # Na [1]
+        'Mg':
         ' ',  # Mg [1]
+        'Al':
         ' ',  # Al [5]
+        'Si':
         ' ',  # Si [1]
+        'P':
         ' ',  # P [1]
+        'S':
         ' S.pbe-n-kjpaw_psl.1.0.0.UPF ! 	 39.Ry	 181.Ry',  # S [1]
+        'Cl':
         ' Cl.pbe-n-kjpaw_psl.1.0.0.UPF ! 	 45.Ry	 223.Ry',  # Cl [1]
+        'Ar':
         ' ',  # Ar [1]
+        'K':
         ' ',  # K [1]
+        'Ca':
         ' Ca.pbe-spn-kjpaw_psl.1.0.0.UPF !   45.Ry	 274.Ry',  # Ca [5]
+        'Sc':
         ' ',  # Sc
+        'Ti':
         ' Ti.pbe-spn-kjpaw_psl.1.0.0.UPF ! 	 52.Ry	 575.Ry',  # Ti
+        'V':
         ' ',  # V
+        'Cr':
         ' ',  # Cr
+        'Mn':
         ' Mn.pbe-spn-kjpaw_psl.0.3.1.UPF ! 	 46.Ry	 244.Ry	 (v1.0.0 is not working!)',  # Mn
+        'Fe':
         ' ',  # Fe
+        'Co':
         ' ',  # Co
+        'Ni':
         ' Ni.pbe-n-kjpaw_psl.1.0.0.UPF  ! 	 41.Ry	 236.Ry (spn available)',  # Ni [1]
+        'Cu':
         ' Cu.pbe-dn-kjpaw_psl.1.0.0.UPF ! 	 45.Ry	 236.Ry (spn available)',  # Cu [1]
+        'Zn':
         ' Zn.pbe-dn-kjpaw_psl.1.0.0.UPF ! 	 44.Ry	 276.Ry (spn available)',  # Zn [1]
+        'Ga':
         ' ',  # Ga [1]
+        'Ge':
         ' ',  # Ge [5]
+        'As':
         ' ',  # As [1]
+        'Se':
         ' ',  # Se [1]
+        'Br':
         ' ',  # Br [1]
+        'Kr':
         ' ',  # Kr [1]
+        'Rb':
         ' ',  # Rb [5]
+        'Sr':
         ' Sr.pbe-spn-kjpaw_psl.1.0.0.UPF ! 	 39.Ry	 262.Ry',  # Sr [5]
+        'Y':
         ' ',  # Y
+        'Zr':
         ' ',  # Zr
+        'Nb':
         ' ',  # Nb
+        'Mo':
         ' Mo.pbe-spn-kjpaw_psl.1.0.0.UPF ! 	 49.Ry	 306.Ry',  # Mo
+        'Tc':
         ' ',  # Tc
+        'Ru':
         ' ',  # Ru
+        'Rh':
         ' ',  # Rh
+        'Pd':
         ' ',  # Pd [1]
+        'Ag':
         ' ',  # Ag [1]
+        'Cd':
         ' Cd.pbe-n-kjpaw_psl.1.0.0.UPF ! 	 37.Ry	 638.Ry (spn available)',  # Cd [1]
+        'In':
         ' ',  # In [1]
+        'Sn':
         ' ',  # Sn [1]
+        'Sb':
         ' ',  # Sb [5]
+        'Te':
         ' ',  # Te [1]
+        'I':
         ' ',  # I [1]
+        'Xe':
         ' ',  # Xe [1]
+        'Cs':
         ' ',  # Cs [5]
+        'Ba':
         ' ',  # Ba [5]
+        'La':
         ' ',  # La
+        'Ce':
         ' ',  # Ce
+        'Pr':
         ' ',  # Pr
+        'Nd':
         ' ',  # Nd
+        'Pm':
         ' ',  # Pm
+        'Sm':
         ' ',  # Sm
+        'Eu':
         ' ',  # Eu
+        'Gd':
         ' ',  # Gd
+        'Tb':
         ' ',  # Tb
+        'Dy':
         ' ',  # Dy
+        'Ho':
         ' ',  # Ho
+        'Er':
         ' ',  # Er
+        'Tm':
         ' ',  # Tm
+        'Yb':
         ' ',  # Yb
+        'Lu':
         ' ',  # Lu
+        'Hf':
         ' ',  # Hf
+        'Ta':
         ' ',  # Ta
+        'W':
         ' ',  # W
+        'Re':
         ' ',  # Re
+        'Os':
         ' ',  # Os
+        'Ir':
         ' ',  # Ir
+        'Pt':
         ' ',  # Pt [1]
+        'Au':
         ' ',  # Au [1]
+        'Hg':
         ' ',  # Hg [1]
+        'Tl':
         ' ',  # Tl [1]
+        'Pb':
         ' ',  # Pb [1]
+        'Bi':
         ' ',  # Bi [5]
+        'Po':
         ' ',  # Po [5]
+        'At':
         ' ',  # At [5]
+        'Rn':
         ' ',  # Rn [5]
+        'Fr':
         ' ',  # Fr [5]
+        'Ra':
         ' ',  # Ra [5]
+        'Ac':
         ' ',  # Ac
+        'Th':
         ' ',  # Th
+        'Pa':
         ' ',  # Pa
+        'U':
         ' ',  # U [1]
+        'Np':
         ' ',  # Np
+        'Pu':
         ' ',  # Pu
+        'Am':
         ' ',  # Am
+        'Cm':
         ' ',  # Cm
+        'Bk':
         ' ',  # Bk
+        'Cf':
         ' ',  # Cf
+        'Es':
         ' ',  # Es
+        'Fm':
         ' ',  # Fm
+        'Md':
         ' ',  # Md
+        'No':
         ' ',  # No
-        ' '
-    ],  # Lr
-    'pbesol': [
-        ' ',  # X
+        'Lr':
+        ' ',
+        'Rf':
+        ' ',
+        'Db':
+        ' ',
+        'Sg':
+        ' ',
+        'Bh':
+        ' ',
+        'Hs':
+        ' ',
+        'Mt':
+        ' ',
+        'Ds':
+        ' ',
+        'Rg':
+        ' ',
+        'Cn':
+        ' ',
+        'Nh':
+        ' ',
+        'Fl':
+        ' ',
+        'Mc':
+        ' ',
+        'Lv':
+        ' ',
+        'Ts':
+        ' ',
+        'Og':
+        ' ',
+    },
+    'pbesol': {
+        'H':
         ' H.pbesol-kjpaw_psl.1.0.0.UPF   ! 	 46.Ry	 221.Ry',  # H
+        'He':
         ' ',  # He [1]
+        'Li':
         ' ',  # Li [1]
+        'Be':
         ' ',  # Be [5]
+        'B':
         ' B.pbesol-n-kjpaw_psl.1.0.0.UPF ! 	 43.Ry	 324.Ry',  # B [5]
+        'C':
         ' C.pbesol-n-kjpaw_psl.1.0.0.UPF ! 	 40.Ry	 325.Ry',  # C [1]
+        'N':
         ' N.pbesol-n-kjpaw_psl.1.0.0.UPF ! 	 44.Ry	 364.Ry',  # N [1]
+        'O':
         ' O.pbesol-n-kjpaw_psl.1.0.0.UPF ! 	 47.Ry	 323.Ry',  # O [1]
+        'F':
         ' ',  # F [1]
+        'Ne':
         ' ',  # Ne [1]
+        'Na':
         ' Na.pbesol-spn-kjpaw_psl.1.0.0.UPF ! 	 66.Ry	 323.Ry',  # Na [1]
+        'Mg':
         ' ',  # Mg [1]
+        'Al':
         ' ',  # Al [5]
+        'Si':
         ' ',  # Si [1]
+        'P':
         ' ',  # P [1]
+        'S':
         ' S.pbesol-n-kjpaw_psl.1.0.0.UPF ! 	 39.Ry	 181.Ry',  # S [1]
+        'Cl':
         ' ',  # Cl [1]
+        'Ar':
         ' ',  # Ar [1]
+        'K':
         ' ',  # K [1]
+        'Ca':
         ' Ca.pbesol-spn-kjpaw_psl.1.0.0.UPF ! 	 45.Ry	 274.Ry',  # Ca [5]
+        'Sc':
         ' ',  # Sc
+        'Ti':
         ' ',  # Ti
+        'V':
         ' ',  # V
+        'Cr':
         ' ',  # Cr
+        'Mn':
         ' ',  # Mn
+        'Fe':
         ' ',  # Fe
+        'Co':
         ' Co.pbe-n-kjpaw_psl.1.0.0.UPF ! 	 45.Ry	 238.Ry',  # Co
+        'Ni':
         ' Ni.pbesol-n-kjpaw_psl.1.0.0.UPF ! 	 41.Ry	 236.Ry (spn available)',  # Ni [1]
+        'Cu':
         ' Cu.pbesol-dn-kjpaw_psl.1.0.0.UPF ! 	 45.Ry	 236.Ry (spn available)',  # Cu [1]
+        'Zn':
         ' Zn.pbesol-dn-kjpaw_psl.1.0.0.UPF ! 	 44.Ry	 276.Ry (spn available)',  # Zn [1]
+        'Ga':
         ' ',  # Ga [1]
+        'Ge':
         ' ',  # Ge [5]
+        'As':
         ' ',  # As [1]
+        'Se':
         ' ',  # Se [1]
+        'Br':
         ' ',  # Br [1]
+        'Kr':
         ' ',  # Kr [1]
+        'Rb':
         ' ',  # Rb [5]
+        'Sr':
         ' Sr.pbesol-spn-kjpaw_psl.1.0.0.UPF ! 	 39.Ry	 262.Ry',  # Sr [5]
+        'Y':
         ' ',  # Y
+        'Zr':
         ' ',  # Zr
+        'Nb':
         ' ',  # Nb
+        'Mo':
         ' ',  # Mo
+        'Tc':
         ' ',  # Tc
+        'Ru':
         ' ',  # Ru
+        'Rh':
         ' ',  # Rh
+        'Pd':
         ' ',  # Pd [1]
+        'Ag':
         ' ',  # Ag [1]
+        'Cd':
         ' Cd.pbesol-n-kjpaw_psl.1.0.0.UPF ! 	 37.Ry	 638.Ry (spn available)',  # Cd [1]
+        'In':
         ' ',  # In [1]
+        'Sn':
         ' ',  # Sn [1]
+        'Sb':
         ' ',  # Sb [5]
+        'Te':
         ' ',  # Te [1]
+        'I':
         ' ',  # I [1]
+        'Xe':
         ' ',  # Xe [1]
+        'Cs':
         ' ',  # Cs [5]
+        'Ba':
         ' ',  # Ba [5]
+        'La':
         ' ',  # La
+        'Ce':
         ' ',  # Ce
+        'Pr':
         ' ',  # Pr
+        'Nd':
         ' ',  # Nd
+        'Pm':
         ' ',  # Pm
+        'Sm':
         ' ',  # Sm
+        'Eu':
         ' ',  # Eu
+        'Gd':
         ' ',  # Gd
+        'Tb':
         ' ',  # Tb
+        'Dy':
         ' ',  # Dy
+        'Ho':
         ' ',  # Ho
+        'Er':
         ' ',  # Er
+        'Tm':
         ' ',  # Tm
+        'Yb':
         ' ',  # Yb
+        'Lu':
         ' ',  # Lu
+        'Hf':
         ' ',  # Hf
+        'Ta':
         ' ',  # Ta
+        'W':
         ' ',  # W
+        'Re':
         ' ',  # Re
+        'Os':
         ' ',  # Os
+        'Ir':
         ' ',  # Ir
+        'Pt':
         ' ',  # Pt [1]
+        'Au':
         ' ',  # Au [1]
+        'Hg':
         ' ',  # Hg [1]
+        'Tl':
         ' ',  # Tl [1]
+        'Pb':
         ' ',  # Pb [1]
+        'Bi':
         ' ',  # Bi [5]
+        'Po':
         ' ',  # Po [5]
+        'At':
         ' ',  # At [5]
+        'Rn':
         ' ',  # Rn [5]
+        'Fr':
         ' ',  # Fr [5]
+        'Ra':
         ' ',  # Ra [5]
+        'Ac':
         ' ',  # Ac
+        'Th':
         ' ',  # Th
+        'Pa':
         ' ',  # Pa
+        'U':
         ' ',  # U [1]
+        'Np':
         ' ',  # Np
+        'Pu':
         ' ',  # Pu
+        'Am':
         ' ',  # Am
+        'Cm':
         ' ',  # Cm
+        'Bk':
         ' ',  # Bk
+        'Cf':
         ' ',  # Cf
+        'Es':
         ' ',  # Es
+        'Fm':
         ' ',  # Fm
+        'Md':
         ' ',  # Md
+        'No':
         ' ',  # No
-        ' '
-    ]  # Lr
+        'Lr':
+        ' ',
+        'Rf':
+        ' ',
+        'Db':
+        ' ',
+        'Sg':
+        ' ',
+        'Bh':
+        ' ',
+        'Hs':
+        ' ',
+        'Mt':
+        ' ',
+        'Ds':
+        ' ',
+        'Rg':
+        ' ',
+        'Cn':
+        ' ',
+        'Nh':
+        ' ',
+        'Fl':
+        ' ',
+        'Mc':
+        ' ',
+        'Lv':
+        ' ',
+        'Ts':
+        ' ',
+        'Og':
+        ' ',
+    }
 }

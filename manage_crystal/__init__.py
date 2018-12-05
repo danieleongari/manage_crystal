@@ -5,6 +5,7 @@ from __future__ import print_function
 import numpy as np
 import re  #re.split(r'(\d+)',"Cu23") = ['Cu', '23', '']
 import math
+import sys
 from collections import Counter  #makes a dictionary
 from manage_crystal.periodic_table import ptab_atnum, ptab_mass
 from numpy.linalg import inv
@@ -171,6 +172,8 @@ class Crys:
         self.compute_fract_from_xyz()
 
     def rotate_axis(self, up):
+        """ Perform a rotation of the axes:
+        'up' (up==True, XYZ to ZXY) or 'down' (up == False, XYZ to YZX) """
         if up:
             self.length[0], self.length[1], self.length[2] = \
              self.length[2], self.length[0], self.length[1]
@@ -282,3 +285,19 @@ class Crys:
         for element in self.element_count:
             nelectron += self.element_count[element] * ptab_atnum[element]
         return nelectron
+
+    def afterparse_basic(self):
+        """ Compute all the missing attributes of Crys,
+        to be ready for any conversion to another format """
+        self.check_parse()
+        self.compute_atom_count()
+        if self.inp_matrix:
+            self.compute_la_from_matrix()
+        elif self.inp_lengths_angles:
+            self.compute_matrix_from_la()
+        if self.inp_xyz:
+            self.compute_fract_from_xyz()
+        elif self.inp_fract:
+            self.compute_xyz_from_fract()
+        if not self.matrix_alligned:
+            self.fix_cell_notalligned()

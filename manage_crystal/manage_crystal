@@ -14,13 +14,8 @@ import re  #re.split(r'(\d+)',"O23") = ['O', '23', '']
 from six.moves import range
 from manage_crystal import Crys
 from manage_crystal.periodic_table import ptab_atnum_inv
-from manage_crystal.file_parser import parse_axsf, parse_cif, parse_cp2k
-from manage_crystal.file_parser import parse_cssr, parse_cube
-from manage_crystal.file_parser import parse_pdb, parse_poscar, parse_pwo
-from manage_crystal.file_parser import parse_xyz, parse_xyz_tm3
-from manage_crystal.file_writer import write_axsf, write_cif, write_cssr
-from manage_crystal.file_writer import write_pdb, write_pwi, write_subsys
-from manage_crystal.file_writer import write_xyz, write_xyz_tm4
+from manage_crystal.file_parser import parse_from_filepath
+from manage_crystal.file_writer import write_to_filepath
 #from pprint import pprint #pprint(vars(your_object))
 
 parser = argparse.ArgumentParser(
@@ -264,35 +259,9 @@ def is_number(s):  #checks if a string is a number or not
 ########################################################################## INPUT
 # reading input file: name and format (notice that if there is a path it becomes
 # part of the name, to have the output in the same place)
-if not os.path.isfile(args.inputfile):
-    sys.exit("ERROR: The file %s doesn't exist!" % args.inputfile)
 inputfilename = os.path.splitext(args.inputfile)[0]
 inputformat = os.path.splitext(args.inputfile)[1][1:]
-file = open(inputfilename + "." + inputformat, 'r')
-if inputformat in ["axsf", "xsf"]:
-    crys = parse_axsf(file)
-elif inputformat == "cif":
-    crys = parse_cif(file)
-elif inputformat in ["subsys", "inp", "restart"]:
-    crys = parse_cp2k(file)
-elif inputformat == "cssr":
-    crys = parse_cssr(file)
-elif inputformat == "cube":
-    crys = parse_cube(file)
-elif inputformat == "pdb":
-    crys = parse_pdb(file)
-elif inputformat == "POSCAR":
-    crys = parse_poscar(file)
-elif inputformat in ["pwo", "pwi"]:
-    crys = parse_pwo(file)
-elif inputformat == "xyz" and args.tm == 0:
-    crys = parse_xyz(file)
-elif inputformat == "xyz" and args.tm == 3:  # B. Wells Qeq program
-    crys = parse_xyz_tm3(file)
-else:
-    sys.exit("WARNING: Input file format not implemented. EXIT.")
-file.close()
-
+crys = parse_from_filepath(args.inputfile, args.tm)
 crys.check_parse()
 crys.compute_atom_count()
 ######################################################################## Charges
@@ -560,32 +529,15 @@ else:
         outputfilename = inputfilename
         outputformat = args.output
         outputfile = outputfilename + "." + outputformat
+
+    if outputformat == "pwi":
+        print("QE input using the pseudo: %s" % (args.pseudopw))
+    if outputformat == "subsys":
+        print("CP2K input using the BASIS_SET: %s" % (args.bscp2k))
+        print("CP2K input using the POTENTIAL: %s" % (args.potcp2k))
+
+    write_to_filepath(crys, outputfile, args.tm, args.pseudopw, args.bscp2k,
+                      args.potcp2k)
+
 if not args.silent:
     print("\n Convert %s to %s\n" % (args.inputfile, outputfile))
-
-if args.output != None:
-    ofile = open(outputfile, 'w+')
-    if outputformat == "axsf":
-        write_axsf(ofile)
-    elif outputformat == "cif":
-        write_cif(ofile, crys)
-    elif outputformat == "cssr":
-        write_cssr(ofile, crys)
-    elif outputformat == "pdb":
-        write_pdb(ofile, crys)
-    elif outputformat == "pwi":
-        if not args.silent:
-            print("QE input using the pseudo: %s" % (args.pseudopw))
-        write_subsys(ofile, crys, args.pseudopw)
-    elif outputformat == "subsys":
-        if not args.silent:
-            print("CP2K input using the BASIS_SET: %s" % (args.bscp2k))
-            print("CP2K input using the POTENTIAL: %s" % (args.potcp2k))
-        write_subsys(ofile, crys, outputfilename, args.bscp2k, args.potcp2k)
-    elif outputformat == "xyz" and args.tm == 0:
-        write_xyz(ofile, crys)
-    elif outputformat == "xyz" and args.tm == 4:
-        write_xyz_tm4(ofile, crys)
-    else:
-        sys.exit("WARNING: Output file format not implemented. EXIT.")
-    ofile.close()
