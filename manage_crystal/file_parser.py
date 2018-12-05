@@ -426,12 +426,12 @@ def parse_xyz(file):
         c.angle_deg = [float(data[4]), float(data[5]), float(data[6])]
     elif len(data) >= 10 and data[0] == 'cell:':
         c.matrix[0] = [float(data[1]), float(data[2]), float(data[3])]
-        c.matrix[0] = [float(data[4]), float(data[5]), float(data[6])]
-        c.matrix[0] = [float(data[7]), float(data[8]), float(data[9])]
+        c.matrix[1] = [float(data[4]), float(data[5]), float(data[6])]
+        c.matrix[2] = [float(data[7]), float(data[8]), float(data[9])]
     elif len(data) >= 23 and data[0] == 'jmolscript:':
         c.matrix[0] = [float(data[10]), float(data[11]), float(data[12])]
-        c.matrix[0] = [float(data[15]), float(data[16]), float(data[17])]
-        c.matrix[0] = [float(data[20]), float(data[21]), float(data[22])]
+        c.matrix[1] = [float(data[15]), float(data[16]), float(data[17])]
+        c.matrix[2] = [float(data[20]), float(data[21]), float(data[22])]
     for i in range(c.natom):
         data = file.readline().split()
         c.atom_type.append(data[0])

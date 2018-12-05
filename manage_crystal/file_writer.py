@@ -89,7 +89,7 @@ def write_cif(ofile, c):
             "{0:10} {1:5} {2:>9.5f} {3:>9.5f} {4:>9.5f} {5:>14.10f}".format(
                 c.atom_element[i], c.atom_element[i], c.atom_fract[i][0],
                 c.atom_fract[i][1], c.atom_fract[i][2],
-                c.atom_charge[0]),  #many decimals to avoid net charge
+                c.atom_charge[i]),  #many decimals to avoid net charge
             file=ofile)
     return
 
