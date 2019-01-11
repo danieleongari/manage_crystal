@@ -419,7 +419,8 @@ elif abs(sum(crys.atom_charge)) < +0.001:
     if not args.silent: print("\nNET_CHARGE: negligible (|sum|<0.001).")
 else:
     if not args.silent:
-        print("\nNET_CHARGE: nonzero (%.3f). ***WARNING***" % sum(charge))
+        print("\nNET_CHARGE: nonzero (%.3f). ***WARNING***" % sum(
+            crys.atom_charge))
 #check negative charge on metals [skip -silent]
 if args.chkmetalcharge:
     metal_list = [
