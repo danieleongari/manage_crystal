@@ -1,7 +1,9 @@
 README.md
 manage_crystal/__init__.py
-manage_crystal/atomic_data.py
+manage_crystal/file_parser.py
+manage_crystal/file_writer.py
 manage_crystal/manage_crystal
+manage_crystal/periodic_table.py
 manage_crystal/trajec_crystal
 manage_crystal.egg-info/PKG-INFO
 manage_crystal.egg-info/SOURCES.txt

@@ -1,0 +1,62 @@
+This file lists the known input/outputs for the commonly used programs.
+The purpose is also to highlight problematic issues.
+
+********************************************************************************
+manage_crystal (current version):
+********************************************************************************
+Input:
+.cif (xyz & fract coord, cell)
+.cssr
+.pdb (xyz coord only, cell)
+.xyz (cell in my "CELL:/cell:" format in the comment 2nd line)
+
+Output:
+.cif (fract coord, cell)
+.pdb (fract coord, cell)
+.xyz (cell in my "CELL:" format in the comment 2nd line)
+
+
+********************************************************************************
+Avogadro 1.2.0 (uses Open Babel 2.3.2):
+********************************************************************************
+
+Inputs:
+.cif (xyz & fract coord, cell)
+.cssr NO
+.pdb (xyz coord only, cell, traj?)
+.mol NO
+.xyz (no cell, traj?)
+
+Outputs:
+.cif (xyz coord, cell)
+.pdb (xyz coord, cell)
+.xyz (no cell)
+
+********************************************************************************
+Vesta 3.4.4:
+********************************************************************************
+
+Inputs:
+.cif (fract coord only, cell)
+.pdb (fract coord only, cell)
+.xyz (no cell)
+
+Outputs:
+.cif (fract coord, cell)
+.pdb (xyz coord, no cell) or (fract coord, cell) NB: not working with (xyz coord, cell)
+.xyz (no cell)
+
+********************************************************************************
+VMD 1.9.3:
+********************************************************************************
+
+Inputs:
+.cif NO
+.pdb
+.xyz (no cell, traj) NB: use "topo readvarxyz" for trajectories with changing number of atoms (e.g., from GCMC)
+.axsf (xyz coord, cell, traj)
+
+Output:
+.cif NO
+.pdb
+.xyz (no cell)

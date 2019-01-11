@@ -78,7 +78,7 @@ class Crys:
     def compute_atom_count(self):
         self.natom = len(self.atom_type)
         self.atom_element = [re.split(r'(\d+)', x)[0] for x in self.atom_type]
-        self.element_count = Counter(self.atom_type)
+        self.element_count = Counter(self.atom_element)
         self.element = sorted(self.element_count)
         self.nelement = len(self.element)
         if len(self.atom_charge) == 0:
