@@ -237,10 +237,18 @@ def write_subsys(ofile, c, bscp2k, potcp2k):
             file=ofile)
     print("    &END COORD", file=ofile)
     print("", file=ofile)
+    # print elements KIND
     for element in c.element:
         print("    &KIND %s" % element, file=ofile)
         print("      BASIS_SET %s" % bscp2k, file=ofile)
         print("      POTENTIAL %s" % potcp2k, file=ofile)
+        print("    &END KIND", file=ofile)
+        print("", file=ofile)
+    # print element_ghost kind, for BSSE calculation
+    for element in c.element:
+        print("    &KIND %s_ghost" % element, file=ofile)
+        print("      BASIS_SET %s" % bscp2k, file=ofile)
+        print("      GHOST", file=ofile)
         print("    &END KIND", file=ofile)
         print("", file=ofile)
     print("  &END SUBSYS", file=ofile)
