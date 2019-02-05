@@ -149,6 +149,13 @@ parser.add_argument(
     default=False,
     help="Look for an overlap and modify the file [WORK IN PROGRESS]")
 
+parser.add_argument(
+    "-ovlpthr",
+    type=float,
+    dest="ovlpthr",
+    default=0.7,  #bond lengths: H-H = 0.74, C-H = 1.09, NH = 1.0, O-H = 0.96
+    help="Threshold (Angstrom) for checking atomic overlaps.")
+
 mod_coord_cell = parser.add_argument_group("Options to modify coord./cell")
 mod_coord_cell.add_argument(
     "-x",
@@ -463,14 +470,15 @@ if args.ovlp:
     for i in range(crys.natom):
         for j in range(i + 1, crys.natom):
             dist = crys.dist_ij(i, j)
-            if (dist < 0.2):
-                print("Overlap found between:")
+            if (dist < args.ovlpthr):
+                print("Overlap found (dist=%.2f<%.2f) between:" %
+                      (dist, args.ovlpthr))
                 print("%3s %9.5f %9.5f %9.5f " %
                       (crys.atom_element[i], crys.atom_xyz[i][0],
                        crys.atom_xyz[i][1], crys.atom_xyz[i][2]))
                 print("%3s %9.5f %9.5f %9.5f " %
                       (crys.atom_element[j], crys.atom_xyz[j][0],
-                       crys.atom_xyz[j][1], crys.atom_xyz[i][2]))
+                       crys.atom_xyz[j][1], crys.atom_xyz[j][2]))
                 overlaps += 1
     print("OVERLAPS FOUND: %d" % overlaps)
     sys.exit()
