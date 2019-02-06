@@ -7,7 +7,7 @@ git clone https://github.com/danieleongari/manage_crystal.git
 cd manage_crystal
 pip install .
 ```
-In the latter, append `--user` for a local installation and check that `$HOME/.local/bin` is in your `$PATH`.
+If you prefer a local installation, use instead `pip install --user .` and check that `$HOME/.local/bin` is in your `$PATH`.
 
 ## Usage:
 
@@ -41,7 +41,12 @@ Tips:
 
 ## Development
 
-To enable automatic code formatting for every commit, do
+Install manage_crystal in editable mode:
+```
+pip install -e .
+```
+
+And to enable automatic code formatting for every commit, do
 
 ```
 pip install pre-commit yapf prospector pylint
