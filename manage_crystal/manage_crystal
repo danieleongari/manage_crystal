@@ -359,8 +359,8 @@ if args.transl != None:
 
 if args.randomize != None:
     if not args.silent:
-        print("\n*** RANDOMIZING XYZ coordinates by a normal distrib \
-                     with delta=%f Angs" % args.randomize)
+        print("\n*** RANDOMIZING XYZ coordinates by a normal distribution " +
+              "with delta=%f Angs" % args.randomize)
     crys.randomize_coord(delta=args.randomize)
 
 if args.rotaxis != None:

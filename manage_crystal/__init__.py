@@ -165,9 +165,9 @@ class Crys:
     def randomize_coord(self, delta):
         """ Randomize the atomic coordinates, by a normal distribution """
         for i in range(self.natom):
-            self.atom_xyz[i][0] += np.random.normal(0, delta, 1)
-            self.atom_xyz[i][1] += np.random.normal(0, delta, 1)
-            self.atom_xyz[i][2] += np.random.normal(0, delta, 1)
+            self.atom_xyz[i][0] += np.random.normal(0, delta, 1)[0]
+            self.atom_xyz[i][1] += np.random.normal(0, delta, 1)[0]
+            self.atom_xyz[i][2] += np.random.normal(0, delta, 1)[0]
         self.compute_fract_from_xyz()
 
     def rotate_axis(self, up):
