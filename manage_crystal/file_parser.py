@@ -5,6 +5,7 @@ from __future__ import absolute_import
 from __future__ import print_function
 from manage_crystal import Crys
 from manage_crystal.periodic_table import ptab_atnum_inv
+from manage_crystal.utils import is_number
 import numpy as np
 import os
 import sys
@@ -62,7 +63,7 @@ def parse_axsf(file):
     c.natom = int(file.readline().split()[0])
     for i in range(c.natom):
         data = file.readline().split()
-        # The atom type can be given as element or atomic number
+        # In this format the atom type can be given as element or atomic number
         if is_number(data[0]):
             # convert from atomic number to element
             c.atom_type.append(ptab_atnum_inv[data[0]])

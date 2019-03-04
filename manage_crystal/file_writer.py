@@ -110,7 +110,7 @@ def write_cssr(ofile, c):
         print(
             "%4d %3s %8.5f %8.5f %8.5f    0  0  0  0  0  0  0  0  %7.5f" %
             (i + 1, c.atom_element[i], c.atom_fract[i][0], c.atom_fract[i][1],
-             c.atom_fract[i][2], c.atom_charge[i][0]),
+             c.atom_fract[i][2], c.atom_charge[i]),
             file=ofile)
     return
 

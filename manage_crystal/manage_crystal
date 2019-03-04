@@ -16,6 +16,7 @@ from manage_crystal import Crys
 from manage_crystal.periodic_table import ptab_atnum_inv
 from manage_crystal.file_parser import parse_from_filepath
 from manage_crystal.file_writer import write_to_filepath
+from manage_crystal.utils import is_number
 #from pprint import pprint #pprint(vars(your_object))
 
 parser = argparse.ArgumentParser(
@@ -231,23 +232,6 @@ parser.add_argument(
     " 6 - Deprecated (parse .cif from EGULP)\n")
 
 args = parser.parse_args()
-
-###################################################################### UTILITIES
-
-
-def is_number(s):  #checks if a string is a number or not
-    try:
-        float(s)
-        return True
-    except ValueError:
-        pass
-    try:
-        import unicodedata
-        unicodedata.numeric(s)
-        return True
-    except (TypeError, ValueError):
-        pass
-
 
 ########################################################################## INPUT
 # reading input file: name and format (notice that if there is a path it becomes
