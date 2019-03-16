@@ -56,7 +56,7 @@ def parse_axsf(file):
     for i in range(3):
         data = file.readline().split()
         for j in range(3):
-            c.matrix[i][j] = data[j]
+            c.matrix[i][j] = float(data[j])
     while True:
         if file.readline().split()[0] == 'PRIMCOORD':
             break
