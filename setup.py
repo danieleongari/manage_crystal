@@ -22,7 +22,7 @@ if __name__ == '__main__':
         extras_require={
             "testing": [
                 "mock==2.0.0", "pgtest==1.1.0", "sqlalchemy-diff==0.1.3",
-                "wheel>=0.31", "coverage"
+                "wheel>=0.31", "coverage", "pytest"
             ],
             "pre-commit": [
                 "pre-commit==1.11.0",
