@@ -233,14 +233,13 @@ def parse_cube(file):
 
 def parse_dcd_header(file):
     ''' Parse the dcd header '''
-    data_dtype = np.dtype([('h01', 'i4', 1), ('h02', 'S4', 1), ('h03', 'i4',
-                                                                9),
-                           ('h04', 'f4', 1), ('h05', 'i4', 10), ('h06', 'i4',
-                                                                 1),
-                           ('h07', 'i4', 1), ('h08', 'i4', 1),
-                           ('h09', 'S80', 1), ('h10', 'S80', 1),
-                           ('h11', 'i4', 1), ('h12', 'i4', 1),
-                           ('natoms', 'i4', 1), ('h13', 'i4', 1)])
+    data_dtype = np.dtype([
+        ('h01', 'i4', 1), ('h02', 'S4', 1), ('h03', 'i4', 9), ('h04', 'f4', 1),
+        ('h05', 'i4', 10), ('h06', 'i4', 1), ('h07', 'i4', 1),
+        ('h08', 'i4', 1), ('h09', 'S80', 1), ('h10', 'S80', 1),
+        ('h11', 'i4', 1), ('h12', 'i4', 1), ('natoms', 'i4', 1),
+        ('h13', 'i4', 1)
+    ])
     data = np.fromfile(file, data_dtype, 1)
     return data
 
@@ -310,11 +309,11 @@ def parse_poscar(file):
     ''' Parse Vasp's POSCAR file and return a Crys object '''
     c = Crys()
     junk_title = file.readline()
-    junk_symm = file.readline()
+    scaling_factor = float(file.readline().split([0]))
     for i in range(3):
         data = file.readline().split()
         for j in range(3):
-            c.matrix[i][j] = float(data[j])
+            c.matrix[i][j] = float(data[j]) * scaling_factor
     poscar_atomtypes = file.readline().split()
     poscar_atomnumbers = file.readline().split()
     for i in range(len(poscar_atomtypes)):
