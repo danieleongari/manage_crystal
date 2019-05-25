@@ -74,12 +74,13 @@ def parse_axsf(file):
 
 
 def parse_cif(file):
-    ''' Parse .cif file and return a Crys object '''
-    # REQUIREMENTS:
-    # - only valid for P1 symmetry
-    # - cell data should be specified before the atom data
-    # - if some other "_atom_something" are specified before, it does not work
-    # - after the atom coordinates it breaks with "loop_" or EOF
+    ''' Parse .cif file and return a Crys object.
+    Constraints:
+    - only valid for P1 symmetry
+    - cell data should be specified before the atom data
+    - if some other "_atom_something" are specified before, it does not work
+    - after the atom coordinates it breaks with "loop_" or EOF
+    '''
     c = Crys()
     while True:
         line = file.readline()
@@ -148,10 +149,17 @@ def parse_cif(file):
 
 
 def parse_cp2k(file):
-    ''' Parse any CP2K input file and return a Crys object '''
+    ''' Parse any CP2K input file and return a Crys object.
+    Constraints:
+    - &CELL should be before &COORD
+    - can read both A B C (cell) and ABC ALPHA_BETA_GAMMA (CELL)
+    - it complains and exit if units are not [angstrom] and [deg]
+    - if SCALED coord, the flag should be before the fract coordinates
+    '''
     c = Crys()
     while True:
         data = file.readline().split()
+        # Read cell: A B C
         cell_dict = {"A": 0, "B": 1, "C": 2}
         if len(data) > 0 and data[0] in cell_dict:
             if data[1][0] != "[":  # No unit specified. Default: Angstrom.
@@ -162,13 +170,35 @@ def parse_cp2k(file):
                 sys.exit("WARNING: in parsing CP2K, weird units. EXIT")
             for i in range(3):
                 c.matrix[cell_dict[data[0]]][i] = float(data[1 + i + shift])
+        # Read CELL: ABC
+        if len(data) > 3 and data[0] == 'ABC':
+            if data[1][0] != "[":  # No unit specified. Default: Angstrom.
+                shift = 0
+            elif data[1].lower() == "[angstrom]":
+                shift = 1
+            else:
+                sys.exit("WARNING: in parsing CP2K, weird units. EXIT")
+            c.length[0] = float(data[1 + shift])
+            c.length[1] = float(data[2 + shift])
+            c.length[2] = float(data[3 + shift])
+        # Read CELL: ALPHA_BETA_GAMMA
+        if len(data) > 3 and data[0] == 'ALPHA_BETA_GAMMA':
+            if data[1][0] != "[":  # No unit specified. Default: deg.
+                shift = 0
+            elif data[1].lower() == "[deg]":
+                shift = 1
+            else:
+                sys.exit("WARNING: in parsing CP2K, weird units. EXIT")
+            c.angle_deg[0] = float(data[1 + shift])
+            c.angle_deg[1] = float(data[2 + shift])
+            c.angle_deg[2] = float(data[3 + shift])
         if len(data) > 0 and (data[0] == "&COORD"):
             break
     scaled_coord = False  #Default
     while True:
         data = file.readline().split()
         if data[0] == "SCALED" \
-         and data[1].lower() in ["t", "true", ".true."]:
+         and (len(data)==1 or data[1].lower() in ["t", "true", ".true."]):
             scaled_coord = True
         elif data[0] == "SCALED" \
          and data[1].lower() in ["f", "false", ".false."]:
@@ -234,14 +264,13 @@ def parse_cube(file):
 
 def parse_dcd_header(file):
     ''' Parse the dcd header '''
-    data_dtype = np.dtype([('h01', 'i4', 1), ('h02', 'S4', 1), ('h03', 'i4',
-                                                                9),
-                           ('h04', 'f4', 1), ('h05', 'i4', 10), ('h06', 'i4',
-                                                                 1),
-                           ('h07', 'i4', 1), ('h08', 'i4', 1),
-                           ('h09', 'S80', 1), ('h10', 'S80', 1),
-                           ('h11', 'i4', 1), ('h12', 'i4', 1),
-                           ('natoms', 'i4', 1), ('h13', 'i4', 1)])
+    data_dtype = np.dtype([
+        ('h01', 'i4', 1), ('h02', 'S4', 1), ('h03', 'i4', 9), ('h04', 'f4', 1),
+        ('h05', 'i4', 10), ('h06', 'i4', 1), ('h07', 'i4', 1),
+        ('h08', 'i4', 1), ('h09', 'S80', 1), ('h10', 'S80', 1),
+        ('h11', 'i4', 1), ('h12', 'i4', 1), ('natoms', 'i4', 1),
+        ('h13', 'i4', 1)
+    ])
     data = np.fromfile(file, data_dtype, 1)
     return data
 
