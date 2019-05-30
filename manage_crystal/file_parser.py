@@ -14,6 +14,15 @@ from six.moves import range
 ANGS2BOHR = 1.88973
 
 
+def parsefloat(string):
+    """ Robustly parse floats in files, such as:
+    '1.234(5)' = 1.2345
+    """
+    string = string.replace("(", "")
+    string = string.replace(")", "")
+    return float(string)
+
+
 def parse_from_filepath(filepath, tm):
     """ Utility that takes the filepath, recognise the file format type
     and return a Crys """
@@ -88,17 +97,17 @@ def parse_cif(file):
         if line == "":
             break
         if len(data) > 0 and (data[0] == "_cell_length_a"):
-            c.length[0] = float(data[1])
+            c.length[0] = parsefloat(data[1])
         if len(data) > 0 and (data[0] == "_cell_length_b"):
-            c.length[1] = float(data[1])
+            c.length[1] = parsefloat(data[1])
         if len(data) > 0 and (data[0] == "_cell_length_c"):
-            c.length[2] = float(data[1])
+            c.length[2] = parsefloat(data[1])
         if len(data) > 0 and (data[0] == "_cell_angle_alpha"):
-            c.angle_deg[0] = float(data[1])
+            c.angle_deg[0] = parsefloat(data[1])
         if len(data) > 0 and (data[0] == "_cell_angle_beta"):
-            c.angle_deg[1] = float(data[1])
+            c.angle_deg[1] = parsefloat(data[1])
         if len(data) > 0 and (data[0] == "_cell_angle_gamma"):
-            c.angle_deg[2] = float(data[1])
+            c.angle_deg[2] = parsefloat(data[1])
         # if the "_atom_site_***" section starts, remember the order
         if len(data) > 0 \
            and len(data[0].split("_")) > 1 \
