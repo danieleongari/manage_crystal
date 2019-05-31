@@ -9,7 +9,7 @@ from manage_crystal.utils import is_number
 import numpy as np
 import os
 import sys
-import re 
+import re
 from six.moves import range
 
 ANGS2BOHR = 1.88973
@@ -19,8 +19,9 @@ def parsefloat(string):
     """ Robustly parse floats in files, such as:
     '1.234(5)' = 1.234, note that it means 1.234+/-0.005
     """
-    string = float(re.sub(r'\([^)]*\)', '', data[1]))
+    string = float(re.sub(r'\([^)]*\)', '', string))
     return float(string)
+
 
 def parse_from_filepath(filepath, tm):
     """ Utility that takes the filepath, recognise the file format type
