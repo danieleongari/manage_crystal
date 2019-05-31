@@ -349,11 +349,11 @@ def parse_poscar(file):
     ''' Parse Vasp's POSCAR file and return a Crys object '''
     c = Crys()
     junk_title = file.readline()
-    junk_symm = file.readline()
+    scaling_factor = float(file.readline().split([0]))
     for i in range(3):
         data = file.readline().split()
         for j in range(3):
-            c.matrix[i][j] = float(data[j])
+            c.matrix[i][j] = float(data[j]) * scaling_factor
     poscar_atomtypes = file.readline().split()
     poscar_atomnumbers = file.readline().split()
     for i in range(len(poscar_atomtypes)):

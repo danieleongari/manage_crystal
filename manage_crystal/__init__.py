@@ -76,6 +76,16 @@ class Crys:
             print("WARNING: no input cell.")
 
     def compute_atom_count(self):
+        """ Extract basic info from the atom_type list:
+        natoms: int, number of atoms
+        atom_element: str, element of the atom type (stripped from numbers)
+        element_count: dict, element : number of atoms for that element
+        element: list, alphabetically sorted list of elements
+        nelement: int, number of different elements
+
+        Also, assign 0 charges to the atoms if not already assigned.
+        """
+
         self.natom = len(self.atom_type)
         self.atom_element = [re.split(r'(\d+)', x)[0] for x in self.atom_type]
         self.element_count = Counter(self.atom_element)
