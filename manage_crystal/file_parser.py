@@ -5,6 +5,7 @@ from __future__ import absolute_import
 from __future__ import print_function
 from manage_crystal import Crys
 from manage_crystal.periodic_table import ptab_atnum_inv
+from manage_crystal.utils import is_number
 import numpy as np
 import os
 import sys
@@ -13,6 +14,13 @@ from six.moves import range
 
 ANGS2BOHR = 1.88973
 
+
+def parsefloat(string):
+    """ Robustly parse floats in files, such as:
+    '1.234(5)' = 1.234, note that it means 1.234+/-0.005
+    """
+    string = float(re.sub(r'\([^)]*\)', '', data[1]))
+    return float(string)
 
 def parse_from_filepath(filepath, tm):
     """ Utility that takes the filepath, recognise the file format type
@@ -56,14 +64,14 @@ def parse_axsf(file):
     for i in range(3):
         data = file.readline().split()
         for j in range(3):
-            c.matrix[i][j] = data[j]
+            c.matrix[i][j] = float(data[j])
     while True:
         if file.readline().split()[0] == 'PRIMCOORD':
             break
     c.natom = int(file.readline().split()[0])
     for i in range(c.natom):
         data = file.readline().split()
-        # The atom type can be given as element or atomic number
+        # In this format the atom type can be given as element or atomic number
         if is_number(data[0]):
             # convert from atomic number to element
             c.atom_type.append(ptab_atnum_inv[data[0]])
@@ -74,12 +82,13 @@ def parse_axsf(file):
 
 
 def parse_cif(file):
-    ''' Parse .cif file and return a Crys object '''
-    # REQUIREMENTS:
-    # - only valid for P1 symmetry
-    # - cell data should be specified before the atom data
-    # - if some other "_atom_something" are specified before, it does not work
-    # - after the atom coordinates it breaks with "loop_" or EOF
+    ''' Parse .cif file and return a Crys object.
+    Constraints:
+    - only valid for P1 symmetry
+    - cell data should be specified before the atom data
+    - if some other "_atom_something" are specified before, it does not work
+    - after the atom coordinates it breaks with "loop_" or EOF
+    '''
     c = Crys()
     while True:
         line = file.readline()
@@ -87,17 +96,17 @@ def parse_cif(file):
         if line == "":
             break
         if len(data) > 0 and (data[0] == "_cell_length_a"):
-            c.length[0] = float(re.sub(r'\([^)]*\)', '', data[1]))
+            c.length[0] = parsefloat(data[1])
         if len(data) > 0 and (data[0] == "_cell_length_b"):
-            c.length[1] = float(re.sub(r'\([^)]*\)', '', data[1]))
+            c.length[1] = parsefloat(data[1])
         if len(data) > 0 and (data[0] == "_cell_length_c"):
-            c.length[2] = float(re.sub(r'\([^)]*\)', '', data[1]))
+            c.length[2] = parsefloat(data[1])
         if len(data) > 0 and (data[0] == "_cell_angle_alpha"):
-            c.angle_deg[0] = float(re.sub(r'\([^)]*\)', '', data[1]))
+            c.angle_deg[0] = parsefloat(data[1])
         if len(data) > 0 and (data[0] == "_cell_angle_beta"):
-            c.angle_deg[1] = float(re.sub(r'\([^)]*\)', '', data[1]))
+            c.angle_deg[1] = parsefloat(data[1])
         if len(data) > 0 and (data[0] == "_cell_angle_gamma"):
-            c.angle_deg[2] = float(re.sub(r'\([^)]*\)', '', data[1]))
+            c.angle_deg[2] = parsefloat(data[1])
         # if the "_atom_site_***" section starts, remember the order
         if len(data) > 0 \
            and len(data[0].split("_")) > 1 \
@@ -148,10 +157,17 @@ def parse_cif(file):
 
 
 def parse_cp2k(file):
-    ''' Parse any CP2K input file and return a Crys object '''
+    ''' Parse any CP2K input file and return a Crys object.
+    Constraints:
+    - &CELL should be before &COORD
+    - can read both A B C (cell) and ABC ALPHA_BETA_GAMMA (CELL)
+    - it complains and exit if units are not [angstrom] and [deg]
+    - if SCALED coord, the flag should be before the fract coordinates
+    '''
     c = Crys()
     while True:
         data = file.readline().split()
+        # Read cell: A B C
         cell_dict = {"A": 0, "B": 1, "C": 2}
         if len(data) > 0 and data[0] in cell_dict:
             if data[1][0] != "[":  # No unit specified. Default: Angstrom.
@@ -162,13 +178,35 @@ def parse_cp2k(file):
                 sys.exit("WARNING: in parsing CP2K, weird units. EXIT")
             for i in range(3):
                 c.matrix[cell_dict[data[0]]][i] = float(data[1 + i + shift])
+        # Read CELL: ABC
+        if len(data) > 3 and data[0] == 'ABC':
+            if data[1][0] != "[":  # No unit specified. Default: Angstrom.
+                shift = 0
+            elif data[1].lower() == "[angstrom]":
+                shift = 1
+            else:
+                sys.exit("WARNING: in parsing CP2K, weird units. EXIT")
+            c.length[0] = float(data[1 + shift])
+            c.length[1] = float(data[2 + shift])
+            c.length[2] = float(data[3 + shift])
+        # Read CELL: ALPHA_BETA_GAMMA
+        if len(data) > 3 and data[0] == 'ALPHA_BETA_GAMMA':
+            if data[1][0] != "[":  # No unit specified. Default: deg.
+                shift = 0
+            elif data[1].lower() == "[deg]":
+                shift = 1
+            else:
+                sys.exit("WARNING: in parsing CP2K, weird units. EXIT")
+            c.angle_deg[0] = float(data[1 + shift])
+            c.angle_deg[1] = float(data[2 + shift])
+            c.angle_deg[2] = float(data[3 + shift])
         if len(data) > 0 and (data[0] == "&COORD"):
             break
     scaled_coord = False  #Default
     while True:
         data = file.readline().split()
         if data[0] == "SCALED" \
-         and data[1].lower() in ["t", "true", ".true."]:
+         and (len(data)==1 or data[1].lower() in ["t", "true", ".true."]):
             scaled_coord = True
         elif data[0] == "SCALED" \
          and data[1].lower() in ["f", "false", ".false."]:
@@ -234,14 +272,13 @@ def parse_cube(file):
 
 def parse_dcd_header(file):
     ''' Parse the dcd header '''
-    data_dtype = np.dtype([('h01', 'i4', 1), ('h02', 'S4', 1), ('h03', 'i4',
-                                                                9),
-                           ('h04', 'f4', 1), ('h05', 'i4', 10), ('h06', 'i4',
-                                                                 1),
-                           ('h07', 'i4', 1), ('h08', 'i4', 1),
-                           ('h09', 'S80', 1), ('h10', 'S80', 1),
-                           ('h11', 'i4', 1), ('h12', 'i4', 1),
-                           ('natoms', 'i4', 1), ('h13', 'i4', 1)])
+    data_dtype = np.dtype([
+        ('h01', 'i4', 1), ('h02', 'S4', 1), ('h03', 'i4', 9), ('h04', 'f4', 1),
+        ('h05', 'i4', 10), ('h06', 'i4', 1), ('h07', 'i4', 1),
+        ('h08', 'i4', 1), ('h09', 'S80', 1), ('h10', 'S80', 1),
+        ('h11', 'i4', 1), ('h12', 'i4', 1), ('natoms', 'i4', 1),
+        ('h13', 'i4', 1)
+    ])
     data = np.fromfile(file, data_dtype, 1)
     return data
 
@@ -311,11 +348,11 @@ def parse_poscar(file):
     ''' Parse Vasp's POSCAR file and return a Crys object '''
     c = Crys()
     junk_title = file.readline()
-    junk_symm = file.readline()
+    scaling_factor = float(file.readline().split([0]))
     for i in range(3):
         data = file.readline().split()
         for j in range(3):
-            c.matrix[i][j] = float(data[j])
+            c.matrix[i][j] = float(data[j]) * scaling_factor
     poscar_atomtypes = file.readline().split()
     poscar_atomnumbers = file.readline().split()
     for i in range(len(poscar_atomtypes)):
