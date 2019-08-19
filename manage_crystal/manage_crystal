@@ -139,12 +139,11 @@ parser.add_argument("-cupw",
                     default=False,
                     help="Look for a Copper PaddleWheel")
 
-parser.add_argument(
-    "-ovlp",
-    action="store_true",
-    dest="ovlp",
-    default=False,
-    help="Look for an overlap and modify the file [WORK IN PROGRESS]")
+parser.add_argument("-ovlp",
+                    action="store_true",
+                    dest="ovlp",
+                    default=False,
+                    help="Look for an overlap and remove the overlapping atom")
 
 parser.add_argument(
     "-ovlpthr",
@@ -444,21 +443,25 @@ if args.printatoms:
     print()
 if args.ovlp:
     overlaps = 0
+    ovlp_list = []
     for i in range(crys.natom):
-        for j in range(i + 1, crys.natom):
-            dist = crys.dist_ij(i, j)
-            if (dist < args.ovlpthr):
-                print("Overlap found (dist=%.2f<%.2f) between:" %
-                      (dist, args.ovlpthr))
-                print("%3s %9.5f %9.5f %9.5f " %
-                      (crys.atom_element[i], crys.atom_xyz[i][0],
-                       crys.atom_xyz[i][1], crys.atom_xyz[i][2]))
-                print("%3s %9.5f %9.5f %9.5f " %
-                      (crys.atom_element[j], crys.atom_xyz[j][0],
-                       crys.atom_xyz[j][1], crys.atom_xyz[j][2]))
-                overlaps += 1
+        if not i in ovlp_list:  # exclude atoms that I already know to overlap
+            for j in range(i + 1, crys.natom):
+                dist = crys.dist_ij(i, j)
+                if (dist < args.ovlpthr):
+                    print("Overlap found (dist=%.2f<%.2f) between:" %
+                          (dist, args.ovlpthr))
+                    print("%4d %3s %9.5f %9.5f %9.5f " %
+                          (i, crys.atom_element[i], crys.atom_xyz[i][0],
+                           crys.atom_xyz[i][1], crys.atom_xyz[i][2]))
+                    print("%4d %3s %9.5f %9.5f %9.5f " %
+                          (j, crys.atom_element[j], crys.atom_xyz[j][0],
+                           crys.atom_xyz[j][1], crys.atom_xyz[j][2]))
+                    overlaps += 1
+                    ovlp_list.append(j)
+    crys.remove_atoms(ovlp_list)
+
     print("OVERLAPS FOUND: %d" % overlaps)
-    sys.exit()
 
 ################################################################ SHOW & SHOWONLY
 if args.show: print("\nCell matrix ----------------------------------------\n")

@@ -94,6 +94,21 @@ class Crys:
         if len(self.atom_charge) == 0:
             self.atom_charge = [0] * self.natom
 
+    def remove_atoms(self, atoms_list):
+        """ Remove atoms, given a list of indexes"""
+        # exclude duplicates
+        atoms_list = list(dict.fromkeys(atoms_list))
+
+        # Remove atoms from list
+        for i in sorted(atoms_list, reverse=True):
+            del self.atom_type[i]
+            del self.atom_xyz[i]
+            del self.atom_fract[i]
+            del self.atom_charge[i]
+
+        # Remove atoms from sum and recompute counting
+        self.compute_atom_count()
+
     def compute_la_from_matrix(self):
         self.length[0] = math.sqrt(self.matrix[0][0] * self.matrix[0][0] +
                                    self.matrix[0][1] * self.matrix[0][1] +
