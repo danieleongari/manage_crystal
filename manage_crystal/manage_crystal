@@ -13,7 +13,7 @@ import os
 import re  #re.split(r'(\d+)',"O23") = ['O', '23', '']
 from six.moves import range
 from manage_crystal import Crys
-from manage_crystal.periodic_table import ptab_atnum_inv
+from manage_crystal.periodic_table import ptab_atnum_inv, ptab_vdw_uff
 from manage_crystal.file_parser import parse_from_filepath
 from manage_crystal.file_writer import write_to_filepath
 from manage_crystal.utils import is_number
@@ -210,6 +210,13 @@ parser.add_argument("-normalizecharges",
                     help="Normalize the charges to have a null total charge.")
 
 parser.add_argument(
+    "-bv",
+    action="store_true",
+    dest="bondvalence",
+    default=False,
+    help="Apply the bond valence method to compute oxidation states.")
+
+parser.add_argument(
     "-tm "
     "--tailormade",
     type=int,
@@ -404,6 +411,7 @@ else:
     if not args.silent:
         print("\nNET_CHARGE: nonzero (%.3f). ***WARNING***" %
               sum(crys.atom_charge))
+
 #check negative charge on metals [skip -silent]
 if args.chkmetalcharge:
     metal_list = [
@@ -441,6 +449,7 @@ if args.printatoms:
         element = ptab_atnum_inv[an]
         if element in crys.count_element: print(element, end='_')
     print()
+
 if args.ovlp:
     overlaps = 0
     ovlp_list = []
@@ -462,6 +471,81 @@ if args.ovlp:
     crys.remove_atoms(ovlp_list)
 
     print("OVERLAPS FOUND: %d" % overlaps)
+
+if args.bondvalence:
+    print()
+    metal_list = [
+        "Li", "Be", "Na", "Mg", "Al", "K", "Ca", "Sc", "Ti", "V", "Cr", "Mn",
+        "Fe", "Co", "Ni", "Cu", "Zn", "Ga", "Rb", "Sr", "Y", "Zr", "Nb", "Mo",
+        "Tc", "Ru", "Rh", "Pd", "Ag", "Cd", "In", "Sn", "Cs", "Ba", "La", "Hf",
+        "Ta", "W"
+    ]
+
+    # read bvparm
+    bvparmf = open(os.path.dirname(__file__) + "/../data/bvparm2016.cif", 'r')
+    lines = bvparmf.readlines()
+    bvparmf.close()
+    bvparm = []
+    for i in range(172, 2089):
+        l = lines[i].split()
+        bvparm.append([
+            l[0],  #0_valence_param_atom_1
+            int(l[1]),  #1_valence_param_atom_1_valence
+            l[2],  #2_valence_param_atom_2
+            int(l[3]),  #3_valence_param_atom_2_valence
+            float(l[4]),  #4_valence_param_Ro
+            float(l[5]),  #5_valence_param_B
+            l[6],  #6_valence_param_ref_id
+            l[7]
+        ])  #7_valence_param_details
+
+    # make a dictionary of available oxidation states
+    ptab_ox = {}
+    for m in metal_list:
+        oxavail = []
+        for p in bvparm:
+            if p[0] == m:
+                oxavail.append(p[1])
+        ptab_ox[m] = list(set(oxavail))
+
+    # compute the BVsum for the first metal in the crys
+    for i in range(crys.natom):
+        ielem = crys.atom_element[i]
+
+        if ielem in metal_list:
+            print('Atom: {} {}'.format(ielem, i))
+            nneig = 0
+            bond_elem_list = []
+            bond_dist_list = []
+            for j in range(crys.natom):
+                jelem = crys.atom_element[j]
+                if j != i and jelem in ['C', 'O', 'N']:
+                    dist_thr = 0.7 * (ptab_vdw_uff[ielem] +
+                                      ptab_vdw_uff[jelem])
+                    dist = crys.dist_ij(i, j)
+                    if dist < dist_thr:
+                        nneig += 1
+                        print('Neighbour {}: {}-{} dist= {:.2f} Angs'.format(
+                            nneig, ielem, jelem, dist))
+                        bond_elem_list.append(jelem)
+                        bond_dist_list.append(dist)
+
+            for ox in ptab_ox[ielem]:
+                bvsum = 0
+                # find the appropriate parameters (stop at the first)
+                for j in range(len(bond_elem_list)):
+                    jelem = bond_elem_list[j]
+                    dist = bond_dist_list[j]
+                    for p in bvparm:
+                        if p[0] == ielem and p[1] == ox and p[2] == jelem:
+                            R0 = p[4]
+                            B = p[5]
+                            break
+                    bvsum += math.exp((R0 - dist) / B)
+                print('Hypothesys {}({}), BVSum= {:.2f}'.format(
+                    ielem, ox, bvsum))
+
+            sys.exit()
 
 ################################################################ SHOW & SHOWONLY
 if args.show: print("\nCell matrix ----------------------------------------\n")
