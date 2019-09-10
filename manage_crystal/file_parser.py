@@ -86,28 +86,32 @@ def parse_cif(file):
     ''' Parse .cif file and return a Crys object.
     Constraints:
     - only valid for P1 symmetry
-    - cell data should be specified before the atom data
-    - if some other "_atom_something" are specified before, it does not work
-    - after the atom coordinates it breaks with "loop_" or EOF
+    - cell data can be specified before/after the atom coordinates
+    - it stops reading coordinates when it find a line with less than 4 columns (so no interruptions must exist)
     '''
     c = Crys()
+    reading_coord = False
     while True:
         line = file.readline()
         data = line.split()
-        if line == "":
+        if line == "":  #EOF
             break
-        if len(data) > 0 and (data[0] == "_cell_length_a"):
-            c.length[0] = parsefloat(data[1])
-        if len(data) > 0 and (data[0] == "_cell_length_b"):
-            c.length[1] = parsefloat(data[1])
-        if len(data) > 0 and (data[0] == "_cell_length_c"):
-            c.length[2] = parsefloat(data[1])
-        if len(data) > 0 and (data[0] == "_cell_angle_alpha"):
-            c.angle_deg[0] = parsefloat(data[1])
-        if len(data) > 0 and (data[0] == "_cell_angle_beta"):
-            c.angle_deg[1] = parsefloat(data[1])
-        if len(data) > 0 and (data[0] == "_cell_angle_gamma"):
-            c.angle_deg[2] = parsefloat(data[1])
+        if len(data) > 0 \
+           and len(data[0].split("_")) > 1 \
+           and 'cell' in data[0].split("_"):
+            reading_coord = False
+            if data[0] == "_cell_length_a":
+                c.length[0] = parsefloat(data[1])
+            elif data[0] == "_cell_length_b":
+                c.length[1] = parsefloat(data[1])
+            elif data[0] == "_cell_length_c":
+                c.length[2] = parsefloat(data[1])
+            elif data[0] == "_cell_angle_alpha":
+                c.angle_deg[0] = parsefloat(data[1])
+            elif data[0] == "_cell_angle_beta":
+                c.angle_deg[1] = parsefloat(data[1])
+            elif data[0] == "_cell_angle_gamma":
+                c.angle_deg[2] = parsefloat(data[1])
         # if the "_atom_site_***" section starts, remember the order
         if len(data) > 0 \
            and len(data[0].split("_")) > 1 \
@@ -120,40 +124,37 @@ def parse_cif(file):
                 line = file.readline()
                 data = line.split()
                 order += 1
-            break  #go in the loop to read coordinates
-    # Read atomic element, coordinates and charges
-    while True:
-        if line == "" \
-           or line =="\n" \
-           or data[0] == "loop_" \
-           or data[0] == "_loop":
-            break
-        # looks for "type_symbol" before and, if missing for "label"
-        if "_atom_site_type_symbol" in data_order_dic:
-            c.atom_type.append(data[data_order_dic["_atom_site_type_symbol"]])
-        elif "_atom_site_label" in data_order_dic:
-            c.atom_type.append(data[data_order_dic["_atom_site_label"]])
-        else:
-            sys.exit("EXIT: in cif missing type_symbol and label")
-        if "_atom_site_fract_x" in data_order_dic:
-            c.atom_fract.append([
-                float(data[data_order_dic["_atom_site_fract_x"]]),
-                float(data[data_order_dic["_atom_site_fract_y"]]),
-                float(data[data_order_dic["_atom_site_fract_z"]]),
-            ])
-        elif "_atom_site_Cartn_x" in data_order_dic:
-            c.atom_xyz.append([
-                float(data[data_order_dic["_atom_site_Cartn_x"]]),
-                float(data[data_order_dic["_atom_site_Cartn_y"]]),
-                float(data[data_order_dic["_atom_site_Cartn_z"]]),
-            ])
-        else:
-            sys.exit("EXIT: in cif missing fract_ and Cartn_ coordinates")
-        if "_atom_site_charge" in data_order_dic:
-            c.atom_charge.append(
-                float(data[data_order_dic["_atom_site_charge"]]))
-        line = file.readline()
-        data = line.split()
+            reading_coord = True  #entering in 'reading_coordinate MODE'
+
+        # if less than 'Atom x y z' acan not be a coordinate!
+        if len(data) < 4:
+            reading_coord = False
+        if reading_coord:
+            # looks for "type_symbol" before and, if missing for "label"
+            if "_atom_site_type_symbol" in data_order_dic:
+                c.atom_type.append(
+                    data[data_order_dic["_atom_site_type_symbol"]])
+            elif "_atom_site_label" in data_order_dic:
+                c.atom_type.append(data[data_order_dic["_atom_site_label"]])
+            else:
+                sys.exit("EXIT: in cif missing type_symbol and label")
+            if "_atom_site_fract_x" in data_order_dic:
+                c.atom_fract.append([
+                    float(data[data_order_dic["_atom_site_fract_x"]]),
+                    float(data[data_order_dic["_atom_site_fract_y"]]),
+                    float(data[data_order_dic["_atom_site_fract_z"]]),
+                ])
+            elif "_atom_site_Cartn_x" in data_order_dic:
+                c.atom_xyz.append([
+                    float(data[data_order_dic["_atom_site_Cartn_x"]]),
+                    float(data[data_order_dic["_atom_site_Cartn_y"]]),
+                    float(data[data_order_dic["_atom_site_Cartn_z"]]),
+                ])
+            else:
+                sys.exit("EXIT: in cif missing fract_ and Cartn_ coordinates")
+            if "_atom_site_charge" in data_order_dic:
+                c.atom_charge.append(
+                    float(data[data_order_dic["_atom_site_charge"]]))
     return c
 
 
