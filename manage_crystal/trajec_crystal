@@ -18,19 +18,19 @@ parser = argparse.ArgumentParser(
     description='Tool to split, append and convert trajectories. (by D.Ongari)',
     formatter_class=RawTextHelpFormatter)
 
-parser.add_argument(
-    type=str,
-    dest="inputfile",
-    help="path to the input file to read\n" + "IMPLEMENTED: pdb, ddec")
+parser.add_argument(type=str,
+                    dest="inputfile",
+                    help="path to the input file to read\n" +
+                    "IMPLEMENTED: pdb, ddec")
 
-parser.add_argument(
-    "-o",
-    "--output",
-    type=str,
-    dest="output",
-    default=None,
-    help="Output filename.extension or just the extension\n" +
-    "IMPLEMENTED: xyz, axsf, dcd")
+parser.add_argument("-o",
+                    "--output",
+                    required=True,
+                    type=str,
+                    dest="output",
+                    default=None,
+                    help="Output filename.extension or just the extension\n" +
+                    "IMPLEMENTED: xyz, axsf, dcd")
 
 parser.add_argument(
     "-a",
@@ -42,13 +42,12 @@ parser.add_argument(
     help="Trajectories (of the same format) to append to the input one.\n" +
     "More than one file can be specified and appended.")
 
-parser.add_argument(
-    "-sss",
-    "-savesnapshots",
-    action="store_true",
-    dest="sss",
-    default=False,
-    help="Save also the single snapshots of the trajectory")
+parser.add_argument("-sss",
+                    "-savesnapshots",
+                    action="store_true",
+                    dest="sss",
+                    default=False,
+                    help="Save also the single snapshots of the trajectory")
 
 parser.add_argument(
     "-dt",
@@ -56,7 +55,8 @@ parser.add_argument(
     type=str,
     dest="dcdtypesfile",
     default=None,
-    help="Specify another file containing the atomic types for dcd")
+    help="Specify another file containing the atomic types for dcd\n" +
+    "Any format readable by manage_crystal is valid.")
 
 args = parser.parse_args()
 
@@ -70,15 +70,13 @@ inpfile = "{}.{}".format(inpfilename, inpformat)
 file = open(inpfile, 'r')
 
 # Parse output filename
-if args.output != None:
-    sys.exit("ERROR: An -o output is mandatory!")
-    if len(args.output.split(".")) > 1:  #output defined as name.format
-        outfilename = os.path.splitext(args.output)[0]
-        outformat = os.path.splitext(args.output)[1][1:]
-    else:  #output defined as format
-        outfilename = inpfilename
-        outformat = args.output
-    outfile = "{}.{}".format(outfilename, outformat)
+if len(args.output.split(".")) > 1:  #output defined as name.format
+    outfilename = os.path.splitext(args.output)[0]
+    outformat = os.path.splitext(args.output)[1][1:]
+else:  #output defined as format
+    outfilename = inpfilename
+    outformat = args.output
+outfile = "{}.{}".format(outfilename, outformat)
 
 ################################ Split and convert snapshots from the trajectory
 if inpformat == 'pdb':
@@ -133,8 +131,8 @@ if inpformat == 'dcd':
             break
         else:
             crys.afterparse_basic()
-            ssout = "{0}-ss{1:05d}.{2}".format(outfilename, ss, outformat)
-            write_to_filepath(crys, ssout, 0, None, None, None)
+            ssout = "{}-ss{:05d}.{}".format(outfilename, ss, outformat)
+            write_to_filepath(crys, ssout, 0, None, None, None, None)
             ss += 1
     print("Extracted %d snapshots" % ss)
 
