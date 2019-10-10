@@ -59,6 +59,10 @@ def write_axsf(ofile, c):
 def write_cif(ofile, c):
     ''' Write the Crys in .cif file format'''
     # BC: don't modify, if possible, to be coherent with git deposited files
+
+    # if all charges are 0 do not print them
+    print_charges = (max([abs(x) for x in c.atom_charge]) > 0)
+
     print("data_crystal", file=ofile)
     print(" ", file=ofile)
     print("_cell_length_a    %.5f" % c.length[0], file=ofile)
@@ -83,14 +87,18 @@ def write_cif(ofile, c):
     print("_atom_site_fract_x", file=ofile)
     print("_atom_site_fract_y", file=ofile)
     print("_atom_site_fract_z", file=ofile)
-    print("_atom_site_charge", file=ofile)
+    if print_charges:
+        print("_atom_site_charge", file=ofile)
     for i in range(c.natom):
-        print(
-            "{0:10} {1:5} {2:>9.5f} {3:>9.5f} {4:>9.5f} {5:>14.10f}".format(
-                c.atom_element[i], c.atom_element[i], c.atom_fract[i][0],
-                c.atom_fract[i][1], c.atom_fract[i][2],
-                c.atom_charge[i]),  #many decimals to avoid net charge
-            file=ofile)
+        print("{:10} {:5} {:>9.5f} {:>9.5f} {:>9.5f} ".format(
+            c.atom_element[i], c.atom_element[i], c.atom_fract[i][0],
+            c.atom_fract[i][1], c.atom_fract[i][2]),
+              end="",
+              file=ofile)
+        if print_charges:  # add charge with many decimals to avoid net charge
+            print('{:>14.10f}'.format(c.atom_charge[i]), file=ofile)
+        else:  # add \n
+            print('', file=ofile)
     return
 
 

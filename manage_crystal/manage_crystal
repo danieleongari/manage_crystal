@@ -404,7 +404,8 @@ if not args.silent:
 if not args.silent:
     print("Conversion: 1 molec./u.c. = %.5f (mol/kg)" % (1000 / weight))
 if all(x == 0 for x in crys.atom_charge):
-    if not args.silent: print("\nNET_CHARGE: all the charges are zero.")
+    if not args.silent:
+        print("\nNET_CHARGE: all the charges are zero or not provided.")
 elif abs(sum(crys.atom_charge)) < +0.001:
     if not args.silent: print("\nNET_CHARGE: negligible (|sum|<0.001).")
 else:
