@@ -466,7 +466,6 @@ def parse_xyz(file):
     c = Crys()
     c.natom = int(file.readline().split()[0])
     data = file.readline().split()
-    print(data)
     if len(data) >= 7 and data[0] == 'CELL:':
         c.length = [float(data[1]), float(data[2]), float(data[3])]
         c.angle_deg = [float(data[4]), float(data[5]), float(data[6])]
@@ -490,6 +489,8 @@ def parse_xyz(file):
             float(data[7]),
             float(data[8].split('\"')[0])
         ]
+    else:
+        sys.exit('WARNING: xyz file with no cell provided! EXIT.')
     for i in range(c.natom):
         data = file.readline().split()
         c.atom_type.append(data[0])
