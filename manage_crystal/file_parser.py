@@ -132,8 +132,7 @@ def parse_cif(file):
         if reading_coord:
             # looks for "type_symbol" before and, if missing for "label"
             if "_atom_site_type_symbol" in data_order_dic:
-                c.atom_type.append(
-                    data[data_order_dic["_atom_site_type_symbol"]])
+                c.atom_type.append(data[data_order_dic["_atom_site_type_symbol"]])
             elif "_atom_site_label" in data_order_dic:
                 c.atom_type.append(data[data_order_dic["_atom_site_label"]])
             else:
@@ -153,8 +152,7 @@ def parse_cif(file):
             else:
                 sys.exit("EXIT: in cif missing fract_ and Cartn_ coordinates")
             if "_atom_site_charge" in data_order_dic:
-                c.atom_charge.append(
-                    float(data[data_order_dic["_atom_site_charge"]]))
+                c.atom_charge.append(float(data[data_order_dic["_atom_site_charge"]]))
     return c
 
 
@@ -218,15 +216,9 @@ def parse_cp2k(file):
         elif len(data) > 0:
             c.atom_type.append(data[0])
             if scaled_coord:
-                c.atom_fract.append(
-                    [float(data[1]),
-                     float(data[2]),
-                     float(data[3])])
+                c.atom_fract.append([float(data[1]), float(data[2]), float(data[3])])
             else:
-                c.atom_xyz.append(
-                    [float(data[1]),
-                     float(data[2]),
-                     float(data[3])])
+                c.atom_xyz.append([float(data[1]), float(data[2]), float(data[3])])
     return c
 
 
@@ -264,34 +256,24 @@ def parse_cube(file):
         data = file.readline().split()
         # convert from atomic number to element
         c.atom_type.append(ptab_atnum_inv[int(data[0])])
-        c.atom_xyz.append([
-            float(data[2]) / ANGS2BOHR,
-            float(data[3]) / ANGS2BOHR,
-            float(data[4]) / ANGS2BOHR
-        ])
+        c.atom_xyz.append([float(data[2]) / ANGS2BOHR, float(data[3]) / ANGS2BOHR, float(data[4]) / ANGS2BOHR])
     return c
 
 
 def parse_dcd_header(file):
     ''' Parse the dcd header '''
-    data_dtype = np.dtype([
-        ('h01', 'i4', 1), ('h02', 'S4', 1), ('h03', 'i4', 9), ('h04', 'f4', 1),
-        ('h05', 'i4', 10), ('h06', 'i4', 1), ('h07', 'i4', 1),
-        ('h08', 'i4', 1), ('h09', 'S80', 1), ('h10', 'S80', 1),
-        ('h11', 'i4', 1), ('h12', 'i4', 1), ('natoms', 'i4', 1),
-        ('h13', 'i4', 1)
-    ])
+    data_dtype = np.dtype([('h01', 'i4', 1), ('h02', 'S4', 1), ('h03', 'i4', 9), ('h04', 'f4', 1), ('h05', 'i4', 10),
+                           ('h06', 'i4', 1), ('h07', 'i4', 1), ('h08', 'i4', 1), ('h09', 'S80', 1), ('h10', 'S80', 1),
+                           ('h11', 'i4', 1), ('h12', 'i4', 1), ('natoms', 'i4', 1), ('h13', 'i4', 1)])
     data = np.fromfile(file, data_dtype, 1)
     return data
 
 
 def parse_dcd_snapshot(file, c):
     ''' Parse the dcd snapshot, updatyng the Crys cell and coordinates '''
-    data_dtype = np.dtype([('junk1', 'i4', 1), ('len_ang', 'f8', 6),
-                           ('junk2', 'i4', 1), ('junk3', 'i4', 1),
+    data_dtype = np.dtype([('junk1', 'i4', 1), ('len_ang', 'f8', 6), ('junk2', 'i4', 1), ('junk3', 'i4', 1),
                            ('coord_x', 'f4', c.natom), ('junk4', 'i4', 1),
-                           ('junk5', 'i4', 1), ('coord_y', 'f4', c.natom),
-                           ('junk6', 'i4', 1), ('junk7', 'i4', 1),
+                           ('junk5', 'i4', 1), ('coord_y', 'f4', c.natom), ('junk6', 'i4', 1), ('junk7', 'i4', 1),
                            ('coord_z', 'f4', c.natom), ('junk8', 'i4', 1)])
     data = np.fromfile(file, data_dtype, 1)
     if len(data) == 0:
@@ -327,22 +309,11 @@ def parse_pdb(file):
         elif len(data) > 0 and (data[0] == 'END' or data[0] == 'ENDMDL'):
             break
         elif len(data) > 0 and data[0] == 'CRYST1':
-            c.length = [
-                float(line[0o6:15]),
-                float(line[15:24]),
-                float(line[24:33])
-            ]
-            c.angle_deg = [
-                float(line[33:40]),
-                float(line[40:47]),
-                float(line[47:54])
-            ]
+            c.length = [float(line[0o6:15]), float(line[15:24]), float(line[24:33])]
+            c.angle_deg = [float(line[33:40]), float(line[40:47]), float(line[47:54])]
         elif len(data) > 0 and (data[0] == "ATOM" or data[0] == "HETATM"):
             c.atom_type.append(data[2])  #maybe read to data[-1]
-            c.atom_xyz.append(
-                [float(line[30:38]),
-                 float(line[38:46]),
-                 float(line[46:54])])
+            c.atom_xyz.append([float(line[30:38]), float(line[38:46]), float(line[46:54])])
     return c
 
 
@@ -365,10 +336,7 @@ def parse_poscar(file):
     if coord_type.lower() == 'direct':
         for i in range(c.natom):
             data = file.readline().split()
-            c.atom_fract.append(
-                [float(data[0]),
-                 float(data[1]),
-                 float(data[2])])
+            c.atom_fract.append([float(data[0]), float(data[1]), float(data[2])])
     elif coord_type.lower() == 'cartesian':
         for i in range(c.natom):
             data = file.readline().split()
@@ -432,15 +400,9 @@ def parse_pwo(file):
             else:
                 c.atom_type.append(data[0])
                 if readfractional:
-                    c.atom_fract.append(
-                        [float(data[1]),
-                         float(data[2]),
-                         float(data[3])])
+                    c.atom_fract.append([float(data[1]), float(data[2]), float(data[3])])
                 else:
-                    c.atom_xyz.append(
-                        [float(data[1]),
-                         float(data[2]),
-                         float(data[3])])
+                    c.atom_xyz.append([float(data[1]), float(data[2]), float(data[3])])
     else:  #read atomic in scf calculation
         while True:
             data = file.readline().split()
@@ -453,10 +415,7 @@ def parse_pwo(file):
                         break
                     else:
                         c.atom_type.append(data[1])
-                        c.atom_xyz.append(
-                            [float(data[6]),
-                             float(data[7]),
-                             float(data[8])])
+                        c.atom_xyz.append([float(data[6]), float(data[7]), float(data[8])])
                 break
     return c
 
@@ -478,17 +437,9 @@ def parse_xyz(file):
         c.matrix[1] = [float(data[15]), float(data[16]), float(data[17])]
         c.matrix[2] = [float(data[20]), float(data[21]), float(data[22])]
     elif len(data) >= 9 and data[0].split("\"")[0] == "Lattice=":  #ASE
-        c.matrix[0] = [
-            float(data[0].split("\"")[1]),
-            float(data[1]),
-            float(data[2])
-        ]
+        c.matrix[0] = [float(data[0].split("\"")[1]), float(data[1]), float(data[2])]
         c.matrix[1] = [float(data[3]), float(data[4]), float(data[5])]
-        c.matrix[2] = [
-            float(data[6]),
-            float(data[7]),
-            float(data[8].split('\"')[0])
-        ]
+        c.matrix[2] = [float(data[6]), float(data[7]), float(data[8].split('\"')[0])]
     else:
         sys.exit('WARNING: xyz file with no cell provided! EXIT.')
     for i in range(c.natom):

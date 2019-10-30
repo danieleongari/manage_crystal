@@ -14,14 +14,10 @@ from manage_crystal.file_writer import write_to_filepath
 from six.moves import range
 
 ####################################################################### Argparse
-parser = argparse.ArgumentParser(
-    description='Tool to split, append and convert trajectories. (by D.Ongari)',
-    formatter_class=RawTextHelpFormatter)
+parser = argparse.ArgumentParser(description='Tool to split, append and convert trajectories. (by D.Ongari)',
+                                 formatter_class=RawTextHelpFormatter)
 
-parser.add_argument(type=str,
-                    dest="inputfile",
-                    help="path to the input file to read\n" +
-                    "IMPLEMENTED: pdb, ddec")
+parser.add_argument(type=str, dest="inputfile", help="path to the input file to read\n" + "IMPLEMENTED: pdb, ddec")
 
 parser.add_argument("-o",
                     "--output",
@@ -29,18 +25,16 @@ parser.add_argument("-o",
                     type=str,
                     dest="output",
                     default=None,
-                    help="Output filename.extension or just the extension\n" +
-                    "IMPLEMENTED: xyz, axsf, dcd")
+                    help="Output filename.extension or just the extension\n" + "IMPLEMENTED: xyz, axsf, dcd")
 
-parser.add_argument(
-    "-a",
-    "--append",
-    type=str,
-    nargs=3,
-    dest="append",
-    default=None,
-    help="Trajectories (of the same format) to append to the input one.\n" +
-    "More than one file can be specified and appended.")
+parser.add_argument("-a",
+                    "--append",
+                    type=str,
+                    nargs=3,
+                    dest="append",
+                    default=None,
+                    help="Trajectories (of the same format) to append to the input one.\n" +
+                    "More than one file can be specified and appended.")
 
 parser.add_argument("-sss",
                     "-savesnapshots",
@@ -49,14 +43,13 @@ parser.add_argument("-sss",
                     default=False,
                     help="Save also the single snapshots of the trajectory")
 
-parser.add_argument(
-    "-dt",
-    "-dcdtypes",
-    type=str,
-    dest="dcdtypesfile",
-    default=None,
-    help="Specify another file containing the atomic types for dcd\n" +
-    "Any format readable by manage_crystal is valid.")
+parser.add_argument("-dt",
+                    "-dcdtypes",
+                    type=str,
+                    dest="dcdtypesfile",
+                    default=None,
+                    help="Specify another file containing the atomic types for dcd\n" +
+                    "Any format readable by manage_crystal is valid.")
 
 args = parser.parse_args()
 

@@ -1,0 +1,123 @@
+# ACCUMULATED TABLE OF BOND VALENCE PARAMETERS
+
+data_BOND_VALENCE_PARAMETERS_2016-10-28
+
+# BVPARM.CIF
+_audit_conform_dict_name        cif_core.dic
+_audit_conform_dict_version     2.2
+
+
+#***************************************************************
+# COPYRIGHT NOTICE
+# This table may be used and distributed without fee for
+# non-profit purposes providing
+# 1) that this copyright notice is included and
+# 2) no fee is charged for the table and
+# 3) details of any changes made in this list by anyone other than
+# the copyright owner are suitably noted in the _audit_update record
+# Please consult the copyright owner regarding any other uses.
+#
+# The copyright is owned by I. David Brown, Brockhouse Institute for
+# Materials Research, McMaster University, Hamilton, Ontario Canada.
+# idbrown@mcmaster.ca
+#
+#*****************************DISCLAIMER************************
+#
+# The values reported here are taken from the literature and
+# other sources and the author does not warrant their correctness
+# nor accept any responsibility for errors.  Users are advised to
+# consult the primary sources.
+#
+#***************************************************************
+#
+# The latest version of this file is available at:
+#
+# http://www.iucr.org/resources/data/datasets/bond-valence-parameters
+#
+# The parameters given in the main table are the values of Ro and
+# B used in the equation:
+#
+#     bond valence = exp((Ro-R)/B)
+#
+# where R is the bond length.  All values are in Angstrom units.
+# Where significantly different values have been reported in the
+# literature, they are listed in decreasing order of reliability.
+#
+#     Bond valence parameters for atoms whose oxidation state is
+# given as 9 do not have an oxidation state
+# specified in the original paper.  They may apply to a
+# particular, but unspecified, oxidation state or they may be
+# intended to apply to all oxidation states.
+#
+#     The ammonium ion is listed under the symbol NH.
+#
+#     The list below is formatted and is designed to be read
+# either as a crystallographic information file (CIF) or as a
+# fixed format file once the text and associate data items
+# have been stripped off. A question mark in the final column is
+# a place holder that indicates that there is no comment.
+####################################################################3
+
+_audit_creation_date         2001-02-21
+_audit_update_record
+;2001-03-13 Ref m deleted.
+ 2001-06-01
+ 2001-06-21 new ref c and d added.
+ 2002-03-22 new ref q added
+ 2003-02-17 refs m, z and aa added
+ 2003-02-19 corrected CIF errors
+ 2004-08-12 correction of errors
+ 2006-05-02 refs ag to ai added
+ 2007-01-20 refs ag to am added
+ 2009-08-20 refs an to be added
+ 2011-06-01 refs bf to bh added
+ 2013-09-11 refs bi to bk added
+         correction of syntax errors,
+         correcting Mo to Mn for parameters from ref. ap
+ 2016-10-28 refs bl to bs added
+;
+_audit_author_name           'I. David Brown'
+_audit_author_address
+;                            Brockhouse Institute for Materials Research
+                             McMaster University
+                             Hamilton, Ontario, Canada L8S 4M1
+;
+_audit_contact_author_name   'I. David Brown'
+_audit_contact_author_email  idbrown@mcmaster.ca
+
+loop_
+     _valence_ref_id
+     _valence_ref_reference
+
+  l 'Shields, Raithby, Allen and Motherwell (2000) Acta Cryst.B56, 455-465'
+
+loop_
+   _valence_param_atom_1
+   _valence_param_atom_1_valence
+   _valence_param_atom_2
+   _valence_param_atom_2_valence
+   _valence_param_Ro
+   _valence_param_B
+   _valence_param_ref_id
+   _valence_param_details
+
+Cu 1   O  -2    1.504    0.37     l   'from transition metal complexes'
+Cu 1   S  -2    1.811    0.37     l   'from transition metal complexes'
+Cu 1   Se -2    1.900    0.37     l   'from transition metal complexes'
+Cu 1   Cl -1    1.858    0.37     l   'from transition metal complexes'
+Cu 1   I  -1    2.155    0.37     l   'from transition metal complexes'
+Cu 1   N2 -3    1.480    0.37     l   '2-coordinate N'
+Cu 1   N3 -3    1.520    0.37     l   '3-coordinate N'
+Cu 1   N4 -3    1.630    0.37     l   '4-coordinate N'
+Cu 1   P  -3    1.774    0.37     l   'from transition metal complexes'
+Cu 1   As -3    1.856    0.37     l   'from transition metal complexes'
+Cu 1   C  -4    1.446    0.37     l   'from transition metal complexes'
+Cu 2   O  -2    1.655    0.37     l   'from transition metal complexes'
+Cu 2   S  -2    2.024    0.37     l   'from transition metal complexes'
+Cu 2   Br -1    2.134    0.37     l   'from transition metal complexes'
+Cu 2   I  -1    2.36     0.37     l   'from transition metal complexes'
+Cu 2   N2 -3    1.709    0.37     l   '2-coordinate N'
+Cu 2   N3 -3    1.704    0.37     l   '3-coordinate N'
+Cu 2   N4 -3    1.763    0.37     l   '4-coordinate N'
+Cu 2   P  -3    2.05     0.37     l   'from transition metal complexes'
+Cu 2   C  -4    1.72     0.37     l   'from transition metal complexes'

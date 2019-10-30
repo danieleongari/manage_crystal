@@ -5,9 +5,10 @@ from __future__ import print_function
 import numpy as np
 import re  #re.split(r'(\d+)',"Cu23") = ['Cu', '23', '']
 import math
+import os
 import sys
 from collections import Counter  #makes a dictionary
-from manage_crystal.periodic_table import ptab_atnum, ptab_mass
+from manage_crystal.periodic_table import ptab_atnum, ptab_atnum_inv, ptab_mass, ptab_vdw_uff
 from numpy.linalg import inv
 from six.moves import range
 
@@ -41,23 +42,20 @@ class Crys:
         # This is important because in an MD the cell can get disalligned and,
         # if atomic coordinates are cartesian (xyz), cell and coordinates would
         # be referred to difference reference systems.
-        if all(x == 0 for x in
-               [self.matrix[0][1], self.matrix[0][2], self.matrix[1][2]]):
+        if all(x == 0 for x in [self.matrix[0][1], self.matrix[0][2], self.matrix[1][2]]):
             self.matrix_alligned = True
         else:
             self.matrix_alligned = False
 
     def check_parse(self):
-        """ Checks input coordinates and cell"""\
+        """ Checks input coordinates and cell"""
         # Check atomic coordinates
-
         if len(self.atom_xyz) > 0:
             self.inp_xyz = True
         if len(self.atom_fract) > 0:
             self.inp_fract = True
         if self.inp_xyz and self.inp_fract:
-            sys.exit("WARNING: the input contains both Cartesian and " +
-                     "fractional coordinates. EXIT.")
+            sys.exit("WARNING: the input contains both Cartesian and " + "fractional coordinates. EXIT.")
         elif not self.inp_xyz and not self.inp_fract:
             sys.exit("WARNING: no input coordinates. EXIT.")
         # Check input cell
@@ -70,8 +68,7 @@ class Crys:
             self.inp_matrix = True
             self.check_matrix_allign()
         if self.inp_lengths_angles and self.inp_matrix:
-            sys.exit("WARNING: the input contains both lengths & angles " +
-                     "and cell matrix. EXIT.")
+            sys.exit("WARNING: the input contains both lengths & angles " + "and cell matrix. EXIT.")
         elif not self.compute_la_from_matrix and not self.inp_matrix:
             print("WARNING: no input cell.")
 
@@ -80,7 +77,7 @@ class Crys:
         natoms: int, number of atoms
         atom_element: str, element of the atom type (stripped from numbers)
         element_count: dict, element : number of atoms for that element
-        element: list, alphabetically sorted list of elements
+        element_list: list, list of elements, sorted by atomic number
         nelement: int, number of different elements
 
         Also, assign 0 charges to the atoms if not already assigned.
@@ -89,8 +86,12 @@ class Crys:
         self.natom = len(self.atom_type)
         self.atom_element = [re.split(r'(\d+)', x)[0] for x in self.atom_type]
         self.element_count = Counter(self.atom_element)
-        self.element = sorted(self.element_count)
-        self.nelement = len(self.element)
+        self.element_list = []
+        for an in range(1, 118):
+            element = ptab_atnum_inv[an]
+            if element in self.element_count:
+                self.element_list.append(element)
+        self.nelement = len(self.element_list)
         if len(self.atom_charge) == 0:
             self.atom_charge = [0] * self.natom
 
@@ -110,27 +111,21 @@ class Crys:
         self.compute_atom_count()
 
     def compute_la_from_matrix(self):
-        self.length[0] = math.sqrt(self.matrix[0][0] * self.matrix[0][0] +
-                                   self.matrix[0][1] * self.matrix[0][1] +
+        self.length[0] = math.sqrt(self.matrix[0][0] * self.matrix[0][0] + self.matrix[0][1] * self.matrix[0][1] +
                                    self.matrix[0][2] * self.matrix[0][2])
-        self.length[1] = math.sqrt(self.matrix[1][0] * self.matrix[1][0] +
-                                   self.matrix[1][1] * self.matrix[1][1] +
+        self.length[1] = math.sqrt(self.matrix[1][0] * self.matrix[1][0] + self.matrix[1][1] * self.matrix[1][1] +
                                    self.matrix[1][2] * self.matrix[1][2])
-        self.length[2] = math.sqrt(self.matrix[2][0] * self.matrix[2][0] +
-                                   self.matrix[2][1] * self.matrix[2][1] +
+        self.length[2] = math.sqrt(self.matrix[2][0] * self.matrix[2][0] + self.matrix[2][1] * self.matrix[2][1] +
                                    self.matrix[2][2] * self.matrix[2][2])
         self.angle_rad[0] = math.acos(
-            (self.matrix[1][0] * self.matrix[2][0] + self.matrix[1][1] *
-             self.matrix[2][1] + self.matrix[1][2] * self.matrix[2][2]) /
-            self.length[1] / self.length[2])  #alpha=B^C
+            (self.matrix[1][0] * self.matrix[2][0] + self.matrix[1][1] * self.matrix[2][1] +
+             self.matrix[1][2] * self.matrix[2][2]) / self.length[1] / self.length[2])  #alpha=B^C
         self.angle_rad[1] = math.acos(
-            (self.matrix[0][0] * self.matrix[2][0] + self.matrix[0][1] *
-             self.matrix[2][1] + self.matrix[0][2] * self.matrix[2][2]) /
-            self.length[0] / self.length[2])  #beta=A^C
+            (self.matrix[0][0] * self.matrix[2][0] + self.matrix[0][1] * self.matrix[2][1] +
+             self.matrix[0][2] * self.matrix[2][2]) / self.length[0] / self.length[2])  #beta=A^C
         self.angle_rad[2] = math.acos(
-            (self.matrix[0][0] * self.matrix[1][0] + self.matrix[0][1] *
-             self.matrix[1][1] + self.matrix[0][2] * self.matrix[1][2]) /
-            self.length[0] / self.length[1])  #gamma=A^B
+            (self.matrix[0][0] * self.matrix[1][0] + self.matrix[0][1] * self.matrix[1][1] +
+             self.matrix[0][2] * self.matrix[1][2]) / self.length[0] / self.length[1])  #gamma=A^B
         self.angle_deg = [math.degrees(x) for x in self.angle_rad]
 
     def compute_matrix_from_la(self):
@@ -143,13 +138,11 @@ class Crys:
         self.matrix[1][1] = self.length[1] * math.sin(self.angle_rad[2])
         self.matrix[1][2] = 0.0
         self.matrix[2][0] = self.length[2] * math.cos(self.angle_rad[1])
-        self.matrix[2][1] = self.length[2] * (
-            math.cos(self.angle_rad[0]) - math.cos(self.angle_rad[2]) *
-            math.cos(self.angle_rad[1])) / math.sin(self.angle_rad[2])
-        self.matrix[2][2] = self.length[2] * math.sqrt(
-            1 - (math.cos(self.angle_rad[1]))**2 -
-            ((math.cos(self.angle_rad[0]) - math.cos(self.angle_rad[2]) *
-              math.cos(self.angle_rad[1])) / math.sin(self.angle_rad[2]))**2)
+        self.matrix[2][1] = self.length[2] * (math.cos(self.angle_rad[0]) - math.cos(self.angle_rad[2]) *
+                                              math.cos(self.angle_rad[1])) / math.sin(self.angle_rad[2])
+        self.matrix[2][2] = self.length[2] * math.sqrt(1 - (math.cos(self.angle_rad[1]))**2 - (
+            (math.cos(self.angle_rad[0]) - math.cos(self.angle_rad[2]) * math.cos(self.angle_rad[1])) /
+            math.sin(self.angle_rad[2]))**2)
 
     def compute_fract_from_xyz(self):
         # Given a cell, compute the fractional coordinates of the atoms
@@ -251,8 +244,7 @@ class Crys:
 
     def dist_ij(self, i, j):
         """ Compute the distance (Å) between the atoms i and j """
-        dist_fract = [(self.atom_fract[i][k] - self.atom_fract[j][k])
-                      for k in range(3)]
+        dist_fract = [(self.atom_fract[i][k] - self.atom_fract[j][k]) for k in range(3)]
         dist_fract_pbc = [ (dist_fract[k] - int(round(dist_fract[k]))) \
                         for k in range(3) ]
         dist_cart_pbc = [ ( self.matrix[0][k] * dist_fract_pbc[0] + \
@@ -271,8 +263,7 @@ class Crys:
                 self.atom_type.append(self.atom_type[j])
                 self.atom_charge.append(self.atom_charge[j])
                 self.atom_xyz.append([
-                    self.atom_xyz[j][0] + i * self.matrix[k][0],
-                    self.atom_xyz[j][1] + i * self.matrix[k][1],
+                    self.atom_xyz[j][0] + i * self.matrix[k][0], self.atom_xyz[j][1] + i * self.matrix[k][1],
                     self.atom_xyz[j][2] + i * self.matrix[k][2]
                 ])
         self.length[k] *= n
@@ -337,3 +328,86 @@ class Crys:
         self.angle_deg = [0.0] * 3
         self.angle_rad = [0.0] * 3
         self.matrix = [[0.0] * 3 for i in range(3)]
+
+    def print_bondvalence(self):
+
+        print()
+        print('Bond Valence Sum method: working only for Cu 1/2 as described in Shields2000')
+
+        # read bvparm
+        #bvparmf = open(os.path.dirname(__file__) + "/../data/bvparm2016.cif", 'r')
+        bvparmf = open(os.path.dirname(__file__) + "/../data/bvparm2016_Cu_l.cif", 'r')
+        lines = bvparmf.readlines()
+        bvparmf.close()
+        bvparm = []
+        #for i in range(172, 2089):
+        for i in range(103, 123):
+            l = lines[i].split()
+            bvparm.append([
+                l[0],  #0_valence_param_atom_1
+                int(l[1]),  #1_valence_param_atom_1_valence
+                l[2],  #2_valence_param_atom_2
+                int(l[3]),  #3_valence_param_atom_2_valence
+                float(l[4]),  #4_valence_param_Ro
+                float(l[5]),  #5_valence_param_B
+                l[6],  #6_valence_param_ref_id
+                lines[i].split("'")[1],  #7_valence_param_details
+            ])
+
+        ptab_ox = {'Cu': [1, 2]}
+        ptab_organic = ['H', 'C', 'O', 'N', 'P', 'S', 'I']
+
+        # compute the BVsum for the first metal in the crys
+        for i in range(self.natom):
+            ielem = self.atom_element[i]
+
+            if ielem == 'Cu':
+                print('Atom: {} {}'.format(ielem, i))
+                nneig = 0
+                bond_elem_list = []
+                bond_dist_list = []
+                for j in range(self.natom):
+                    jelem = self.atom_element[j]
+                    if j != i and jelem in ptab_organic:
+                        dist_thr = 0.8 * (ptab_vdw_uff[ielem] + ptab_vdw_uff[jelem])
+                        dist = self.dist_ij(i, j)
+                        if dist < dist_thr:
+                            nneig += 1
+                            # if N check further coordination
+                            if jelem == 'N':
+                                Nneig = 0
+                                for k in range(self.natom):
+                                    kelem = self.atom_element[j]
+                                    if k != j and kelem in ptab_organic:
+                                        kdist_thr = 0.5 * (ptab_vdw_uff[jelem] + ptab_vdw_uff[kelem])
+                                        kdist = self.dist_ij(j, k)
+                                        if kdist < kdist_thr:
+                                            Nneig += 1
+                                jelem += str(Nneig)
+                            print('Neighbour {}: {}-{} dist= {:.3f} Angs'.format(nneig, ielem, jelem, dist))
+                            bond_elem_list.append(jelem)
+                            bond_dist_list.append(dist)
+                print()
+                ox_diff = {}
+                for ox in ptab_ox[ielem]:
+                    bvsum = 0
+
+                    # find the appropriate parameters (stop at the first)
+                    for j in range(len(bond_elem_list)):
+                        jelem = bond_elem_list[j]
+                        dist = bond_dist_list[j]
+                        for p in bvparm:
+                            if p[0] == ielem and p[1] == ox and p[2] == jelem:
+                                R0 = p[4]
+                                B = p[5]
+                                break
+                        else:
+                            print('Most likely oxidation state: N/A (parameter missing!)')
+                            sys.exit()
+
+                        print("Using:", *p)
+                        bvsum += math.exp((R0 - dist) / B)
+                    print('Hypothesys {}({}), BVSum= {:.2f}, diff= {:.3f}'.format(ielem, ox, bvsum, bvsum - ox))
+                    ox_diff[ox] = abs(bvsum - ox)
+                print('Most likely oxidation state: {}'.format(min(ox_diff, key=ox_diff.get)))
+                sys.exit()
