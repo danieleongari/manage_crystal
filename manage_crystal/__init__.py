@@ -138,8 +138,9 @@ class Crys:
         self.matrix[1][1] = self.length[1] * math.sin(self.angle_rad[2])
         self.matrix[1][2] = 0.0
         self.matrix[2][0] = self.length[2] * math.cos(self.angle_rad[1])
-        self.matrix[2][1] = self.length[2] * (math.cos(self.angle_rad[0]) - math.cos(self.angle_rad[2]) *
-                                              math.cos(self.angle_rad[1])) / math.sin(self.angle_rad[2])
+        self.matrix[2][1] = self.length[2] * (
+            math.cos(self.angle_rad[0]) - math.cos(self.angle_rad[2]) * math.cos(self.angle_rad[1])) / math.sin(
+                self.angle_rad[2])
         self.matrix[2][2] = self.length[2] * math.sqrt(1 - (math.cos(self.angle_rad[1]))**2 - (
             (math.cos(self.angle_rad[0]) - math.cos(self.angle_rad[2]) * math.cos(self.angle_rad[1])) /
             math.sin(self.angle_rad[2]))**2)
@@ -333,6 +334,7 @@ class Crys:
 
         print()
         print('Bond Valence Sum method: working only for Cu 1/2 as described in Shields2000')
+        print('Read the code to see all the many caveats used to define bondings.')
 
         # read bvparm
         #bvparmf = open(os.path.dirname(__file__) + "/../data/bvparm2016.cif", 'r')
@@ -341,7 +343,7 @@ class Crys:
         bvparmf.close()
         bvparm = []
         #for i in range(172, 2089):
-        for i in range(103, 123):
+        for i in range(13, 39):
             l = lines[i].split()
             bvparm.append([
                 l[0],  #0_valence_param_atom_1
@@ -355,7 +357,7 @@ class Crys:
             ])
 
         ptab_ox = {'Cu': [1, 2]}
-        ptab_organic = ['H', 'C', 'O', 'N', 'P', 'S', 'I']
+        ptab_organic = ['C', 'N', 'O', 'P', 'S', 'Cl', 'As', 'Se', 'Br', 'I']  #Note: I exclude all the others, incl. H
 
         # compute the BVsum for the first metal in the crys
         for i in range(self.natom):
@@ -383,6 +385,8 @@ class Crys:
                                         kdist = self.dist_ij(j, k)
                                         if kdist < kdist_thr:
                                             Nneig += 1
+                                if Nneig == 0 or Nneig > 3:  # due to disorder or "one N atom" solvent
+                                    Nneig = ''  # use general nitrogen coefficient
                                 jelem += str(Nneig)
                             print('Neighbour {}: {}-{} dist= {:.3f} Angs'.format(nneig, ielem, jelem, dist))
                             bond_elem_list.append(jelem)
@@ -404,9 +408,9 @@ class Crys:
                         else:
                             print('Most likely oxidation state: N/A (parameter missing!)')
                             sys.exit()
-
-                        print("Using:", *p)
-                        bvsum += math.exp((R0 - dist) / B)
+                        bv = math.exp((R0 - dist) / B)
+                        print("Using:", *p, "(BV contrib: {:.2f} )".format(bv))
+                        bvsum += bv
                     print('Hypothesys {}({}), BVSum= {:.2f}, diff= {:.3f}'.format(ielem, ox, bvsum, bvsum - ox))
                     ox_diff[ox] = abs(bvsum - ox)
                 print('Most likely oxidation state: {}'.format(min(ox_diff, key=ox_diff.get)))
