@@ -41,14 +41,8 @@ Tips:
 
 ## Development
 
-Install manage_crystal in editable mode:
+Install manage_crystal in editable mode, and enable automatic code formatting for every commit:
 ```
-pip install -e .
-```
-
-And to enable automatic code formatting for every commit, do
-
-```
-pip install pre-commit yapf prospector pylint
+pip install -e .\[pre-commit\]
 pre-commit install
 ```
