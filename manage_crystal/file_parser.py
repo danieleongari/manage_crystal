@@ -32,6 +32,8 @@ def parse_from_filepath(filepath, tm):
     file = open(filepath, 'r')
     if inputformat in ["axsf", "xsf"]:
         crys = parse_axsf(file)
+    elif inputformat == "car":
+        crys = parse_car(file)
     elif inputformat == "cif":
         crys = parse_cif(file)
     elif inputformat in ["subsys", "inp", "restart"]:
@@ -79,6 +81,28 @@ def parse_axsf(file):
         else:
             c.atom_type.append(data[0])
         c.atom_xyz.append([float(data[1]), float(data[2]), float(data[3])])
+    return c
+
+
+def parse_car(file):
+    ''' Parse .car file and return Crys object.
+    TESTED just for Chongli Zhong's hCOF database.'''
+    c = Crys()
+    read_coord = False
+    while True:
+        line = file.readline()
+        data = line.split()
+        if line == "":
+            break
+        elif len(data) > 0 and data[0] == 'end':
+            break
+        elif len(data) > 0 and data[0] == 'PBC':
+            c.length = [float(data[1]), float(data[2]), float(data[3])]
+            c.angle_deg = [float(data[4]), float(data[5]), float(data[6])]
+            read_coord = True
+        elif read_coord:
+            c.atom_type.append(data[0])
+            c.atom_xyz.append([float(data[1]), float(data[2]), float(data[3])])
     return c
 
 
@@ -272,9 +296,9 @@ def parse_dcd_header(file):
 def parse_dcd_snapshot(file, c):
     ''' Parse the dcd snapshot, updatyng the Crys cell and coordinates '''
     data_dtype = np.dtype([('junk1', 'i4', 1), ('len_ang', 'f8', 6), ('junk2', 'i4', 1), ('junk3', 'i4', 1),
-                           ('coord_x', 'f4', c.natom), ('junk4', 'i4', 1),
-                           ('junk5', 'i4', 1), ('coord_y', 'f4', c.natom), ('junk6', 'i4', 1), ('junk7', 'i4', 1),
-                           ('coord_z', 'f4', c.natom), ('junk8', 'i4', 1)])
+                           ('coord_x', 'f4', c.natom), ('junk4', 'i4', 1), ('junk5', 'i4', 1), ('coord_y', 'f4',
+                                                                                                c.natom),
+                           ('junk6', 'i4', 1), ('junk7', 'i4', 1), ('coord_z', 'f4', c.natom), ('junk8', 'i4', 1)])
     data = np.fromfile(file, data_dtype, 1)
     if len(data) == 0:
         EOF = True
