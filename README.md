@@ -3,11 +3,8 @@ A tool to convert crystal files (atoms coordinates + unit cell) into common file
 
 ## Installation:
 ```
-git clone https://github.com/danieleongari/manage_crystal.git
-cd manage_crystal
-pip install .
+pip install manage_crystal
 ```
-If you prefer a local installation, use instead `pip install --user .` and check that `$HOME/.local/bin` is in your `$PATH`.
 
 ## Usage:
 
@@ -49,6 +46,8 @@ Tips:
 
 Install manage_crystal in editable mode, and enable automatic code formatting for every commit:
 ```
+git clone https://github.com/danieleongari/manage_crystal.git
+cd manage_crystal
 pip install -e .\[pre-commit\]
 pre-commit install
 ```
