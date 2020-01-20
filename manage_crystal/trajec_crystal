@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-from __future__ import print_function  #python3 like print()
-from __future__ import absolute_import
 import os
 import sys
 import subprocess
@@ -11,7 +9,6 @@ from argparse import RawTextHelpFormatter  # to go next line in the help text
 from manage_crystal.file_parser import parse_from_filepath, parse_dcd_snapshot
 from manage_crystal.file_parser import parse_dcd_header
 from manage_crystal.file_writer import write_to_filepath
-from six.moves import range
 
 ####################################################################### Argparse
 parser = argparse.ArgumentParser(description='Tool to split, append and convert trajectories. (by D.Ongari)',
@@ -163,7 +160,9 @@ if not args.sss:
     for iss in range(ss):
         ssinp = "{0}-ss{1:05d}.{2}".format(outfilename, iss, inpformat)
         ssout = "{0}-ss{1:05d}.{2}".format(outfilename, iss, outformat)
-        if os.path.exists(ssinp): os.remove(ssinp)
-        if os.path.exists(ssout): os.remove(ssout)
+        if os.path.exists(ssinp):
+            os.remove(ssinp)
+        if os.path.exists(ssout):
+            os.remove(ssout)
 else:
     print("Saved snaphsots")

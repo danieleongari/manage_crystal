@@ -1,7 +1,5 @@
 # coding=utf-8
 
-from __future__ import absolute_import
-from __future__ import print_function
 import numpy as np
 import re  #re.split(r'(\d+)',"Cu23") = ['Cu', '23', '']
 import math
@@ -10,7 +8,6 @@ import sys
 from collections import Counter  #makes a dictionary
 from manage_crystal.periodic_table import ptab_atnum, ptab_atnum_inv, ptab_mass, ptab_vdw_uff
 from numpy.linalg import inv
-from six.moves import range
 
 AVOGCONST = 6.022E+23
 M3TOANG3 = 1e10**3
@@ -138,9 +135,8 @@ class Crys:
         self.matrix[1][1] = self.length[1] * math.sin(self.angle_rad[2])
         self.matrix[1][2] = 0.0
         self.matrix[2][0] = self.length[2] * math.cos(self.angle_rad[1])
-        self.matrix[2][1] = self.length[2] * (
-            math.cos(self.angle_rad[0]) - math.cos(self.angle_rad[2]) * math.cos(self.angle_rad[1])) / math.sin(
-                self.angle_rad[2])
+        self.matrix[2][1] = self.length[2] * (math.cos(self.angle_rad[0]) - math.cos(self.angle_rad[2]) *
+                                              math.cos(self.angle_rad[1])) / math.sin(self.angle_rad[2])
         self.matrix[2][2] = self.length[2] * math.sqrt(1 - (math.cos(self.angle_rad[1]))**2 - (
             (math.cos(self.angle_rad[0]) - math.cos(self.angle_rad[2]) * math.cos(self.angle_rad[1])) /
             math.sin(self.angle_rad[2]))**2)

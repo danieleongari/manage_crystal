@@ -1,6 +1,3 @@
-from __future__ import absolute_import
-
-
 def is_number(s):  #checks if a string is a number or not
     try:
         float(s)

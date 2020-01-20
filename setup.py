@@ -19,14 +19,8 @@ if __name__ == '__main__':
               "manage_crystal/manage_crystal", "manage_crystal/trajec_crystal"
           ],
           extras_require={
-              "testing": [
-                  "mock==2.0.0", "pgtest==1.1.0", "sqlalchemy-diff==0.1.3",
-                  "wheel>=0.31", "coverage", "pytest"
-              ],
               "pre-commit": [
-                  "pre-commit==1.11.0",
-                  "yapf==0.24.0",
-                  "prospector==1.1.5",
-                  "pylint",
+                  "pre-commit==1.21.0",
+                  "yapf==0.29.0",
               ]
           })

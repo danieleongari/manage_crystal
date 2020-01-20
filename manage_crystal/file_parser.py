@@ -1,8 +1,6 @@
 # Parsers for the different file formats.
 # Functions are sorted in alphabetic order.
 
-from __future__ import absolute_import
-from __future__ import print_function
 from manage_crystal import Crys
 from manage_crystal.periodic_table import ptab_atnum_inv
 from manage_crystal.utils import is_number
@@ -10,7 +8,6 @@ import numpy as np
 import os
 import sys
 import re
-from six.moves import range
 
 ANGS2BOHR = 1.88973
 
@@ -296,9 +293,9 @@ def parse_dcd_header(file):
 def parse_dcd_snapshot(file, c):
     ''' Parse the dcd snapshot, updatyng the Crys cell and coordinates '''
     data_dtype = np.dtype([('junk1', 'i4', 1), ('len_ang', 'f8', 6), ('junk2', 'i4', 1), ('junk3', 'i4', 1),
-                           ('coord_x', 'f4', c.natom), ('junk4', 'i4', 1), ('junk5', 'i4', 1), ('coord_y', 'f4',
-                                                                                                c.natom),
-                           ('junk6', 'i4', 1), ('junk7', 'i4', 1), ('coord_z', 'f4', c.natom), ('junk8', 'i4', 1)])
+                           ('coord_x', 'f4', c.natom), ('junk4', 'i4', 1),
+                           ('junk5', 'i4', 1), ('coord_y', 'f4', c.natom), ('junk6', 'i4', 1), ('junk7', 'i4', 1),
+                           ('coord_z', 'f4', c.natom), ('junk8', 'i4', 1)])
     data = np.fromfile(file, data_dtype, 1)
     if len(data) == 0:
         EOF = True

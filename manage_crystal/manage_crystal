@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
-from __future__ import absolute_import
 import string, sys
 import numpy as np
 from numpy.linalg import inv
@@ -11,7 +9,6 @@ import argparse
 from argparse import RawTextHelpFormatter  #needed to go next line in the help text
 import os
 import re  #re.split(r'(\d+)',"O23") = ['O', '23', '']
-from six.moves import range
 from manage_crystal import Crys
 from manage_crystal.periodic_table import ptab_atnum_inv, ptab_vdw_uff
 from manage_crystal.file_parser import parse_from_filepath
@@ -19,9 +16,8 @@ from manage_crystal.file_writer import write_to_filepath
 from manage_crystal.utils import is_number
 #from pprint import pprint #pprint(vars(your_object))
 
-parser = argparse.ArgumentParser(
-    description='Tool to read, extract info and convert crystal files. (by D.Ongari)',
-    formatter_class=RawTextHelpFormatter)
+parser = argparse.ArgumentParser(description='Tool to read, extract info and convert crystal files. (by D.Ongari)',
+                                 formatter_class=RawTextHelpFormatter)
 
 # File input / output
 parser.add_argument(
@@ -30,88 +26,93 @@ parser.add_argument(
     help="path to the input file to read\n" + "IMPLEMENTED: xyz(w/CELL),pdb,cssr,pwi,pwo,cif,xsf,axsf,subsys(CP2K),\n" +
     "             restart(CP2K),inp(CP2K),cube,POSCAR(VASP),car\n" + "             [NEXT: gaussian, dcd+atoms]")
 
-parser.add_argument(
-    "-o",
-    "--output",
-    type=str,
-    dest="output",
-    default=None,
-    help="Output filename.extension or just the extension\n" +
-    "IMPLEMENTED: cif,pdb,cssr,xyz(w/CELL),pwi,subsys(CP2K),axsf,POSCAR")
+parser.add_argument("-o",
+                    "--output",
+                    type=str,
+                    dest="output",
+                    default=None,
+                    help="Output filename.extension or just the extension\n" +
+                    "IMPLEMENTED: cif,pdb,cssr,xyz(w/CELL),pwi,subsys(CP2K),axsf,POSCAR")
 
-parser.add_argument(
-    "-resp",
-    type=str,
-    dest="resp",
-    default=None,
-    help="Read the charges from a cp2k RESP file\n" + "(also checking if the atoms are the same)\n" +
-    "BC1: it read the first set of charges\n" + "BC2: Also a cp2k output file with charges is fine!\n")
+parser.add_argument("-resp",
+                    type=str,
+                    dest="resp",
+                    default=None,
+                    help="Read the charges from a cp2k RESP file\n" + "(also checking if the atoms are the same)\n" +
+                    "BC1: it read the first set of charges\n" + "BC2: Also a cp2k output file with charges is fine!\n")
 
-parser.add_argument(
-    "-readcharge", type=str, dest="readcharge", default=None, help="Read the charges from a simple list")
+parser.add_argument("-readcharge",
+                    type=str,
+                    dest="readcharge",
+                    default=None,
+                    help="Read the charges from a simple list")
 
-parser.add_argument(
-    "-readrepeatcharge",
-    type=str,
-    dest="readrepeatcharge",
-    default=None,
-    help="Read the charges from REPEAT output of QE")
+parser.add_argument("-readrepeatcharge",
+                    type=str,
+                    dest="readrepeatcharge",
+                    default=None,
+                    help="Read the charges from REPEAT output of QE")
 
 # Read settings
 parser.add_argument("-pseudopw", type=str, dest="pseudopw", default="pbe", help="Pseudo for the .pwi output")
 
-parser.add_argument(
-    "-bscp2k",
-    "--basisset-cp2k",
-    type=str,
-    dest="bscp2k",
-    default="DZVP-MOLOPT-SR-GTH",
-    help="Gaussian Basis Set for CP2K")
+parser.add_argument("-bscp2k",
+                    "--basisset-cp2k",
+                    type=str,
+                    dest="bscp2k",
+                    default="DZVP-MOLOPT-SR-GTH",
+                    help="Gaussian Basis Set for CP2K")
 
-parser.add_argument(
-    "-potcp2k", "--potential-cp2k", type=str, dest="potcp2k", default="GTH-PBE", help="Pseudo potential for CP2K")
+parser.add_argument("-potcp2k",
+                    "--potential-cp2k",
+                    type=str,
+                    dest="potcp2k",
+                    default="GTH-PBE",
+                    help="Pseudo potential for CP2K")
 
-parser.add_argument(
-    "-fract",
-    "--fractional-coordinates",
-    action="store_true",
-    dest="fract",
-    default=False,
-    help="Force the writer to print fractional coordinates (if possible)")
+parser.add_argument("-fract",
+                    "--fractional-coordinates",
+                    action="store_true",
+                    dest="fract",
+                    default=False,
+                    help="Force the writer to print fractional coordinates (if possible)")
 
-parser.add_argument(
-    "-chargenull", action="store_true", dest="chargenull", default=False, help="Delete the charge of the atoms")
+parser.add_argument("-chargenull",
+                    action="store_true",
+                    dest="chargenull",
+                    default=False,
+                    help="Delete the charge of the atoms")
 
 # Verbosity section
 parser.add_argument("-silent", action="store_true", dest="silent", default=False, help="No output info on the screen")
 
-parser.add_argument(
-    "-show", action="store_true", dest="show", default=False, help="Show all the info\n" + "[skip -silent]")
+parser.add_argument("-show",
+                    action="store_true",
+                    dest="show",
+                    default=False,
+                    help="Show all the info\n" + "[skip -silent]")
 
-parser.add_argument(
-    "-showonly",
-    choices=[None, 'elements', 'cell', 'CELL', 'xyz', 'fract', 'charge'],
-    dest="showonly",
-    default=None,
-    help="Show only the required info\n" + "[skip -silent]")
+parser.add_argument("-showonly",
+                    choices=[None, 'elements', 'cell', 'CELL', 'xyz', 'fract', 'charge'],
+                    dest="showonly",
+                    default=None,
+                    help="Show only the required info\n" + "[skip -silent]")
 
 # Find/compute stuff section
-parser.add_argument(
-    "-cutoff",
-    type=float,
-    dest="cutoff",
-    default=None,
-    help="Automatically extend the UC so that the cutoff is respected\n" +
-    "(TIP: use -cutoff 0 to just know the perpendicular widths!)")
+parser.add_argument("-cutoff",
+                    type=float,
+                    dest="cutoff",
+                    default=None,
+                    help="Automatically extend the UC so that the cutoff is respected\n" +
+                    "(TIP: use -cutoff 0 to just know the perpendicular widths!)")
 
 parser.add_argument("-cupw", action="store_true", dest="cupw", default=False, help="Look for a Copper PaddleWheel")
 
-parser.add_argument(
-    "-ovlp",
-    action="store_true",
-    dest="ovlp",
-    default=False,
-    help="Look for an overlap and remove the overlapping atom")
+parser.add_argument("-ovlp",
+                    action="store_true",
+                    dest="ovlp",
+                    default=False,
+                    help="Look for an overlap and remove the overlapping atom")
 
 parser.add_argument(
     "-ovlpthr",
@@ -121,52 +122,60 @@ parser.add_argument(
     help="Threshold (Angstrom) for checking atomic overlaps.")
 
 mod_coord_cell = parser.add_argument_group("Options to modify coord./cell")
-mod_coord_cell.add_argument(
-    "-x", type=int, dest="multipl_x", default=1, help="Extend in the x direction, by the specified times")
+mod_coord_cell.add_argument("-x",
+                            type=int,
+                            dest="multipl_x",
+                            default=1,
+                            help="Extend in the x direction, by the specified times")
 
-mod_coord_cell.add_argument(
-    "-y", type=int, dest="multipl_y", default=1, help="Extend in the y direction, by the specified times")
+mod_coord_cell.add_argument("-y",
+                            type=int,
+                            dest="multipl_y",
+                            default=1,
+                            help="Extend in the y direction, by the specified times")
 
-mod_coord_cell.add_argument(
-    "-z", type=int, dest="multipl_z", default=1, help="Extend in the z direction, by the specified times")
+mod_coord_cell.add_argument("-z",
+                            type=int,
+                            dest="multipl_z",
+                            default=1,
+                            help="Extend in the z direction, by the specified times")
 
-mod_coord_cell.add_argument(
-    "-transl", type=float, nargs=3, dest="transl", default=None, help="x y z translation in Angs")
+mod_coord_cell.add_argument("-transl",
+                            type=float,
+                            nargs=3,
+                            dest="transl",
+                            default=None,
+                            help="x y z translation in Angs")
 
-mod_coord_cell.add_argument(
-    "-rotaxis",
-    choices=[None, "up", "down"],
-    dest="rotaxis",
-    default=None,
-    help="Rotate the axis. 'up': xyz>zxy, 'down': xyz>yzx")
+mod_coord_cell.add_argument("-rotaxis",
+                            choices=[None, "up", "down"],
+                            dest="rotaxis",
+                            default=None,
+                            help="Rotate the axis. 'up': xyz>zxy, 'down': xyz>yzx")
 
-mod_coord_cell.add_argument(
-    "-randomize",
-    type=float,
-    dest="randomize",
-    default=None,
-    help="Randomize the geometry by a gaussian\n" + "with the specified delta (angs)")
+mod_coord_cell.add_argument("-randomize",
+                            type=float,
+                            dest="randomize",
+                            default=None,
+                            help="Randomize the geometry by a gaussian\n" + "with the specified delta (angs)")
 
-parser.add_argument(
-    "-chkmetalcharge",
-    action="store_true",
-    dest="chkmetalcharge",
-    default=False,
-    help="Check if the charge on a metal (see list) is neg.\n" + "[skip -silent]")
+parser.add_argument("-chkmetalcharge",
+                    action="store_true",
+                    dest="chkmetalcharge",
+                    default=False,
+                    help="Check if the charge on a metal (see list) is neg.\n" + "[skip -silent]")
 
-parser.add_argument(
-    "-normalizecharges",
-    action="store_true",
-    dest="normalizecharges",
-    default=False,
-    help="Normalize the charges to have a null total charge.")
+parser.add_argument("-normalizecharges",
+                    action="store_true",
+                    dest="normalizecharges",
+                    default=False,
+                    help="Normalize the charges to have a null total charge.")
 
-parser.add_argument(
-    "-bv",
-    action="store_true",
-    dest="bondvalence",
-    default=False,
-    help="Apply the bond valence method to compute oxidation states.")
+parser.add_argument("-bv",
+                    action="store_true",
+                    dest="bondvalence",
+                    default=False,
+                    help="Apply the bond valence method to compute oxidation states.")
 
 parser.add_argument(
     "-tm "
@@ -233,12 +242,15 @@ if not args.readrepeatcharge == None:
             i += 1
 
 if args.chargenull:
-    if not args.silent: print("*** chargenull: DELETING ALL THE CHARGES! ***")
+    if not args.silent:
+        print("*** chargenull: DELETING ALL THE CHARGES! ***")
     crys.atom_charge = [0] * crys.natom
 
 if args.normalizecharges:
-    if not args.silent: print("")
-    if not args.silent: print("*** NORMALIZING CHARGES ***")
+    if not args.silent:
+        print("")
+    if not args.silent:
+        print("*** NORMALIZING CHARGES ***")
     pos_charge = 0
     neg_charge = 0
     for i in range(crys.atom_natoms):
@@ -251,10 +263,14 @@ if args.normalizecharges:
     tot_abs = pos_charge - neg_charge
     pos_fract = pos_charge / tot_abs
 
-    if not args.silent: print("total charge: %f" % tot_charge)
-    if not args.silent: print("positive charges: %f" % pos_charge)
-    if not args.silent: print("negative charges: %f" % neg_charge)
-    if not args.silent: print("total absolute ch.: %f" % tot_abs)
+    if not args.silent:
+        print("total charge: %f" % tot_charge)
+    if not args.silent:
+        print("positive charges: %f" % pos_charge)
+    if not args.silent:
+        print("negative charges: %f" % neg_charge)
+    if not args.silent:
+        print("total absolute ch.: %f" % tot_abs)
 
     for i in range(crys.atom_natoms):
         if crys.atom_charge[i] > 0:
@@ -264,17 +280,21 @@ if args.normalizecharges:
 
 ########################################################### Coordinates and cell
 if crys.inp_matrix:
-    if not args.silent: print("\n Cell parsed as matrix.")
+    if not args.silent:
+        print("\n Cell parsed as matrix.")
     crys.compute_la_from_matrix()
 elif crys.inp_lengths_angles:
-    if not args.silent: print("\n Cell parsed as lengths and angles.")
+    if not args.silent:
+        print("\n Cell parsed as lengths and angles.")
     crys.compute_matrix_from_la()
 
 if crys.inp_xyz:
-    if not args.silent: print(" \n Atomic coordinates parsed as cartersian.")
+    if not args.silent:
+        print(" \n Atomic coordinates parsed as cartersian.")
     crys.compute_fract_from_xyz()
 elif crys.inp_fract:
-    if not args.silent: print(" \n Atomic coordinates parsed as fractional.")
+    if not args.silent:
+        print(" \n Atomic coordinates parsed as fractional.")
     crys.compute_xyz_from_fract()
 
 if not crys.matrix_alligned:
@@ -296,7 +316,8 @@ if args.randomize != None:
 if args.rotaxis != None:
     if not args.silent:
         print("\n*** ROTATING axis, direction: %r" % args.rotaxis)
-    if not args.silent: print("*** Warning: the cell matrix is not rotated")
+    if not args.silent:
+        print("*** Warning: the cell matrix is not rotated")
     crys.rotate_axis(up=(args.rotaxis == "up"))
 
 ################################################### CUTOFF TEST & CELL EXPANSION
@@ -311,16 +332,16 @@ if not args.cutoff == None:  #copied from raspa/framework.c/CellProperties(line:
 
     crys.compute_perp_width()
     print("\nCUTOFF_TEST | Cutoff: %.1f" % (args.cutoff))
-    print("CUTOFF_TEST | Cell perpendicular widths: %.3f %.3f %.3f" % (crys.perp_width[0], crys.perp_width[1],
-                                                                       crys.perp_width[2]))
+    print("CUTOFF_TEST | Cell perpendicular widths: %.3f %.3f %.3f" %
+          (crys.perp_width[0], crys.perp_width[1], crys.perp_width[2]))
 
     # compute how big the cell must be
     for k in range(3):
         multipl_length[k] = int(math.ceil(2 * args.cutoff / crys.perp_width[k]))
 
     if any(x > 1 for x in multipl_length):
-        print("CUTOFF_TEST | Expansion_done: %d %d %d for %s" % (multipl_length[0], multipl_length[1],
-                                                                 multipl_length[2], args.inputfile))
+        print("CUTOFF_TEST | Expansion_done: %d %d %d for %s" %
+              (multipl_length[0], multipl_length[1], multipl_length[2], args.inputfile))
     else:
         print("CUTOFF_TEST | Expansion_unnecesary: 1 1 1 for %s" % (args.inputfile))
 
@@ -334,8 +355,10 @@ if not args.silent:
 for element in crys.element_list:
     if not args.silent:
         print("{0:>5} {1:3} atoms".format(crys.element_count[element], element))
-if not args.silent: print(" ---- --- ----- ")
-if not args.silent: print('{0:>5} {1:3} atoms'.format(crys.natom, 'tot'))
+if not args.silent:
+    print(" ---- --- ----- ")
+if not args.silent:
+    print('{0:>5} {1:3} atoms'.format(crys.natom, 'tot'))
 if not args.silent:
     print("\nVolume: %.3f (Angtrom^3/u.c.)" % crys.compute_volume_from_la())
 weight, rho_kgm3 = crys.compute_weight_density()
@@ -347,7 +370,8 @@ if all(x == 0 for x in crys.atom_charge):
     if not args.silent:
         print("\nNET_CHARGE: all the charges are zero or not provided.")
 elif abs(sum(crys.atom_charge)) < +0.001:
-    if not args.silent: print("\nNET_CHARGE: negligible (|sum|<0.001).")
+    if not args.silent:
+        print("\nNET_CHARGE: negligible (|sum|<0.001).")
 else:
     if not args.silent:
         print("\nNET_CHARGE: nonzero (%.3f). ***WARNING***" % sum(crys.atom_charge))
@@ -373,13 +397,16 @@ if args.chkmetalcharge:
                 found_met_neg = True
             elif crys.atom_charge[i] > 0:
                 found_met_nonzero = True
-        if found_met_notnumber or found_met_neg: break
-    if not found_met: print("CHK_METAL_CHARGE: no_metals")
+        if found_met_notnumber or found_met_neg:
+            break
+    if not found_met:
+        print("CHK_METAL_CHARGE: no_metals")
     if found_met and not found_met_neg and not found_met_notnumber and not found_met_nonzero:
         print("CHK_METAL_CHARGE: all_zero")
     if found_met and not found_met_neg and not found_met_notnumber and found_met_nonzero:
         print("CHK_METAL_CHARGE: ok_positive")
-if not args.silent: print("Tot. electrons: %d" % crys.compute_nelectron())
+if not args.silent:
+    print("Tot. electrons: %d" % crys.compute_nelectron())
 if args.showonly == 'elements':
     print(*crys.element_list, sep=', ')
 
@@ -392,10 +419,10 @@ if args.ovlp:
                 dist = crys.dist_ij(i, j)
                 if (dist < args.ovlpthr):
                     print("Overlap found (dist=%.2f<%.2f) between:" % (dist, args.ovlpthr))
-                    print("%4d %3s %9.5f %9.5f %9.5f " % (i, crys.atom_element[i], crys.atom_xyz[i][0],
-                                                          crys.atom_xyz[i][1], crys.atom_xyz[i][2]))
-                    print("%4d %3s %9.5f %9.5f %9.5f " % (j, crys.atom_element[j], crys.atom_xyz[j][0],
-                                                          crys.atom_xyz[j][1], crys.atom_xyz[j][2]))
+                    print("%4d %3s %9.5f %9.5f %9.5f " %
+                          (i, crys.atom_element[i], crys.atom_xyz[i][0], crys.atom_xyz[i][1], crys.atom_xyz[i][2]))
+                    print("%4d %3s %9.5f %9.5f %9.5f " %
+                          (j, crys.atom_element[j], crys.atom_xyz[j][0], crys.atom_xyz[j][1], crys.atom_xyz[j][2]))
                     overlaps += 1
                     ovlp_list.append(j)
     crys.remove_atoms(ovlp_list)
@@ -406,25 +433,30 @@ if args.bondvalence:
     crys.print_bondvalence()
 
 ################################################################ SHOW & SHOWONLY
-if args.show: print("\nCell matrix ----------------------------------------\n")
+if args.show:
+    print("\nCell matrix ----------------------------------------\n")
 if args.show or args.showonly == "cell":
     for k in range(3):
         print("     %10.5f %10.5f %10.5f" % (crys.matrix[k][0], crys.matrix[k][1], crys.matrix[k][2]))
-if args.show: print("\nCell lengths and angles ----------------------------\n")
+if args.show:
+    print("\nCell lengths and angles ----------------------------\n")
 if args.show or args.showonly == "CELL":
     print(" %10.5f  %10.5f  %10.5f" % (crys.length[0], crys.length[1], crys.length[2]))
     print(" %10.5f  %10.5f  %10.5f" % (crys.angle_deg[0], crys.angle_deg[1], crys.angle_deg[2]))
-if args.show: print("\nCartesian coordinates ------------------------------\n")
+if args.show:
+    print("\nCartesian coordinates ------------------------------\n")
 if args.show or args.showonly == "xyz":
     for i in range(crys.natom):
-        print("%3s %10.5f %10.5f %10.5f " % (crys.atom_element[i], crys.atom_xyz[i][0], crys.atom_xyz[i][1],
-                                             crys.atom_xyz[i][2]))
-if args.show: print("\nFractional coordinates -----------------------------\n")
+        print("%3s %10.5f %10.5f %10.5f " %
+              (crys.atom_element[i], crys.atom_xyz[i][0], crys.atom_xyz[i][1], crys.atom_xyz[i][2]))
+if args.show:
+    print("\nFractional coordinates -----------------------------\n")
 if args.show or args.showonly == "fract":
     for i in range(crys.natom):
-        print("%3s %10.5f %10.5f %10.5f " % (crys.atom_element[i], crys.atom_fract[i][0], crys.atom_fract[i][1],
-                                             crys.atom_fract[i][2]))
-if args.show: print("\nCharges --------------------------------------------\n")
+        print("%3s %10.5f %10.5f %10.5f " %
+              (crys.atom_element[i], crys.atom_fract[i][0], crys.atom_fract[i][1], crys.atom_fract[i][2]))
+if args.show:
+    print("\nCharges --------------------------------------------\n")
 if args.show or args.showonly == "charge":
     for i in range(crys.natom):
         print("%3s %10.5f" % (crys.atom_element[i], crys.atom_charge[i]))

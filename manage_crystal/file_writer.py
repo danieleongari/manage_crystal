@@ -1,13 +1,10 @@
 # Writing instructions for different formats.
 # Functions are sorted in alphabetic order.
 
-from __future__ import print_function
-from __future__ import absolute_import
 from manage_crystal.periodic_table import ptab_mass, ptab_qepseudo
 from manage_crystal import Crys
 import os
 import sys
-from six.moves import range
 
 
 def write_to_filepath(crys, filepath, tm=None, pseudopw=None, bscp2k=None, potcp2k=None, fract=None):
@@ -48,9 +45,8 @@ def write_axsf(ofile, c):
     print("PRIMCOORD 1", file=ofile)
     print("%d 1" % (c.natom), file=ofile)
     for i in range(c.natom):
-        print(
-            "%3s %8.3f %8.3f %8.3f " % (c.atom_element[i], c.atom_xyz[i][0], c.atom_xyz[i][1], c.atom_xyz[i][2]),
-            file=ofile)
+        print("%3s %8.3f %8.3f %8.3f " % (c.atom_element[i], c.atom_xyz[i][0], c.atom_xyz[i][1], c.atom_xyz[i][2]),
+              file=ofile)
     return
 
 
@@ -88,11 +84,10 @@ def write_cif(ofile, c):
     if print_charges:
         print("_atom_site_charge", file=ofile)
     for i in range(c.natom):
-        print(
-            "{:10} {:5} {:>9.5f} {:>9.5f} {:>9.5f} ".format(c.atom_element[i], c.atom_element[i], c.atom_fract[i][0],
-                                                            c.atom_fract[i][1], c.atom_fract[i][2]),
-            end="",
-            file=ofile)
+        print("{:10} {:5} {:>9.5f} {:>9.5f} {:>9.5f} ".format(c.atom_element[i], c.atom_element[i], c.atom_fract[i][0],
+                                                              c.atom_fract[i][1], c.atom_fract[i][2]),
+              end="",
+              file=ofile)
         if print_charges:  # add charge with many decimals to avoid net charge
             print('{:>14.10f}'.format(c.atom_charge[i]), file=ofile)
         else:  # add \n
@@ -103,32 +98,28 @@ def write_cif(ofile, c):
 def write_cssr(ofile, c):
     ''' Write the Crys in .cssr file format'''
     print("                               %.3f  %.3f  %.3f" % (c.length[0], c.length[1], c.length[2]), file=ofile)
-    print(
-        "                %.3f   %.3f   %.3f   SPGR =  1 P 1         OPT = 1" % (c.angle_deg[0], c.angle_deg[1],
-                                                                                c.angle_deg[2]),
-        file=ofile)
+    print("                %.3f   %.3f   %.3f   SPGR =  1 P 1         OPT = 1" %
+          (c.angle_deg[0], c.angle_deg[1], c.angle_deg[2]),
+          file=ofile)
     print("%d   0" % (c.natom), file=ofile)
     print("0 %s       : %s" % ("xxxxxxx", "xxxxxxx"), file=ofile)
     for i in range(c.natom):
-        print(
-            "%4d %3s %8.5f %8.5f %8.5f    0  0  0  0  0  0  0  0  %7.5f" %
-            (i + 1, c.atom_element[i], c.atom_fract[i][0], c.atom_fract[i][1], c.atom_fract[i][2], c.atom_charge[i]),
-            file=ofile)
+        print("%4d %3s %8.5f %8.5f %8.5f    0  0  0  0  0  0  0  0  %7.5f" %
+              (i + 1, c.atom_element[i], c.atom_fract[i][0], c.atom_fract[i][1], c.atom_fract[i][2], c.atom_charge[i]),
+              file=ofile)
     return
 
 
 def write_pdb(ofile, c):
     ''' Write the Crys in .pdb file format'''
-    print(
-        "CRYST1{0:>9.3f}{1:>9.3f}{2:>9.3f}{3:>7.2f}{4:>7.2f}{5:>7.2f} P 1           1".format(
-            c.length[0], c.length[1], c.length[2], c.angle_deg[0], c.angle_deg[1], c.angle_deg[2]),
-        file=ofile)
+    print("CRYST1{0:>9.3f}{1:>9.3f}{2:>9.3f}{3:>7.2f}{4:>7.2f}{5:>7.2f} P 1           1".format(
+        c.length[0], c.length[1], c.length[2], c.angle_deg[0], c.angle_deg[1], c.angle_deg[2]),
+          file=ofile)
     for i in range(c.natom):
-        print(
-            "%-6s%5d %4s%1s%3s %1s%4d%1s   %8.5f%8.5f%8.5f%6.2f%6.2f          %2s%2s" %
-            ("ATOM", i + 1, c.atom_element[i], "", "XXX", "X", 1, "", c.atom_fract[i][0], c.atom_fract[i][1],
-             c.atom_fract[i][2], 1.00, 0.00, c.atom_element[i], ""),
-            file=ofile)
+        print("%-6s%5d %4s%1s%3s %1s%4d%1s   %8.5f%8.5f%8.5f%6.2f%6.2f          %2s%2s" %
+              ("ATOM", i + 1, c.atom_element[i], "", "XXX", "X", 1, "", c.atom_fract[i][0], c.atom_fract[i][1],
+               c.atom_fract[i][2], 1.00, 0.00, c.atom_element[i], ""),
+              file=ofile)
     return
 
 
@@ -161,11 +152,11 @@ def write_poscar(ofile, c, fract):
         for i, a in enumerate(c.atom_element):
             if e == a:
                 if fract:
-                    print(
-                        "%9.5f %9.5f %9.5f" % (c.atom_fract[i][0], c.atom_fract[i][1], c.atom_fract[i][2]), file=ofile)
+                    print("%9.5f %9.5f %9.5f" % (c.atom_fract[i][0], c.atom_fract[i][1], c.atom_fract[i][2]),
+                          file=ofile)
                 else:
-                    print(
-                        "%9.5f %9.5f %9.5f" % (c.atom_fract[i][0], c.atom_fract[i][1], c.atom_fract[i][2]), file=ofile)
+                    print("%9.5f %9.5f %9.5f" % (c.atom_fract[i][0], c.atom_fract[i][1], c.atom_fract[i][2]),
+                          file=ofile)
     return
 
 
@@ -235,9 +226,8 @@ def write_pwi(ofile, c, pseudopw):
     print("", file=ofile)
     print("ATOMIC_POSITIONS angstrom ", file=ofile)
     for i in range(c.natom):
-        print(
-            "%3s %12.8f %12.8f %12.8f " % (c.atom_element[i], c.atom_xyz[i][0], c.atom_xyz[i][1], c.atom_xyz[i][2]),
-            file=ofile)
+        print("%3s %12.8f %12.8f %12.8f " % (c.atom_element[i], c.atom_xyz[i][0], c.atom_xyz[i][1], c.atom_xyz[i][2]),
+              file=ofile)
     return
 
 
@@ -248,9 +238,8 @@ def write_subsys(ofile, c, bscp2k, potcp2k, fract):
     print("  &SUBSYS", file=ofile)
     print("    &CELL", file=ofile)
     for k, label in enumerate(["A", "B", "C"]):
-        print(
-            "      %s [angstrom] %8.5f %8.5f %8.5f" % (label, c.matrix[k][0], c.matrix[k][1], c.matrix[k][2]),
-            file=ofile)
+        print("      %s [angstrom] %8.5f %8.5f %8.5f" % (label, c.matrix[k][0], c.matrix[k][1], c.matrix[k][2]),
+              file=ofile)
     print("    &END CELL", file=ofile)
     print("", file=ofile)
     print("    &COORD", file=ofile)
@@ -258,15 +247,13 @@ def write_subsys(ofile, c, bscp2k, potcp2k, fract):
     if fract:
         print("      SCALED .TRUE.", file=ofile)
         for i in range(c.natom):
-            print(
-                "%3s %9.5f %9.5f %9.5f " % (c.atom_element[i], c.atom_fract[i][0], c.atom_fract[i][1],
-                                            c.atom_fract[i][2]),
-                file=ofile)
+            print("%3s %9.5f %9.5f %9.5f " %
+                  (c.atom_element[i], c.atom_fract[i][0], c.atom_fract[i][1], c.atom_fract[i][2]),
+                  file=ofile)
     else:
         for i in range(c.natom):
-            print(
-                "%3s %9.5f %9.5f %9.5f " % (c.atom_element[i], c.atom_xyz[i][0], c.atom_xyz[i][1], c.atom_xyz[i][2]),
-                file=ofile)
+            print("%3s %9.5f %9.5f %9.5f " % (c.atom_element[i], c.atom_xyz[i][0], c.atom_xyz[i][1], c.atom_xyz[i][2]),
+                  file=ofile)
     print("    &END COORD", file=ofile)
     print("", file=ofile)
     # print elements KIND
@@ -290,26 +277,23 @@ def write_subsys(ofile, c, bscp2k, potcp2k, fract):
 def write_xyz(ofile, c):
     ''' Write the Crys in .xyz file format'''
     print("%d" % (c.natom), file=ofile)
-    print(
-        "CELL:  %.5f  %.5f  %.5f  %.3f  %.3f  %.3f  " % (c.length[0], c.length[1], c.length[2], c.angle_deg[0],
-                                                         c.angle_deg[1], c.angle_deg[2]),
-        file=ofile)
+    print("CELL:  %.5f  %.5f  %.5f  %.3f  %.3f  %.3f  " %
+          (c.length[0], c.length[1], c.length[2], c.angle_deg[0], c.angle_deg[1], c.angle_deg[2]),
+          file=ofile)
     for i in range(c.natom):
-        print(
-            "%3s %9.5f %9.5f %9.5f " % (c.atom_element[i], c.atom_xyz[i][0], c.atom_xyz[i][1], c.atom_xyz[i][2]),
-            file=ofile)
+        print("%3s %9.5f %9.5f %9.5f " % (c.atom_element[i], c.atom_xyz[i][0], c.atom_xyz[i][1], c.atom_xyz[i][2]),
+              file=ofile)
     return
 
 
 def write_xyz_tm4(ofile, c):
     ''' Write the Crys in .xyz tilor-made 4 file format for Well's program'''
     print("****PRINTING .xyz TAILOR-MADE4 FOR Qeq program by B.Wells***", file=ofile)
-    print(
-        "      FRAC       %.5f  %.5f  %.5f  %.3f  %.3f  %.3f  " % (c.length[0], c.length[1], c.length[2],
-                                                                   c.angle_deg[0], c.angle_deg[1], c.angle_deg[2]),
-        file=ofile)
+    print("      FRAC       %.5f  %.5f  %.5f  %.3f  %.3f  %.3f  " %
+          (c.length[0], c.length[1], c.length[2], c.angle_deg[0], c.angle_deg[1], c.angle_deg[2]),
+          file=ofile)
     print("%d" % (c.natom), file=ofile)
     for i in range(c.natom):
-        print(
-            "%3s %9.5f %9.5f %9.5f " % (c.atom_element[i], c.atom_fract[i][0], c.atom_fract[i][1], c.atom_fract[i][2]),
-            file=ofile)
+        print("%3s %9.5f %9.5f %9.5f " %
+              (c.atom_element[i], c.atom_fract[i][0], c.atom_fract[i][1], c.atom_fract[i][2]),
+              file=ofile)
