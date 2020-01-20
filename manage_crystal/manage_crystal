@@ -196,10 +196,7 @@ args = parser.parse_args()
 # reading input file: name and format (notice that if there is a path it becomes
 # part of the name, to have the output in the same place)
 inputfilename = os.path.splitext(args.inputfile)[0]
-inputformat = os.path.splitext(args.inputfile)[1][1:]
 crys = parse_from_filepath(args.inputfile, args.tm)
-crys.check_parse()
-crys.compute_atom_count()
 ######################################################################## Charges
 
 if not args.resp == None:

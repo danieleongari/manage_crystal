@@ -1,5 +1,3 @@
-# coding=utf-8
-
 import numpy as np
 import re  #re.split(r'(\d+)',"Cu23") = ['Cu', '23', '']
 import math

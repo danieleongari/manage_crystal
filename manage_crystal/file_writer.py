@@ -1,5 +1,6 @@
-# Writing instructions for different formats.
-# Functions are sorted in alphabetic order.
+"""Writing instructions for different formats.
+Functions are sorted in alphabetic order.
+"""
 
 from manage_crystal.periodic_table import ptab_mass, ptab_qepseudo
 from manage_crystal import Crys

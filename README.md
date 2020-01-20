@@ -35,6 +35,12 @@ $ manage_crystal.py inputfilename.inputformat [options] -o outputformat
 $ manage_crystal.py --help
 ```
 
+- to convert files inside a python script:
+```
+from manage_crystal.utils import parse_and_write
+parse_and_write(inputfile, outputfile)
+```
+
 Tips:
 
 - you may want to use `-silent` to suppress default verbose output: several options "skip -silent" so that you can print just that information on the screen (e.g., `-printatoms -silent` prints on the screen just the atom types on one line). This make easy to use bash loops for lists of structures.

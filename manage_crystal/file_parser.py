@@ -1,5 +1,6 @@
-# Parsers for the different file formats.
-# Functions are sorted in alphabetic order.
+"""Parsers for the different file formats.
+Functions are sorted in alphabetic order.
+"""
 
 from manage_crystal import Crys
 from manage_crystal.periodic_table import ptab_atnum_inv
@@ -20,7 +21,7 @@ def parsefloat(string):
     return float(string)
 
 
-def parse_from_filepath(filepath, tm):
+def parse_from_filepath(filepath, tm=0):
     """ Utility that takes the filepath, recognise the file format type
     and return a Crys """
     if not os.path.isfile(filepath):
@@ -51,7 +52,10 @@ def parse_from_filepath(filepath, tm):
         crys = parse_xyz_tm3(file)
     else:
         sys.exit("WARNING: Input file format not implemented. EXIT.")
+
     file.close()
+    crys.check_parse()
+    crys.compute_atom_count()
     return crys
 
 
