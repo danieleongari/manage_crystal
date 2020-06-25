@@ -59,22 +59,22 @@ def write_cif(ofile, c):
     print_charges = (max([abs(x) for x in c.atom_charge]) > 0)
 
     print("data_crystal", file=ofile)
-    print(" ", file=ofile)
+    print("", file=ofile)
     print("_cell_length_a    %.5f" % c.length[0], file=ofile)
     print("_cell_length_b    %.5f" % c.length[1], file=ofile)
     print("_cell_length_c    %.5f" % c.length[2], file=ofile)
     print("_cell_angle_alpha %.5f" % c.angle_deg[0], file=ofile)
     print("_cell_angle_beta  %.5f" % c.angle_deg[1], file=ofile)
     print("_cell_angle_gamma %.5f" % c.angle_deg[2], file=ofile)
-    print(" ", file=ofile)
+    print("", file=ofile)
     # To be versatile, P1 symmetry is specified in Hall, H-M and equiv_pos
     print("_symmetry_space_group_name_Hall 'P 1'", file=ofile)
     print("_symmetry_space_group_name_H-M  'P 1'", file=ofile)
-    print(" ", file=ofile)
+    print("", file=ofile)
     print("loop_", file=ofile)
     print("_symmetry_equiv_pos_as_xyz", file=ofile)
-    print(" 'x,y,z' ", file=ofile)
-    print(" ", file=ofile)
+    print(" 'x,y,z'", file=ofile)
+    print("", file=ofile)
     print("loop_", file=ofile)
     print("_atom_site_label", file=ofile)
     print("_atom_site_type_symbol", file=ofile)
@@ -85,14 +85,14 @@ def write_cif(ofile, c):
     if print_charges:
         print("_atom_site_charge", file=ofile)
     for i in range(c.natom):
-        print("{:10} {:5} {:>9.5f} {:>9.5f} {:>9.5f} ".format(c.atom_element[i], c.atom_element[i], c.atom_fract[i][0],
-                                                              c.atom_fract[i][1], c.atom_fract[i][2]),
+        print("{:10} {:5} {:>9.5f} {:>9.5f} {:>9.5f}".format(c.atom_element[i], c.atom_element[i], c.atom_fract[i][0],
+                                                             c.atom_fract[i][1], c.atom_fract[i][2]),
               end="",
               file=ofile)
         if print_charges:  # add charge with many decimals to avoid net charge
             print('{:>14.10f}'.format(c.atom_charge[i]), file=ofile)
         else:  # add \n
-            print('', file=ofile)
+            print("", file=ofile)
     return
 
 
