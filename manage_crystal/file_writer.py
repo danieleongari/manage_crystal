@@ -258,6 +258,12 @@ def write_subsys(ofile, c, bscp2k, potcp2k, fract):
     print("    &END COORD", file=ofile)
     print("", file=ofile)
     # print elements KIND
+
+    c.element = []
+    for atom_type in c.atom_element:
+        if not atom_type in c.element:
+            c.element.append(atom_type)
+
     for element in c.element:
         print("    &KIND %s" % element, file=ofile)
         print("      BASIS_SET %s" % bscp2k, file=ofile)
