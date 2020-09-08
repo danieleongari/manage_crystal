@@ -259,19 +259,14 @@ def write_subsys(ofile, c, bscp2k, potcp2k, fract):
     print("", file=ofile)
     # print elements KIND
 
-    c.element = []
-    for atom_type in c.atom_element:
-        if not atom_type in c.element:
-            c.element.append(atom_type)
-
-    for element in c.element:
+    for element in c.element_list:
         print("    &KIND %s" % element, file=ofile)
         print("      BASIS_SET %s" % bscp2k, file=ofile)
         print("      POTENTIAL %s" % potcp2k, file=ofile)
         print("    &END KIND", file=ofile)
         print("", file=ofile)
     # print element_ghost kind, for BSSE calculation
-    for element in c.element:
+    for element in c.element_list:
         print("    &KIND %s_ghost" % element, file=ofile)
         print("      BASIS_SET %s" % bscp2k, file=ofile)
         print("      GHOST", file=ofile)
