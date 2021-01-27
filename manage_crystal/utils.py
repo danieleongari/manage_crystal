@@ -1,7 +1,8 @@
 """Utilities and shortcuts for manage_crystal."""
 
 
-def is_number(s):  #checks if a string is a number or not
+def is_number(s):
+    """Checks if a string is a number or not."""
     try:
         float(s)
         return True
@@ -20,3 +21,9 @@ def parse_and_write(inputfile, outputfile):
     from manage_crystal.file_writer import write_to_filepath
     crys = parse_from_filepath(inputfile)
     write_to_filepath(crys, outputfile)
+
+
+def parse_coord(coord_string):
+    """Convert string to number, and exclude brackets such as 0.342(3)."""
+    coord = coord_string.split("(")[0]
+    return float(coord)

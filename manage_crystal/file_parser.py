@@ -4,7 +4,7 @@ Functions are sorted in alphabetic order.
 
 from manage_crystal import Crys
 from manage_crystal.periodic_table import ptab_atnum_inv
-from manage_crystal.utils import is_number
+from manage_crystal.utils import is_number, parse_coord
 import numpy as np
 import os
 import sys
@@ -164,15 +164,15 @@ def parse_cif(file):
                 sys.exit("EXIT: in cif missing type_symbol and label")
             if "_atom_site_fract_x" in data_order_dic:
                 c.atom_fract.append([
-                    float(data[data_order_dic["_atom_site_fract_x"]]),
-                    float(data[data_order_dic["_atom_site_fract_y"]]),
-                    float(data[data_order_dic["_atom_site_fract_z"]]),
+                    parse_coord(data[data_order_dic["_atom_site_fract_x"]]),
+                    parse_coord(data[data_order_dic["_atom_site_fract_y"]]),
+                    parse_coord(data[data_order_dic["_atom_site_fract_z"]])
                 ])
             elif "_atom_site_Cartn_x" in data_order_dic:
                 c.atom_xyz.append([
-                    float(data[data_order_dic["_atom_site_Cartn_x"]]),
-                    float(data[data_order_dic["_atom_site_Cartn_y"]]),
-                    float(data[data_order_dic["_atom_site_Cartn_z"]]),
+                    parse_coord(data[data_order_dic["_atom_site_Cartn_x"]]),
+                    parse_coord(data[data_order_dic["_atom_site_Cartn_y"]]),
+                    parse_coord(data[data_order_dic["_atom_site_Cartn_z"]])
                 ])
             else:
                 sys.exit("EXIT: in cif missing fract_ and Cartn_ coordinates")
