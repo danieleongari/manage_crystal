@@ -68,8 +68,8 @@ def write_cif(ofile, c):
     print("_cell_angle_gamma %.5f" % c.angle_deg[2], file=ofile)
     print("", file=ofile)
     # To be versatile, P1 symmetry is specified in Hall, H-M and equiv_pos
-    print("_symmetry_space_group_name_Hall 'P 1'", file=ofile)
-    print("_symmetry_space_group_name_H-M  'P 1'", file=ofile)
+    print("_space_group_name_Hall 'P 1'", file=ofile)
+    print("_space_group_name_H-M_alt 'P 1'", file=ofile)
     print("", file=ofile)
     print("loop_", file=ofile)
     print("_symmetry_equiv_pos_as_xyz", file=ofile)
